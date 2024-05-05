@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/jkclark/Immaculate-Movie-Grid/issues"
   },
-  "homepage": "https://github.com/jkclark/Immaculate-Movie-Grid#readme"
+  "homepage": "https://github.com/jkclark/Immaculate-Movie-Grid#readme",
+  "dependencies": {
+    "ts-node": "^10.9.2"
+  }
 }
