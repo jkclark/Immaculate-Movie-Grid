@@ -1,0 +1,20 @@
+{
+  "name": "immaculate-movie-grid",
+  "version": "1.0.0",
+  "description": "Based on https://www.immaculategrid.com/",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jkclark/Immaculate-Movie-Grid.git"
+  },
+  "keywords": [],
+  "author": "Josh Clark",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jkclark/Immaculate-Movie-Grid/issues"
+  },
+  "homepage": "https://github.com/jkclark/Immaculate-Movie-Grid#readme"
+}
