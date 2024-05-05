@@ -4,7 +4,8 @@
   "description": "Based on https://www.immaculategrid.com/",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run": "npx ts-node index.js"
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,10 @@
   },
   "homepage": "https://github.com/jkclark/Immaculate-Movie-Grid#readme",
   "dependencies": {
+    "node-fetch": "^2.7.0",
     "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
   }
 }
