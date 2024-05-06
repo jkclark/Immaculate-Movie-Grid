@@ -39,6 +39,11 @@ async function getRandomActor() {
 
     // Skip repeats and non-actors
     if (chosen_actors.includes(actor.name) || actor.known_for_department !== "Acting") {
+      if (chosen_actors.includes(actor.name)) {
+        console.log("Repeat: " + actor.name);
+      } else {
+        console.log("Not an actor: " + actor.name);
+      }
       continue;
     }
 
