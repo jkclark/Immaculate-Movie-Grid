@@ -12,7 +12,7 @@ export default async function generateGrid(): Promise<Actor[]> {
     actor.credits = credits;
   }
 
-  splitActors(actors);
+  findValidActorSplit(actors);
   return actors;
 }
 
@@ -99,6 +99,35 @@ async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
   return credits;
 }
 
+function findValidActorSplit(actors: Actor[]): [Actor[], Actor[]] {
+  const allTriples = getCombinations(actors, 3);
+  for (const triple of allTriples) {
+    // Define the two candidate groups of actors
+    const otherActors = actors.filter(actor => !triple.includes(actor));
+
+    // Check each pair (there are 3^2 = 9 pairs for two groups of 3)
+    if (actorSplitIsValid(triple, otherActors)) {
+      console.log("Found valid split!");
+      console.log(triple.map(actor => actor.name));
+      console.log(otherActors.map(actor => actor.name));
+      return [triple, otherActors];
+    }
+  }
+
+  console.log("No valid split found.");
+}
+
+function actorSplitIsValid(groupA: Actor[], groupB: Actor[]): boolean {
+  for (const actorA of groupA) {
+    for (const actorB of groupB) {
+      if (!actorsDoShareCredits(actorA, actorB)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 /**
  * Get all possible combinations of a given size from a list.
  *
@@ -135,4 +164,21 @@ function getCombinations<T>(list: T[], k: number): T[][] {
   }
 
   return combinations;
+}
+
+/**
+ * 
+ * @param actorA the first actor to compare
+ * @param actorB the second actor to compare
+ * @returns true if the actors share any credits, false otherwise
+ */
+function actorsDoShareCredits(actorA: Actor, actorB: Actor): boolean {
+  for (const creditA of actorA.credits) {
+    for (const creditB of actorB.credits) {
+      if (creditA.id === creditB.id) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
