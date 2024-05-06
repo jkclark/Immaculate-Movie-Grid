@@ -99,3 +99,40 @@ async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
   return credits;
 }
 
+/**
+ * Get all possible combinations of a given size from a list.
+ *
+ * @param list the list from which to get combinations
+ * @param k the number of elements in each combination
+ * @returns a list of all combinations of `k` elements from `list`
+ */
+function getCombinations<T>(list: T[], k: number): T[][] {
+  // Base case: if k is 0, return an array containing an empty array
+  if (k === 0) {
+    return [[]];
+  }
+
+  // If the list is shorter than k, return an empty array
+  if (list.length < k) {
+    return [];
+  }
+
+  // Initialize an array to store the combinations
+  const combinations: T[][] = [];
+
+  // Iterate through the list
+  for (let i = 0; i <= list.length - k; i++) {
+    // Take the current element from the list
+    const element = list[i];
+
+    // Recursively find combinations from the remaining list
+    const remainingCombinations = getCombinations(list.slice(i + 1), k - 1);
+
+    // Combine the current element with the combinations from the remaining list
+    for (const combination of remainingCombinations) {
+      combinations.push([element, ...combination]);
+    }
+  }
+
+  return combinations;
+}
