@@ -6,10 +6,13 @@ export default async function generateGrid(): Promise<Actor[]> {
   for (const actor of actors) {
     console.log(actor.name);
     const credits = await getActorCredits(actor);
-    for (const credit of credits) {
-      console.log(`  ${credit.type}: ${credit.name}`);
-    }
+    // for (const credit of credits) {
+    //   console.log(`  ${credit.type}: ${credit.name}`);
+    // }
+    actor.credits = credits;
   }
+
+  splitActors(actors);
   return actors;
 }
 
@@ -43,23 +46,23 @@ async function getRandomActors(numActors: number): Promise<Actor[]> {
   const ACTORS_PER_PAGE = 20;
   const chosen_actors: Actor[] = [];
   while (chosen_actors.length < numActors) {
-    const random_page_index = Math.floor(Math.random() * PAGES_TO_GET);
-    const random_page = responses[random_page_index];
+    const randomPageIndex = Math.floor(Math.random() * PAGES_TO_GET);
+    const randomPage = responses[randomPageIndex];
 
-    const random_actor_index = Math.floor(Math.random() * ACTORS_PER_PAGE);
-    const random_actor = random_page["results"][random_actor_index];
+    const randomActorIndex = Math.floor(Math.random() * ACTORS_PER_PAGE);
+    const randomActor = randomPage["results"][randomActorIndex];
 
     // Skip repeats and non-actors
-    if (chosen_actors.includes(random_actor.name) || random_actor.known_for_department !== "Acting") {
-      if (chosen_actors.includes(random_actor.name)) {
-        console.log("Repeat: " + random_actor.name);
+    if (chosen_actors.includes(randomActor) || randomActor.known_for_department !== "Acting") {
+      if (chosen_actors.includes(randomActor)) {
+        console.log("Repeat: " + randomActor.name);
       } else {
-        console.log("Not an actor: " + random_actor.name);
+        console.log("Not an actor: " + randomActor.name);
       }
       continue;
     }
 
-    chosen_actors.push({ id: random_actor.id, name: random_actor.name });
+    chosen_actors.push({ id: randomActor.id, name: randomActor.name, credits: new Set() });
   }
 
   return chosen_actors;
@@ -72,8 +75,6 @@ async function getRandomActors(numActors: number): Promise<Actor[]> {
  * @returns a set of credits for the actor
  */
 async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
-  console.log("Actor: ");
-  console.log(actor);
   const options = {
     method: "GET",
     headers: {
@@ -97,3 +98,4 @@ async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
 
   return credits;
 }
+
