@@ -84,10 +84,10 @@ async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
     .then(res => res.json())
     .then(json => {
       for (const credit of json["cast"]) {
-        // Ignore talk shows
-        if (credit.media_type === "tv" && credit.genre_ids.includes(10767)) {
+        if (!isCreditValid(credit)) {
           continue;
         }
+
         // Movies have a "title", TV shows have a "name"
         credits.add({ type: credit.media_type, id: credit.id, name: credit.title || credit.name });
       }
@@ -110,33 +110,6 @@ function findValidActorSplit(actors: Actor[]): Connection[] {
       return connections;
     }
   }
-
-  console.log("No valid split found.");
-}
-
-/**
- * Check if a split of actors into two groups is valid.
- *  
- * A split is valid if each pair of actors between the two groups shares at least one credit.
- * 
- * @param groupA the first group of actors to compare
- * @param groupB the second group of actors to compare
- * @returns a list of connections between actors in the two groups, or null if no valid split exists
- */
-function actorSplitIsValid(groupA: Actor[], groupB: Actor[]): Connection[] {
-  const connections: Connection[] = [];
-  for (const actorA of groupA) {
-    for (const actorB of groupB) {
-      if (!getActorsSharedCredit(actorA, actorB)) {
-        return null;
-      }
-
-      const credit = getActorsSharedCredit(actorA, actorB);
-      connections.push({ actor1: actorA, actor2: actorB, credit });
-    }
-  }
-
-  return connections;
 }
 
 /**
@@ -178,6 +151,31 @@ function getCombinations<T>(list: T[], k: number): T[][] {
 }
 
 /**
+ * Check if a split of actors into two groups is valid.
+ *  
+ * A split is valid if each pair of actors between the two groups shares at least one credit.
+ * 
+ * @param groupA the first group of actors to compare
+ * @param groupB the second group of actors to compare
+ * @returns a list of connections between actors in the two groups, or null if no valid split exists
+ */
+function actorSplitIsValid(groupA: Actor[], groupB: Actor[]): Connection[] {
+  const connections: Connection[] = [];
+  for (const actorA of groupA) {
+    for (const actorB of groupB) {
+      if (!getActorsSharedCredit(actorA, actorB)) {
+        return null;
+      }
+
+      const credit = getActorsSharedCredit(actorA, actorB);
+      connections.push({ actor1: actorA, actor2: actorB, credit });
+    }
+  }
+
+  return connections;
+}
+
+/**
  * 
  * @param actorA the first actor to compare
  * @param actorB the second actor to compare
@@ -192,4 +190,24 @@ function getActorsSharedCredit(actorA: Actor, actorB: Actor): Credit {
     }
   }
   return null;
+}
+
+/**
+ * Determine if a credit is "valid". A credit is valid if it is:
+ * - Not a talk show
+ * - Not Saturday Night Live
+ * 
+ * I'm using `any` instead of a more specific type because the TMDB API response
+ * is large and complex.
+ * 
+ * @param credit the JSON object from the TMDB API representing a credit
+ * @returns true if the credit is valid, false otherwise
+ */
+function isCreditValid(credit: any): boolean {
+  const TALK_SHOW_GENRE_ID = 10767;
+  const is_talk_show: boolean = credit.media_type === "tv" && credit.genre_ids.includes(TALK_SHOW_GENRE_ID);
+
+  const SNL_ID = 1667;
+  const is_snl: boolean = credit.media_type === "tv" && credit.id === SNL_ID;
+  return !is_talk_show && !is_snl;
 }
