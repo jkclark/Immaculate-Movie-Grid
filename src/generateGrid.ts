@@ -207,7 +207,10 @@ function isCreditValid(credit: any): boolean {
   const TALK_SHOW_GENRE_ID = 10767;
   const is_talk_show: boolean = credit.media_type === "tv" && credit.genre_ids.includes(TALK_SHOW_GENRE_ID);
 
-  const SNL_ID = 1667;
-  const is_snl: boolean = credit.media_type === "tv" && credit.id === SNL_ID;
-  return !is_talk_show && !is_snl;
+  const INVALID_TV_SHOWS: number[] = [
+    1667, // Saturday Night Live
+    2224, // The Daily Show
+  ]
+  const is_invalid_show: boolean = credit.media_type === "tv" && INVALID_TV_SHOWS.includes(credit.id);
+  return !is_talk_show && !is_invalid_show;
 }
