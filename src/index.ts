@@ -8,11 +8,11 @@ import { writeTextToS3 } from "./s3";
 dotenv.config();
 
 async function main(): Promise<void> {
-  const grid = await generateGrid();
+  let grid = await generateGrid();
 
-  if (!grid.connections) {
-    console.error("Failed to generate grid");
-    return;
+  while (!grid.connections) {
+    console.error("Failed to generate grid, trying again");
+    grid = await generateGrid();
   }
 
   for (const actor of grid.actors) {

@@ -4,12 +4,7 @@ import { Actor, Credit, Connection, Grid } from "./interfaces";
 export default async function generateGrid(): Promise<Grid> {
   const actors: Actor[] = await getRandomActors(6);
   for (const actor of actors) {
-    console.log(actor.name);
-    const credits = await getActorCredits(actor);
-    // for (const credit of credits) {
-    //   console.log(`  ${credit.type}: ${credit.name}`);
-    // }
-    actor.credits = credits;
+    actor.credits = await getActorCredits(actor);
   }
 
   const connections = findValidActorSplit(actors);
@@ -112,15 +107,6 @@ function findValidActorSplit(actors: Actor[]): Connection[] {
     // Check each pair (there are 3^2 = 9 pairs for two groups of 3)
     const connections: Connection[] = actorSplitIsValid(triple, otherActors);
     if (connections) {
-      console.log("Found valid split!");
-      console.log(triple.map(actor => actor.name));
-      console.log(otherActors.map(actor => actor.name));
-      // For test
-      for (const actor of triple) {
-        for (const otherActor of otherActors) {
-          console.log(`${actor.name} and ${otherActor.name} share ${getActorsSharedCredit(actor, otherActor).name}`);
-        }
-      }
       return connections;
     }
   }
