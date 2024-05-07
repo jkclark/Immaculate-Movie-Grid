@@ -120,7 +120,7 @@ function findValidActorSplit(actors: Actor[]): [Actor[], Actor[]] {
 function actorSplitIsValid(groupA: Actor[], groupB: Actor[]): boolean {
   for (const actorA of groupA) {
     for (const actorB of groupB) {
-      if (!actorsDoShareCredits(actorA, actorB)) {
+      if (!getActorsSharedCredit(actorA, actorB)) {
         return false;
       }
     }
@@ -170,15 +170,15 @@ function getCombinations<T>(list: T[], k: number): T[][] {
  * 
  * @param actorA the first actor to compare
  * @param actorB the second actor to compare
- * @returns true if the actors share any credits, false otherwise
+ * @returns a credit shared by both actors, or null if none exists
  */
-function actorsDoShareCredits(actorA: Actor, actorB: Actor): boolean {
+function getActorsSharedCredit(actorA: Actor, actorB: Actor): Credit {
   for (const creditA of actorA.credits) {
     for (const creditB of actorB.credits) {
       if (creditA.id === creditB.id) {
-        return true;
+        return creditA;
       }
     }
   }
-  return false;
+  return null;
 }
