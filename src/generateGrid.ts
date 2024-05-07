@@ -1,7 +1,7 @@
-import { Actor, Credit } from "./interfaces";
+import { Actor, Credit, Connection, Grid } from "./interfaces";
 
 
-export default async function generateGrid(): Promise<Actor[]> {
+export default async function generateGrid(): Promise<Grid> {
   const actors: Actor[] = await getRandomActors(6);
   for (const actor of actors) {
     console.log(actor.name);
@@ -12,8 +12,8 @@ export default async function generateGrid(): Promise<Actor[]> {
     actor.credits = credits;
   }
 
-  findValidActorSplit(actors);
-  return actors;
+  const connections = findValidActorSplit(actors);
+  return { actors, connections };
 }
 
 /**
@@ -99,33 +99,54 @@ async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
   return credits;
 }
 
-function findValidActorSplit(actors: Actor[]): [Actor[], Actor[]] {
+function findValidActorSplit(actors: Actor[]): Connection[] {
   const allTriples = getCombinations(actors, 3);
   for (const triple of allTriples) {
     // Define the two candidate groups of actors
     const otherActors = actors.filter(actor => !triple.includes(actor));
 
     // Check each pair (there are 3^2 = 9 pairs for two groups of 3)
-    if (actorSplitIsValid(triple, otherActors)) {
+    const connections: Connection[] = actorSplitIsValid(triple, otherActors);
+    if (connections) {
       console.log("Found valid split!");
       console.log(triple.map(actor => actor.name));
       console.log(otherActors.map(actor => actor.name));
-      return [triple, otherActors];
+      // For test
+      for (const actor of triple) {
+        for (const otherActor of otherActors) {
+          console.log(`${actor.name} and ${otherActor.name} share ${getActorsSharedCredit(actor, otherActor).name}`);
+        }
+      }
+      return connections;
     }
   }
 
   console.log("No valid split found.");
 }
 
-function actorSplitIsValid(groupA: Actor[], groupB: Actor[]): boolean {
+/**
+ * Check if a split of actors into two groups is valid.
+ *  
+ * A split is valid if each pair of actors between the two groups shares at least one credit.
+ * 
+ * @param groupA the first group of actors to compare
+ * @param groupB the second group of actors to compare
+ * @returns a list of connections between actors in the two groups, or null if no valid split exists
+ */
+function actorSplitIsValid(groupA: Actor[], groupB: Actor[]): Connection[] {
+  const connections: Connection[] = [];
   for (const actorA of groupA) {
     for (const actorB of groupB) {
       if (!getActorsSharedCredit(actorA, actorB)) {
-        return false;
+        return null;
       }
+
+      const credit = getActorsSharedCredit(actorA, actorB);
+      connections.push({ actor1: actorA, actor2: actorB, credit });
     }
   }
-  return true;
+
+  return connections;
 }
 
 /**
