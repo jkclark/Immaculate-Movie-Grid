@@ -89,6 +89,10 @@ async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
     .then(res => res.json())
     .then(json => {
       for (const credit of json["cast"]) {
+        // Ignore talk shows
+        if (credit.media_type === "tv" && credit.genre_ids.includes(10767)) {
+          continue;
+        }
         // Movies have a "title", TV shows have a "name"
         credits.add({ type: credit.media_type, id: credit.id, name: credit.title || credit.name });
       }
