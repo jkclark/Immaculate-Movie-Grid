@@ -200,17 +200,26 @@ function getActorsSharedCredit(actorA: Actor, actorB: Actor): Credit {
  * I'm using `any` instead of a more specific type because the TMDB API response
  * is large and complex.
  * 
+ * Notes:
+ * - There are some TV shows, like CSI: Crime Scene Investigation and NCIS that have
+ *   had so many episodes with so many guest actors that they are starting to move away
+ *   from the spirit of the game. Not sure yet what to do about that.
+ * 
  * @param credit the JSON object from the TMDB API representing a credit
  * @returns true if the credit is valid, false otherwise
  */
 function isCreditValid(credit: any): boolean {
-  const TALK_SHOW_GENRE_ID = 10767;
-  const is_talk_show: boolean = credit.media_type === "tv" && credit.genre_ids.includes(TALK_SHOW_GENRE_ID);
+  const INVALID_TV_GENRES_IDS: number[] = [
+    10763, // News
+    10767, // Talk shows
+  ]
+  const isInvalidGenre: boolean = credit.media_type === "tv" && credit.genre_ids.some(id => INVALID_TV_GENRES_IDS.includes(id));
 
-  const INVALID_TV_SHOWS: number[] = [
+  const INVALID_TV_SHOW_IDS: number[] = [
     1667, // Saturday Night Live
     2224, // The Daily Show
+    27023, // The Oscars
   ]
-  const is_invalid_show: boolean = credit.media_type === "tv" && INVALID_TV_SHOWS.includes(credit.id);
-  return !is_talk_show && !is_invalid_show;
+  const isInvalidShow: boolean = credit.media_type === "tv" && INVALID_TV_SHOW_IDS.includes(credit.id);
+  return !isInvalidGenre && !isInvalidShow;
 }
