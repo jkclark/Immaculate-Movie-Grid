@@ -1,0 +1,16 @@
+version: 0.2
+
+# Define the phases of the build process
+phases:
+  install:
+    commands:
+      # Navigate to the specific folder in your repository
+      - cd website
+
+# Define the artifacts to be stored after the build process
+artifacts:
+  files:
+    # Specify which files you want to include in the artifacts
+    # In this case, we want everything in the specified folder
+    - '**/*'
+  # No need to specify a base directory because we're already in the desired folder
