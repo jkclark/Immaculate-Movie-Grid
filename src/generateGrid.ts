@@ -26,7 +26,7 @@ async function getRandomActors(numActors: number): Promise<Actor[]> {
     }
   };
 
-  const PAGES_TO_GET = 20;
+  const PAGES_TO_GET = 30;
   const responses = [];
   // NOTE: Pages are 1-indexed in the TMDB API
   for (let page = 1; page < PAGES_TO_GET + 1; page++) {
