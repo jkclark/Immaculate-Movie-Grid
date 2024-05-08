@@ -10,9 +10,14 @@ dotenv.config();
 async function main(): Promise<void> {
   let grid = await generateGrid();
 
+  let attempt = 1;
   while (!grid.connections) {
-    console.error("Failed to generate grid, trying again");
+    if (attempt % 5 === 0) {
+      console.log("Miss #", attempt);
+    }
     grid = await generateGrid();
+
+    attempt++;
   }
 
   for (const actor of grid.actors) {
