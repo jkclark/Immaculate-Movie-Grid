@@ -6,6 +6,7 @@ phases:
     commands:
       # Navigate to the specific folder in your repository
       - cd website
+      - echo "testing testing 123"
 
 # Define the artifacts to be stored after the build process
 artifacts:
