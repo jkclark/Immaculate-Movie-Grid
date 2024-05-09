@@ -4,11 +4,18 @@ import "node-fetch";
 
 import generateGrid from "./generateGrid";
 import { writeTextToS3 } from "./s3";
+import { Grid } from "./interfaces";
 
 dotenv.config();
 
 async function main(): Promise<void> {
-  let grid = await generateGrid();
+  const validGrid = await getValidGrid();
+  console.log("Valid grid found!");
+  console.log(validGrid);
+}
+
+async function getValidGrid(): Promise<Grid> {
+  let grid: Grid = await generateGrid();
 
   let attempt = 1;
   while (!grid.connections) {
@@ -27,6 +34,8 @@ async function main(): Promise<void> {
   for (const connection of grid.connections) {
     console.log(`  ${connection.actor1.name} and ${connection.actor2.name} in ${connection.credit.name}`);
   }
+
+  return grid
 }
 
 main();
