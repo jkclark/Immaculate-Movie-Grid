@@ -1,10 +1,9 @@
 // import React from 'react';
-import './App.css';
 import Grid from './components/Grid';
 
 function App() {
   return (
-    <div className="App">
+    <div className="container mx-auto flex items-center justify-center h-screen">
       <Grid />
     </div>
   );
