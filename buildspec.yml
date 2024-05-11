@@ -8,4 +8,4 @@ phases:
 artifacts:
   files:
     - "**/*"
-  base-directory: frontend
+  base-directory: frontend/dist
