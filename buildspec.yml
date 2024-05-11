@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     commands:
-      - echo "Hello, world! Just here for the website folder."
+      - echo "Hello, world! Just here for the frontend/dist folder."
 
 artifacts:
   files:

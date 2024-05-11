@@ -89,7 +89,7 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+# dist  # AWS CodePipeline copies the dist folder to S3 for static hosting
 
 # Gatsby files
 .cache/
