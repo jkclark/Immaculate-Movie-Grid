@@ -1,3 +1,7 @@
+# Immaculate Movie Grid Frontend
+For development, run `npm run dev` and `npx tailwindcss -i ./src/index.css -o ./src/output.css --watch` in two separate terminals. Vite running allows us to hot reload modules as we edit them. The Tailwind CSS program needs to run in order to keep your built CSS files as small as possible, only including what you actually use.
+
+(Below is the original Vite + React-TS README)
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
