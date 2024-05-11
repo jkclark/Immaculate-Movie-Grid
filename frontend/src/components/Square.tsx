@@ -8,6 +8,8 @@ interface SquareProps {
 const Square: React.FC<SquareProps> = ({ initialRow, initialColumn }) => {
   const [row, setRow] = useState(initialRow);
   const [column, setColumn] = useState(initialColumn);
+  console.log(setRow);
+  console.log(setColumn);
 
   return (
     <div className="aspect-content aspect-w-1 aspect-h-1">
