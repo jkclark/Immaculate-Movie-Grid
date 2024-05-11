@@ -1,6 +1,8 @@
 # Immaculate Movie Grid Frontend
 For development, run `npm run dev` and `npx tailwindcss -i ./src/index.css -o ./src/output.css --watch` in two separate terminals. Vite running allows us to hot reload modules as we edit them. The Tailwind CSS program needs to run in order to keep your built CSS files as small as possible, only including what you actually use.
 
+AWS CodePipeline will only deploy to S3, whence the static website is hosted, when there are changes to the `dist/` folder's contents. You can run `npm run build` to build everything; then, commit and push and changes should automatically be propagated to S3.
+
 (Below is the original Vite + React-TS README)
 # React + TypeScript + Vite
 
