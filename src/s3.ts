@@ -10,7 +10,7 @@ const client = new S3Client({});
  * @param key the key for the new S3 object
  */
 export async function writeTextToS3(text: string, bucket: string, key: string) {
-    console.log("Writing to S3!");
+    console.log(`Writing text to ${bucket}/${key} S3!`);
 
     const command = new PutObjectCommand({
         Bucket: bucket,

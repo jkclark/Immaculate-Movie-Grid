@@ -14,6 +14,11 @@ async function main(): Promise<void> {
   const validGrid = await getValidGrid(manualActorIds);
   console.log("Valid grid found!");
   console.log(validGrid);
+
+  const jsonGrid = convertGridToJSON(validGrid);
+  console.log(jsonGrid);
+  // Write to S3
+  await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid.json");
 }
 
 async function getValidGrid(manualActorIds: number[]): Promise<Grid> {
@@ -46,6 +51,40 @@ async function getValidGrid(manualActorIds: number[]): Promise<Grid> {
   }
 
   return grid
+}
+
+function convertGridToJSON(grid: Grid): string {
+  const actorExports = grid.actors.map((actor) => {
+    return {
+      id: actor.id,
+      name: actor.name,
+    };
+  });
+
+  const creditExports = grid.connections.map((connection) => {
+    return {
+      type: connection.credit.type,
+      id: connection.credit.id,
+      name: connection.credit.name,
+    };
+  });
+
+  const answers = {};
+  for (const actor of grid.actors) {
+    answers[actor.id] = [];
+  }
+  for (const connection of grid.connections) {
+    answers[connection.actor1.id].push(connection.credit.id);
+    answers[connection.actor2.id].push(connection.credit.id);
+  }
+
+  const gridExport = {
+    actors: actorExports,
+    credits: creditExports,
+    answers,
+  };
+
+  return JSON.stringify(gridExport);
 }
 
 main();
