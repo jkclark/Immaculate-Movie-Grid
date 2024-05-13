@@ -3,8 +3,9 @@ import * as dotenv from "dotenv";
 import "node-fetch";
 
 import generateGrid from "./generateGrid";
+import { Actor, Grid } from "./interfaces";
 import { writeTextToS3 } from "./s3";
-import { Grid } from "./interfaces";
+import { getActorById, getActorCredits } from "./tmdbAPI";
 
 dotenv.config();
 
@@ -16,14 +17,22 @@ async function main(): Promise<void> {
 }
 
 async function getValidGrid(manualActorIds: number[]): Promise<Grid> {
-  let grid: Grid = await generateGrid(manualActorIds);
+  // Get manual actor info
+  const manualActors: Actor[] = [];
+  for (const id of manualActorIds) {
+    const actor = await getActorById(id);
+    actor.credits = await getActorCredits(actor);
+    manualActors.push(actor);
+  }
+
+  let grid: Grid = await generateGrid(manualActors);
 
   let attempt = 1;
   while (!grid.connections) {
     if (attempt % 5 === 0) {
       console.log("Miss #", attempt);
     }
-    grid = await generateGrid(manualActorIds);
+    grid = await generateGrid(manualActors);
 
     attempt++;
   }
