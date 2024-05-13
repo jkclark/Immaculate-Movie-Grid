@@ -1,14 +1,54 @@
 import { Actor, Credit, Connection, Grid } from "./interfaces";
 
 
-export default async function generateGrid(): Promise<Grid> {
-  const actors: Actor[] = await getRandomActors(6);
-  for (const actor of actors) {
+export default async function generateGrid(manualActorIds: number[]): Promise<Grid> {
+  const GRID_SIZE = 3;
+  const TOTAL_ACTORS = GRID_SIZE * 2;
+
+  const actors: Actor[] = [];
+
+  // TODO: Move this out of this function, because we will repeatedly get the same actors
+  // if we call this function multiple times in a row.
+  // Get the actors specified in the manualActorIds array
+  for (const id of manualActorIds) {
+    const actor = await getActorById(id);
     actor.credits = await getActorCredits(actor);
+    actors.push(actor);
+  }
+
+  // Get 6 - manualActorIds.length random actors
+  const numActorsToGet = TOTAL_ACTORS - manualActorIds.length;
+  const randomActors: Actor[] = await getRandomActors(numActorsToGet);
+  for (const actor of randomActors) {
+    actor.credits = await getActorCredits(actor);
+    actors.push(actor);
   }
 
   const connections = findValidActorSplit(actors);
   return { actors, connections };
+}
+
+async function getActorById(id: number): Promise<Actor> {
+  const options = {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${process.env.TMDB_API_KEY}`
+    }
+  };
+
+  const url = `https://api.themoviedb.org/3/person/${id}?language=en-US`;
+
+  let actor: Actor;
+  await fetch(url, options)
+    .then(res => res.json())
+    .then(json => {
+      actor = { id: json.id, name: json.name, credits: new Set() };
+      return json;
+    })
+    .catch(err => console.error("error:" + err));
+
+  return actor;
 }
 
 /**

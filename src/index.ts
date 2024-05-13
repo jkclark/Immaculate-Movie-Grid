@@ -9,20 +9,21 @@ import { Grid } from "./interfaces";
 dotenv.config();
 
 async function main(): Promise<void> {
-  const validGrid = await getValidGrid();
+  const manualActorIds = [287, 819, 85, 4495, 58225, 23659];
+  const validGrid = await getValidGrid(manualActorIds);
   console.log("Valid grid found!");
   console.log(validGrid);
 }
 
-async function getValidGrid(): Promise<Grid> {
-  let grid: Grid = await generateGrid();
+async function getValidGrid(manualActorIds: number[]): Promise<Grid> {
+  let grid: Grid = await generateGrid(manualActorIds);
 
   let attempt = 1;
   while (!grid.connections) {
     if (attempt % 5 === 0) {
       console.log("Miss #", attempt);
     }
-    grid = await generateGrid();
+    grid = await generateGrid(manualActorIds);
 
     attempt++;
   }
