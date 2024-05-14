@@ -10,15 +10,18 @@ import { getActorById, getActorCredits } from "./tmdbAPI";
 dotenv.config();
 
 async function main(): Promise<void> {
-  const manualActorIds = [287, 819, 85, 4495, 58225, 23659];
+  const manualActorIds = [];
   const validGrid = await getValidGrid(manualActorIds);
   console.log("Valid grid found!");
-  console.log(validGrid);
+  for (const connection of validGrid.connections) {
+    console.log(`  ${connection.actor1.name} and ${connection.actor2.name} are both in ${connection.credit.name}`);
+  }
 
-  const jsonGrid = convertGridToJSON(validGrid);
-  console.log(jsonGrid);
+  // Convert to JSON
+  // const jsonGrid = convertGridToJSON(validGrid);
+
   // Write to S3
-  await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid.json");
+  // await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid.json");
 }
 
 async function getValidGrid(manualActorIds: number[]): Promise<Grid> {

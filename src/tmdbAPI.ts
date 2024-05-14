@@ -29,58 +29,6 @@ export async function getActorById(id: number): Promise<Actor> {
 }
 
 /**
- * Get a list of random actors from the TMDB API "popular people" list.
- *
- * @param numActors the number of actors to get
- * @returns a list of `numActors` actors
- */
-export async function getRandomActors(numActors: number): Promise<Actor[]> {
-    const options = {
-        method: "GET",
-        headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${process.env.TMDB_API_KEY}`
-        }
-    };
-
-    const PAGES_TO_GET = 30;
-    const responses = [];
-    // NOTE: Pages are 1-indexed in the TMDB API
-    for (let page = 1; page < PAGES_TO_GET + 1; page++) {
-        const url = `https://api.themoviedb.org/3/person/popular?language=en-US&page=${page}`;
-
-        await fetch(url, options)
-            .then(res => res.json())
-            .then(json => { responses.push(json); })
-            .catch(err => console.error("error:" + err));
-    }
-
-    const ACTORS_PER_PAGE = 20;
-    const chosen_actors: Actor[] = [];
-    while (chosen_actors.length < numActors) {
-        const randomPageIndex = Math.floor(Math.random() * PAGES_TO_GET);
-        const randomPage = responses[randomPageIndex];
-
-        const randomActorIndex = Math.floor(Math.random() * ACTORS_PER_PAGE);
-        const randomActor = randomPage["results"][randomActorIndex];
-
-        // Skip repeats and non-actors
-        if (chosen_actors.includes(randomActor) || randomActor.known_for_department !== "Acting") {
-            if (chosen_actors.includes(randomActor)) {
-                console.log("Repeat: " + randomActor.name);
-            } else {
-                console.log("Not an actor: " + randomActor.name);
-            }
-            continue;
-        }
-
-        chosen_actors.push({ id: randomActor.id, name: randomActor.name, credits: new Set() });
-    }
-
-    return chosen_actors;
-}
-
-/**
  * Get a set of movie and TV show credits for an actor.
  * 
  * @param actor the actor for whom to get credits
@@ -117,8 +65,8 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
 
 /**
  * Determine if a credit is "valid". A credit is valid if it is:
- * - Not a talk show
- * - Not Saturday Night Live
+ * - Not a TV show in an "invalid" genre
+ * - Not an "invalid" TV show
  * 
  * I'm using `any` instead of a more specific type because the TMDB API response
  * is large and complex.
@@ -141,7 +89,10 @@ function isCreditValid(credit: any): boolean {
     const INVALID_TV_SHOW_IDS: number[] = [
         1667, // Saturday Night Live
         2224, // The Daily Show
+        3739, // E! True Hollywood Story
         27023, // The Oscars
+        30048, // Tony Awards
+        1111889, // Carol Burnett: 90 Years of Laughter + Love
     ]
     const isInvalidShow: boolean = credit.media_type === "tv" && INVALID_TV_SHOW_IDS.includes(credit.id);
     return !isInvalidGenre && !isInvalidShow;
