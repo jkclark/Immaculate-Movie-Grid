@@ -2,7 +2,7 @@ export const famousActorIds: number[] = [
   500, // Tom Cruise
   16483, // Sylvester Stallone
   2888, // Will Smith
-  66800, // Morgan Freeman
+  192, // Morgan Freeman
   3149, // Marilyn Monroe
   6193, // Leonardo DiCaprio
   51962, // Bill Cosby
