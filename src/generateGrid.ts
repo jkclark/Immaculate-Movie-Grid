@@ -1,5 +1,6 @@
-import { Actor, Credit, Connection, Grid } from "./interfaces";
-import { getActorCredits, getRandomActors } from "./tmdbAPI";
+import { famousActorIds } from "./famousActorIds";
+import { Actor, Connection, Credit, Grid } from "./interfaces";
+import { getActorById, getActorCredits } from "./tmdbAPI";
 
 
 export default async function generateGrid(manualActors: Actor[]): Promise<Grid> {
@@ -10,14 +11,26 @@ export default async function generateGrid(manualActors: Actor[]): Promise<Grid>
 
   // Get TOTAL_ACTORS - manualActorIds.length random actors
   const numActorsToGet = TOTAL_ACTORS - actors.length;
-  const randomActors: Actor[] = await getRandomActors(numActorsToGet);
-  for (const actor of randomActors) {
+  const randomActorIds: number[] = pickNRandomFromList(numActorsToGet, famousActorIds);
+  for (const id of randomActorIds) {
+    const actor = await getActorById(id);
     actor.credits = await getActorCredits(actor);
     actors.push(actor);
   }
 
   const connections = findValidActorSplit(actors);
   return { actors, connections };
+}
+
+/**
+ * Get a random selection of elements from a list.
+ * @param list the list from which to pick random elements
+ * @param n the number of elements to pick
+ * @returns a list of `n` random elements from `list`
+ */
+function pickNRandomFromList<T>(n: number, list: T[]): T[] {
+  const shuffledList = list.sort(() => Math.random() - 0.5);
+  return shuffledList.slice(0, n);
 }
 
 function findValidActorSplit(actors: Actor[]): Connection[] {
@@ -27,7 +40,7 @@ function findValidActorSplit(actors: Actor[]): Connection[] {
     const otherActors = actors.filter(actor => !triple.includes(actor));
 
     // Check each pair (there are 3^2 = 9 pairs for two groups of 3)
-    const connections: Connection[] = actorSplitIsValid(triple, otherActors);
+    const connections: Connection[] = getConnectionsIfSplitPossible(triple, otherActors);
     if (connections) {
       return connections;
     }
@@ -75,7 +88,7 @@ function getCombinations<T>(list: T[], k: number): T[][] {
 }
 
 /**
- * Check if a split of actors into two groups is valid.
+ * Get the connections between two groups of actors if a valid split exists.
  *  
  * A split is valid if each pair of actors between the two groups shares at least one credit.
  * 
@@ -83,16 +96,19 @@ function getCombinations<T>(list: T[], k: number): T[][] {
  * @param groupB the second group of actors to compare
  * @returns a list of connections between actors in the two groups, or null if no valid split exists
  */
-function actorSplitIsValid(groupA: Actor[], groupB: Actor[]): Connection[] {
+function getConnectionsIfSplitPossible(groupA: Actor[], groupB: Actor[]): Connection[] {
   const connections: Connection[] = [];
   for (const actorA of groupA) {
     for (const actorB of groupB) {
-      if (!getActorsSharedCredit(actorA, actorB)) {
+      const credits = getActorsSharedCredits(actorA, actorB);
+
+      if (!credits) {
         return null;
       }
 
-      const credit = getActorsSharedCredit(actorA, actorB);
-      connections.push({ actor1: actorA, actor2: actorB, credit });
+      for (const credit of credits) {
+        connections.push({ actor1: actorA, actor2: actorB, credit });
+      }
     }
   }
 
@@ -100,18 +116,20 @@ function actorSplitIsValid(groupA: Actor[], groupB: Actor[]): Connection[] {
 }
 
 /**
- * 
+ * Get the credits shared by two actors.
  * @param actorA the first actor to compare
  * @param actorB the second actor to compare
- * @returns a credit shared by both actors, or null if none exists
+ * @returns a list of credits shared by the two actors, or null if no credits are shared
  */
-function getActorsSharedCredit(actorA: Actor, actorB: Actor): Credit {
+function getActorsSharedCredits(actorA: Actor, actorB: Actor): Credit[] {
+  const sharedCredits: Credit[] = [];
   for (const creditA of actorA.credits) {
     for (const creditB of actorB.credits) {
       if (creditA.id === creditB.id) {
-        return creditA;
+        sharedCredits.push(creditA);
       }
     }
   }
-  return null;
+
+  return sharedCredits.length > 0 ? sharedCredits : null;
 }
