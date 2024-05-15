@@ -1,13 +1,12 @@
-import { S3 } from "@aws-sdk/client-s3";
 import * as dotenv from "dotenv";
 import fs from 'fs';
 import "node-fetch";
 
 import { famousActorIds } from "./famousActorIds";
 import { ActorNode, Graph, actorsShareCredit, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
-import { Actor, Grid } from "./interfaces";
+import { Actor, CreditExport, Grid } from "./interfaces";
 import { writeTextToS3 } from "./s3";
-import { getActorById, getActorCredits, getActorWithCreditsById } from "./tmdbAPI";
+import { getActorWithCreditsById } from "./tmdbAPI";
 
 dotenv.config();
 
@@ -36,16 +35,24 @@ async function main(): Promise<void> {
     writeGraphToFile(graph, GRAPH_PATH);
   }
 
-  // Get a valid grid
+  // Get valid across and down groups of actors
   const startingActor: ActorNode = graph.actors[16483]; // Sylvester Stallone
   console.log(`Starting actor: ${startingActor.name}`)
-  const validGrid = getValidGridGraph(graph, startingActor);
+  const [across, down] = getValidAcrossAndDown(graph, startingActor);
+  if (!across && !down) {
+    console.log("No valid actor groups found");
+    return;
+  }
+
+  // Get grid from across and down actors
+  const grid = getGrid(graph, across, down);
 
   // Convert to JSON
-  // const jsonGrid = convertGridToJSON(validGrid);
+  const jsonGrid = convertGridToJSON(grid);
+  console.log(jsonGrid);
 
   // Write to S3
-  // await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid.json");
+  await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid-graph.json");
 }
 
 async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
@@ -59,7 +66,7 @@ async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   return actorsWithCredits;
 }
 
-function getValidGridGraph(graph: Graph, startingActor: ActorNode): Grid {
+function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode): [ActorNode[], ActorNode[]] {
   console.log(`Graph: ${Object.keys(graph.actors).length} actors, ${Object.keys(graph.credits).length} credits`)
 
   const acrossActors: ActorNode[] = [startingActor];
@@ -142,43 +149,50 @@ function getValidGridGraph(graph: Graph, startingActor: ActorNode): Grid {
     return false;
   }
 
-  getAcrossAndDownRecursive(startingActor);
+  if (getAcrossAndDownRecursive(startingActor)) {
+    return [acrossActors, downActors];
+  }
 
-  return null;
+  return [[], []];
+}
+
+function getGrid(graph: Graph, across: ActorNode[], down: ActorNode[]): Grid {
+  const actors = across.concat(down).map(actorNode => { return { id: actorNode.id, name: actorNode.name } });
+  const credits: CreditExport[] = [];
+  const answers: { [key: number]: number[] } = {};
+
+  // Create empty answers lists for each actor
+  for (const actor of actors) {
+    answers[actor.id] = [];
+  }
+
+  // Get all credits that the across and down actors share
+  for (const actor of across) {
+    for (const otherActor of down) {
+      for (const creditId of Object.keys(actor.edges)) {
+        if (otherActor.edges[creditId]) {
+          const creditIdNum = parseInt(creditId);
+          // Create the credit if it doesn't already exist
+          if (!credits.map(credit => credit.id).includes(creditIdNum)) {
+            credits.push({ type: graph.credits[creditId].type, id: creditIdNum, name: graph.credits[creditId].name });
+          }
+
+          answers[actor.id].push(creditIdNum);
+          answers[otherActor.id].push(creditIdNum);
+        }
+      }
+    }
+  }
+
+  return {
+    actors,
+    credits,
+    answers,
+  };
 }
 
 function convertGridToJSON(grid: Grid): string {
-  const actorExports = grid.actors.map((actor) => {
-    return {
-      id: actor.id,
-      name: actor.name,
-    };
-  });
-
-  const creditExports = grid.connections.map((connection) => {
-    return {
-      type: connection.credit.type,
-      id: connection.credit.id,
-      name: connection.credit.name,
-    };
-  });
-
-  const answers = {};
-  for (const actor of grid.actors) {
-    answers[actor.id] = [];
-  }
-  for (const connection of grid.connections) {
-    answers[connection.actor1.id].push(connection.credit.id);
-    answers[connection.actor2.id].push(connection.credit.id);
-  }
-
-  const gridExport = {
-    actors: actorExports,
-    credits: creditExports,
-    answers,
-  };
-
-  return JSON.stringify(gridExport);
+  return JSON.stringify(grid);
 }
 
 main();

@@ -10,17 +10,6 @@ export interface Credit {
   name: string;
 }
 
-export interface Connection {
-  actor1: Actor;
-  actor2: Actor;
-  credit: Credit;
-}
-
-export interface Grid {
-  actors: Actor[];
-  connections: Connection[];
-}
-
 export interface ActorExport {
   id: number;
   name: string;
@@ -32,8 +21,8 @@ export interface CreditExport {  // For now this is the same as Credit
   name: string;
 }
 
-export interface GridExport {
-  actors: Actor[];
-  credits: Credit[];
+export interface Grid {
+  actors: ActorExport[];
+  credits: CreditExport[];
   answers: { [key: number]: number[] }  // actor id -> credit id[]
 }
