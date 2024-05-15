@@ -85,7 +85,7 @@ async function mainGraph(): Promise<void> {
   }
 
   // Get a valid grid
-  const startingActor: ActorNode = graph.actors[2888];
+  const startingActor: ActorNode = graph.actors[16483]; // Sylvester Stallone
   console.log(`Starting actor: ${startingActor.name}`)
   const grid = getValidGridGraph(graph, startingActor);
 }
@@ -163,7 +163,12 @@ function getValidGridGraph(graph: Graph, startingActor: ActorNode): Grid {
           if (success) {
             return true;
           } else {
-            continue; // Unnecessary here, but it's good to be explicit
+            // If the recursion fails, remove the actor from the list and continue
+            if (direction === "across") {
+              acrossActors.pop();
+            } else {
+              downActors.pop();
+            }
           }
         }
       }
