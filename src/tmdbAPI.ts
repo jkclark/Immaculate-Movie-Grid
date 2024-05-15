@@ -1,5 +1,11 @@
 import { Actor, Credit } from "./interfaces";
 
+export async function getActorWithCreditsById(id: number): Promise<Actor> {
+    const actor = await getActorById(id);
+    actor.credits = await getActorCredits(actor);
+    return actor;
+}
+
 /**
  * Get an actor object from the TMDB API by ID.
  * @param id the ID of the actor to get
