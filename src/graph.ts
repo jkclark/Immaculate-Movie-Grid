@@ -8,6 +8,7 @@ export interface ActorNode {
 }
 
 interface CreditNode {
+  type: "movie" | "tv";
   id: number;
   name: string;
   edges: { [key: number]: ActorNode };
@@ -26,11 +27,11 @@ export function addActorToGraph(graph: Graph, id: number, name: string): void {
   graph.actors[id] = { id, name, edges: {} };
 }
 
-export function addCreditToGraph(graph: Graph, id: number, name: string): void {
+export function addCreditToGraph(graph: Graph, type: "movie" | "tv", id: number, name: string): void {
   if (graph.credits[id]) {
     throw new RepeatError(`Credit with id ${id} already exists: ${graph.credits[id].name}`);
   }
-  graph.credits[id] = { id, name, edges: {} };
+  graph.credits[id] = { type, id, name, edges: {} };
 }
 
 export function addConnectionToGraph(graph: Graph, actorId: number, creditId: number): void {
@@ -47,7 +48,7 @@ export function generateGraph(actorsWithCredits: Actor[]): Graph {
     addActorToGraph(graph, actor.id, actor.name);
     for (const credit of actor.credits) {
       try {
-        addCreditToGraph(graph, credit.id, credit.name);
+        addCreditToGraph(graph, credit.type, credit.id, credit.name);
       } catch (e) {
         if (e instanceof RepeatError) {
           console.error(e.message);
@@ -69,6 +70,7 @@ interface actorNodeExport {
 }
 
 interface creditNodeExport {
+  type: "movie" | "tv"
   id: number;
   name: string;
   edges: number[];
@@ -88,7 +90,7 @@ function convertGraphToJSON(graph: Graph): string {
   for (const creditId in graph.credits) {
     const credit = graph.credits[creditId];
     const edges = Object.keys(credit.edges).map((actorId) => parseInt(actorId));
-    creditExports.push({ id: credit.id, name: credit.name, edges });
+    creditExports.push({ type: credit.type, id: credit.id, name: credit.name, edges });
   }
 
   return JSON.stringify({ actors: actorExports, credits: creditExports });
@@ -110,7 +112,7 @@ export function readGraphFromFile(path: string): Graph {
   }
 
   for (const credit of data.credits) {
-    addCreditToGraph(graph, credit.id, credit.name);
+    addCreditToGraph(graph, credit.type, credit.id, credit.name);
   }
 
   for (const actor of data.actors) {
