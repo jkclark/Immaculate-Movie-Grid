@@ -4,7 +4,6 @@ import fs from 'fs';
 import "node-fetch";
 
 import { famousActorIds } from "./famousActorIds";
-import generateGrid from "./generateGrid";
 import { ActorNode, Graph, actorsShareCredit, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
 import { Actor, Grid } from "./interfaces";
 import { writeTextToS3 } from "./s3";
@@ -13,53 +12,6 @@ import { getActorById, getActorCredits, getActorWithCreditsById } from "./tmdbAP
 dotenv.config();
 
 async function main(): Promise<void> {
-  const manualActorIds = [];
-  const validGrid = await getValidGrid(manualActorIds);
-  console.log("Valid grid found!");
-  for (const connection of validGrid.connections) {
-    console.log(`  ${connection.actor1.name} and ${connection.actor2.name} are both in ${connection.credit.name}`);
-  }
-
-  // Convert to JSON
-  // const jsonGrid = convertGridToJSON(validGrid);
-
-  // Write to S3
-  // await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid.json");
-}
-
-async function getValidGrid(manualActorIds: number[]): Promise<Grid> {
-  // Get manual actor info
-  const manualActors: Actor[] = [];
-  for (const id of manualActorIds) {
-    const actor = await getActorById(id);
-    actor.credits = await getActorCredits(actor);
-    manualActors.push(actor);
-  }
-
-  let grid: Grid = await generateGrid(manualActors);
-
-  let attempt = 1;
-  while (!grid.connections) {
-    if (attempt % 5 === 0) {
-      console.log("Miss #", attempt);
-    }
-    grid = await generateGrid(manualActors);
-
-    attempt++;
-  }
-
-  for (const actor of grid.actors) {
-    console.log(actor.name);
-  }
-
-  for (const connection of grid.connections) {
-    console.log(`  ${connection.actor1.name} and ${connection.actor2.name} in ${connection.credit.name}`);
-  }
-
-  return grid
-}
-
-async function mainGraph(): Promise<void> {
   let graph: Graph;
   const GRAPH_PATH = "./src/complete_graph.json";
 
@@ -87,7 +39,13 @@ async function mainGraph(): Promise<void> {
   // Get a valid grid
   const startingActor: ActorNode = graph.actors[16483]; // Sylvester Stallone
   console.log(`Starting actor: ${startingActor.name}`)
-  const grid = getValidGridGraph(graph, startingActor);
+  const validGrid = getValidGridGraph(graph, startingActor);
+
+  // Convert to JSON
+  // const jsonGrid = convertGridToJSON(validGrid);
+
+  // Write to S3
+  // await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid.json");
 }
 
 async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
@@ -223,4 +181,4 @@ function convertGridToJSON(grid: Grid): string {
   return JSON.stringify(gridExport);
 }
 
-mainGraph();
+main();
