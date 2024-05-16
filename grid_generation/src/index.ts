@@ -5,7 +5,7 @@ import "node-fetch";
 import { famousActorIds } from "./famousActorIds";
 import { ActorNode, Graph, actorsShareCredit, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
 import { Actor } from "./interfaces";
-import { CreditExport, Grid } from "../common/interfaces"
+import { CreditExport, Grid } from "../../common/interfaces"
 import { writeTextToS3 } from "./s3";
 import { getActorWithCreditsById } from "./tmdbAPI";
 

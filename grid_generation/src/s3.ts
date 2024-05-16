@@ -1,6 +1,9 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-const client = new S3Client({});
+import dotenv from 'dotenv';
+dotenv.config();
+
+const client = new S3Client({ region: process.env.AWS_REGION });
 
 /**
  * Write a string to an S3 object with the given key in the given bucket.
