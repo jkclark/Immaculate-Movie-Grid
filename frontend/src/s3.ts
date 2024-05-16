@@ -1,6 +1,7 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
 import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
+import { Grid } from "../../common/interfaces"
 
 const client = new S3Client({
     region: "us-east-1",
@@ -28,4 +29,9 @@ export async function getS3Object(bucket: string, key: string): Promise<any> {
     const response = await client.send(command);
     const body = await streamToString(response.Body as ReadableStream);
     return JSON.parse(body);
+}
+
+export async function getGridDataFromS3(bucket: string, key: string): Promise<Grid> {
+    const jsonData = await getS3Object(bucket, key);
+    return jsonData as Grid;
 }

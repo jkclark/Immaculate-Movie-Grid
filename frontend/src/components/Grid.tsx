@@ -1,32 +1,25 @@
 import React from 'react';
 import Square from './Square';
+import { Grid as GridData } from '../../../common/interfaces';
 
-const Grid: React.FC = () => {
+const Grid: React.FC<GridData> = poopyGridData => {
+  console.log("Grid data:");
+  console.log(poopyGridData);
   const size = 3;
   const squares = [];
+
   for (let rowIndex = 0; rowIndex < size; rowIndex++) {
     for (let columnIndex = 0; columnIndex < size; columnIndex++) {
-      const isTopLeft = rowIndex === 0 && columnIndex === 0;
-      const isTopRight = rowIndex === 0 && columnIndex === size - 1;
-      const isBottomLeft = rowIndex === size - 1 && columnIndex === 0;
-      const isBottomRight = rowIndex === size - 1 && columnIndex === size - 1;
-
-      let cornerClasses = '';
-      if (isTopLeft) cornerClasses = 'rounded-tl';
-      if (isTopRight) cornerClasses = 'rounded-tr';
-      if (isBottomLeft) cornerClasses = 'rounded-bl';
-      if (isBottomRight) cornerClasses = 'rounded-br';
-
       squares.push(
-        <div className={`border ${cornerClasses} w-24 h-24`} key={`${rowIndex}-${columnIndex}`}>
-          <Square initialRow={rowIndex} initialColumn={columnIndex} />
+        <div className={`border solid w-18 h-18 hover:bg-sky-100`} key={`${rowIndex}-${columnIndex}`}>
+          <Square initialRow={rowIndex} initialColumn={columnIndex} text={""} />
         </div>
       );
     }
   }
 
   return (
-    <div className="grid grid-cols-3 gap-0 w-auto m-0 p-0" style={{ width: "18rem", height: "18rem" }}>
+    <div className="grid grid-cols-3 gap-0 w-auto m-0 p-0" style={{ width: "30rem", height: "30rem" }}>
       {squares}
     </div>
   );

@@ -605,20 +605,24 @@ video {
   display: grid;
 }
 
+.h-screen {
+  height: 100vh;
+}
+
 .h-24 {
   height: 6rem;
 }
 
-.h-screen {
-  height: 100vh;
+.w-auto {
+  width: auto;
 }
 
 .w-24 {
   width: 6rem;
 }
 
-.w-auto {
-  width: auto;
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .grid-cols-3 {
@@ -659,4 +663,24 @@ video {
 
 .p-0 {
   padding: 0px;
+}
+
+.hover\:bg-sky-300:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(125 211 252 / var(--tw-bg-opacity));
+}
+
+.hover\:bg-blue-300:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(147 197 253 / var(--tw-bg-opacity));
+}
+
+.hover\:bg-sky-500:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(14 165 233 / var(--tw-bg-opacity));
+}
+
+.hover\:bg-sky-100:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(224 242 254 / var(--tw-bg-opacity));
 }
