@@ -4,7 +4,8 @@ import "node-fetch";
 
 import { famousActorIds } from "./famousActorIds";
 import { ActorNode, Graph, actorsShareCredit, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
-import { Actor, CreditExport, Grid } from "./interfaces";
+import { Actor } from "./interfaces";
+import { CreditExport, Grid } from "../common/interfaces"
 import { writeTextToS3 } from "./s3";
 import { getActorWithCreditsById } from "./tmdbAPI";
 
@@ -57,7 +58,7 @@ async function main(): Promise<void> {
 
 async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   const actorsWithCredits: Actor[] = [];
-  for (const id of famousActorIds) {
+  for (const id of famousActorIds.slice(0, 10)) {
     const actor = await getActorWithCreditsById(id);
     actorsWithCredits.push(actor);
     console.log(`Got actor ${actor.name} with ${actor.credits.size} credits`);
