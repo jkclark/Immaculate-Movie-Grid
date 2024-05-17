@@ -15,7 +15,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     // Get image from TMDB API
     const image = responseJson.profiles[0];
     const imageType = image.file_path.split(".").pop();
-    const imageUrl = `https://image.tmdb.org/t/p/w500${image.file_path}`;
+    const imageUrl = `https://image.tmdb.org/t/p/w45${image.file_path}`;
     const imageResponse = await getFromTMDBAPI(imageUrl);
 
     // Read the stream and convert it to a base64 string
