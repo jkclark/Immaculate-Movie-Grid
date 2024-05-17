@@ -16,16 +16,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # cd to frontend directory
-      - name: Move to frontend directory
-        run: cd frontend
-
-      - name: Print pwd
-        run: pwd
-
-      - name: Print ls
-        run: ls
-
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
@@ -33,12 +23,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: frontend
 
       - name: Run tsc
         run: npx tsc
+        working-directory: frontend
 
       - name: Build
         run: npm run build
+        working-directory: frontend
 
       - name: Install AWS CLI
         run: |
@@ -54,3 +47,4 @@ jobs:
 
       - name: Sync dist directory to S3
         run: aws s3 sync dist s3://$STATIC_S3_BUCKET
+        working-directory: frontend
