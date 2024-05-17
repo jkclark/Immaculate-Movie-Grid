@@ -12,6 +12,10 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,10 +38,11 @@ jobs:
         working-directory: frontend
 
       - name: Configure AWS credentials
-        run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set default.region us-east-1
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_TO_S3_ROLE }}
+          role-session-name: ${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Sync dist directory to S3
         run: aws s3 sync dist s3://${{ vars.STATIC_S3_BUCKET }}

@@ -26,7 +26,7 @@ const Grid: React.FC<GridData> = gridData => {
         }
       }
       squares.push(
-        <div className={`${isAxisSquare ? "" : "border solid hover:bg-sky-200"} w-18 h-18`} key={`${rowIndex}-${columnIndex}`}>
+        <div className={`${isAxisSquare ? "" : "border solid hover:bg-sky-100"} w-18 h-18`} key={`${rowIndex}-${columnIndex}`}>
           <Square initialRow={rowIndex} initialColumn={columnIndex} text={squareText} />
 
         </div>
