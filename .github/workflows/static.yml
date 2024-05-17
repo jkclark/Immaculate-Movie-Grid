@@ -40,5 +40,5 @@ jobs:
           aws configure set default.region us-east-1
 
       - name: Sync dist directory to S3
-        run: aws s3 sync dist s3://$STATIC_S3_BUCKET
+        run: aws s3 sync dist s3://${{ vars.STATIC_S3_BUCKET }}
         working-directory: frontend
