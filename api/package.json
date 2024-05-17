@@ -1,6 +1,10 @@
 {
+  "scripts": {
+    "build-and-zip": "tsc --outDir ./dist && cp package*.json ./dist && cd dist && npm install --production && zip -r ../dist.zip ."
+  },
   "dependencies": {
     "@types/aws-lambda": "^8.10.138",
+    "dotenv": "^16.4.5",
     "node-fetch": "^2.7.0",
     "ts-node": "^10.9.2"
   },
