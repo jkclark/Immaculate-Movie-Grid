@@ -1,4 +1,5 @@
 import { Actor, Credit } from "./interfaces";
+import { getFromTMDBAPIJson } from "../../common/src/api"
 
 export async function getActorWithCreditsById(id: number): Promise<Actor> {
     const actor = await getActorById(id);
@@ -12,25 +13,9 @@ export async function getActorWithCreditsById(id: number): Promise<Actor> {
  * @returns an actor object with the given ID
  */
 export async function getActorById(id: number): Promise<Actor> {
-    const options = {
-        method: "GET",
-        headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${process.env.TMDB_API_KEY}`
-        }
-    };
-
     const url = `https://api.themoviedb.org/3/person/${id}?language=en-US`;
-
-    let actor: Actor;
-    await fetch(url, options)
-        .then(res => res.json())
-        .then(json => {
-            actor = { id: json.id, name: json.name, credits: new Set() };
-            return json;
-        })
-        .catch(err => console.error("error:" + err));
-
+    const responseJson = await getFromTMDBAPIJson(url);
+    const actor: Actor = { id: responseJson.id, name: responseJson.name, credits: new Set() };
     return actor;
 }
 
@@ -41,30 +26,18 @@ export async function getActorById(id: number): Promise<Actor> {
  * @returns a set of credits for the actor
  */
 export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
-    const options = {
-        method: "GET",
-        headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${process.env.TMDB_API_KEY}`
-        }
-    };
-
     const url = `https://api.themoviedb.org/3/person/${actor.id}/combined_credits?language=en-US`;
-    const credits: Set<Credit> = new Set();
-    await fetch(url, options)
-        .then(res => res.json())
-        .then(json => {
-            for (const credit of json["cast"]) {
-                if (!isCreditValid(credit)) {
-                    continue;
-                }
+    const responseJson = await getFromTMDBAPIJson(url);
 
-                // Movies have a "title", TV shows have a "name"
-                credits.add({ type: credit.media_type, id: credit.id, name: credit.title || credit.name });
-            }
-            return json;
-        })
-        .catch(err => console.error("error:" + err));
+    const credits: Set<Credit> = new Set();
+    for (const credit of responseJson["cast"]) {
+        if (!isCreditValid(credit)) {
+            continue;
+        }
+
+        // Movies have a "title", TV shows have a "name"
+        credits.add({ type: credit.media_type, id: credit.id, name: credit.title || credit.name });
+    }
 
     return credits;
 }
