@@ -7,7 +7,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     console.log("Context:", JSON.stringify(context, null, 2));
 
     // Get image information from TMDB API
-    const actorId = event.pathParameters.actoId;
+    const actorId = event.pathParameters.actorId;
     console.log("actorId: ", actorId);
     const url = `https://api.themoviedb.org/3/person/${actorId}/images?`
     const responseJson = await getFromTMDBAPIJson(url);
@@ -18,12 +18,20 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     const imageUrl = `https://image.tmdb.org/t/p/w500${image.file_path}`;
     const imageResponse = await getFromTMDBAPI(imageUrl);
 
+    // Read the stream and convert it to a base64 string
+    const chunks = [];
+    for await (const chunk of imageResponse.body) {
+        chunks.push(chunk);
+    }
+    const imageBuffer = Buffer.concat(chunks);
+    const imageBase64 = imageBuffer.toString('base64');
+
     return {
         statusCode: 200,
         headers: {
             'Content-Type': `image/${imageType}`
         },
-        body: imageResponse.toString("base64"),
+        body: imageBase64,
         isBase64Encoded: true,
     };
 };
