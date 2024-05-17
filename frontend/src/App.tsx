@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Grid from './components/Grid';
 import { getGridDataFromS3 } from './s3';
-import { Grid as GridData } from '../../common/interfaces';
+import { Grid as GridData } from '../../common/src/interfaces';
 
 function App() {
   const [gridData, setGridData]: [GridData, any] = useState({} as GridData);

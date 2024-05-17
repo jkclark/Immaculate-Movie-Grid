@@ -1,6 +1,6 @@
 import React from 'react';
 import Square from './Square';
-import { Grid as GridData } from '../../../common/interfaces';
+import { Grid as GridData } from '../../../common/src/interfaces';
 
 const Grid: React.FC<GridData> = gridData => {
   console.log("Grid data:");
