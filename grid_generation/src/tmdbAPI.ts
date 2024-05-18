@@ -1,5 +1,8 @@
+import { Readable } from "node:stream";
+import { getFromTMDBAPI, getFromTMDBAPIJson } from "../../common/src/api";
 import { Actor, Credit } from "./interfaces";
-import { getFromTMDBAPIJson } from "../../common/src/api"
+
+const BASE_URL = "https://api.themoviedb.org/3";
 
 export async function getActorWithCreditsById(id: number): Promise<Actor> {
     const actor = await getActorById(id);
@@ -13,7 +16,7 @@ export async function getActorWithCreditsById(id: number): Promise<Actor> {
  * @returns an actor object with the given ID
  */
 export async function getActorById(id: number): Promise<Actor> {
-    const url = `https://api.themoviedb.org/3/person/${id}?language=en-US`;
+    const url = `${BASE_URL}/person/${id}?language=en-US`;
     const responseJson = await getFromTMDBAPIJson(url);
     const actor: Actor = { id: responseJson.id, name: responseJson.name, credits: new Set() };
     return actor;
@@ -26,7 +29,7 @@ export async function getActorById(id: number): Promise<Actor> {
  * @returns a set of credits for the actor
  */
 export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
-    const url = `https://api.themoviedb.org/3/person/${actor.id}/combined_credits?language=en-US`;
+    const url = `${BASE_URL}/person/${actor.id}/combined_credits?language=en-US`;
     const responseJson = await getFromTMDBAPIJson(url);
 
     const credits: Set<Credit> = new Set();
@@ -75,4 +78,38 @@ function isCreditValid(credit: any): boolean {
     ]
     const isInvalidShow: boolean = credit.media_type === "tv" && INVALID_TV_SHOW_IDS.includes(credit.id);
     return !isInvalidGenre && !isInvalidShow;
+}
+
+export async function getImageByIdTypeAndSize(imagesBaseURL: string, id: number, type: "actor" | "tv" | "movie", size: string): Promise<[Readable, string]> {
+    console.log("Doing image for", id, type, size)
+    let basePath: string;
+    let imageTypeFieldName: string;
+    if (type === "actor") {
+        basePath = "/person";
+        imageTypeFieldName = "profiles";
+    } else if (type === "movie" || type === "tv") {
+        basePath = type === "movie" ? "/movie" : "/tv";
+        imageTypeFieldName = "posters";
+    } else {
+        console.error("Invalid type");
+    }
+
+    // Get image file path and image type
+    const path = `${BASE_URL}${basePath}/${id}/images`;
+    const responseJson = await getFromTMDBAPIJson(path);
+
+    // Some actors and credits may not have images
+    if (responseJson[imageTypeFieldName].length === 0) {
+        console.error(`No images found for ${type} ${id}`);
+        return [null, null];
+    }
+
+    const image = responseJson[imageTypeFieldName][0];
+    const imageType = image.file_path.split(".").pop();
+
+    // Get the actual image from TMDB
+    const imageUrl = `${imagesBaseURL}${size}/${image.file_path}`;
+    const imageResponse = await getFromTMDBAPI(imageUrl);
+
+    return [imageResponse.body, imageType];
 }

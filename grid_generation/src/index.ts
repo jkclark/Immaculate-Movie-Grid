@@ -2,42 +2,21 @@ import * as dotenv from "dotenv";
 import fs from 'fs';
 import "node-fetch";
 
+import { CreditExport, Grid } from "../../common/src/interfaces";
 import { famousActorIds } from "./famousActorIds";
 import { ActorNode, Graph, actorsShareCredit, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
+import { getAndSaveAllImagesForGrid } from "./images";
 import { Actor } from "./interfaces";
-import { CreditExport, Grid } from "../../common/interfaces"
 import { writeTextToS3 } from "./s3";
 import { getActorWithCreditsById } from "./tmdbAPI";
 
 dotenv.config();
 
 async function main(): Promise<void> {
-  let graph: Graph;
-  const GRAPH_PATH = "./src/complete_graph.json";
-
-  // If graph exists at ./src/complete_graph.json, read it and return
-  if (fs.existsSync(GRAPH_PATH)) {
-    console.log("Graph exists, reading from file");
-    graph = readGraphFromFile(GRAPH_PATH);
-  }
-
-  // Otherwise, scrape the data, generate the graph, and write it to file
-  else {
-    // Get all actor information
-    const actorsWithCredits = await getAllActorInformation(famousActorIds);
-    console.log("Actors with credits:", actorsWithCredits.length);
-
-    // Generate graph
-    graph = generateGraph(actorsWithCredits);
-
-    // Write graph to file
-    // NOTE: This file cannot be called graph.json because it somehow conflicts with
-    //       the graph.ts file in the same directory.
-    writeGraphToFile(graph, GRAPH_PATH);
-  }
+  const graph = await getGraph();
 
   // Get valid across and down groups of actors
-  const startingActor: ActorNode = graph.actors[16483]; // Sylvester Stallone
+  const startingActor: ActorNode = graph.actors[23659]; // Will Ferrell
   console.log(`Starting actor: ${startingActor.name}`)
   const [across, down] = getValidAcrossAndDown(graph, startingActor);
   if (!across && !down) {
@@ -48,17 +27,45 @@ async function main(): Promise<void> {
   // Get grid from across and down actors
   const grid = getGrid(graph, across, down);
 
+  // Get images for actors and credits and save them to S3
+  await getAndSaveAllImagesForGrid(grid);
+
   // Convert to JSON
   const jsonGrid = convertGridToJSON(grid);
-  console.log(jsonGrid);
 
-  // Write to S3
+  // Write grid to S3
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid-graph.json");
+}
+
+async function getGraph(): Promise<Graph> {
+  // If graph exists, read it and return
+  const GRAPH_PATH = "./src/complete_graph.json";
+  if (fs.existsSync(GRAPH_PATH)) {
+    console.log("Graph exists, reading from file");
+    return readGraphFromFile(GRAPH_PATH);
+  }
+
+  // Otherwise, scrape the data, generate the graph, and write it to file
+  else {
+    // Get all actor information
+    const actorsWithCredits = await getAllActorInformation(famousActorIds);
+    console.log("Actors with credits:", actorsWithCredits.length);
+
+    // Generate graph
+    const graph = generateGraph(actorsWithCredits);
+
+    // Write graph to file
+    // NOTE: This file cannot be called graph.json because it somehow conflicts with
+    //       the graph.ts file in the same directory.
+    writeGraphToFile(graph, GRAPH_PATH);
+
+    return graph;
+  }
 }
 
 async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   const actorsWithCredits: Actor[] = [];
-  for (const id of famousActorIds.slice(0, 10)) {
+  for (const id of famousActorIds) {
     const actor = await getActorWithCreditsById(id);
     actorsWithCredits.push(actor);
     console.log(`Got actor ${actor.name} with ${actor.credits.size} credits`);
@@ -93,14 +100,14 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode): [ActorNo
         const actor = graph.actors[actorId];
 
         // Skip the current actor, who is inevitably in this credit's actors map
+        // NOTE: In theory, the condition below this one should always be true
+        //       if this one is, but I think it's clearer to leave this one in.
         if (actor.id === current.id) {
-          console.log(`Skipping ${actor.name} because ${current.name} (ID = ${current.id}) is ${actor.name} (ID = ${actor.id})`);
           continue;
         }
 
         // Skip actors that are already in the across or down lists
         if (acrossActors.map((actor) => actor.id).includes(parseInt(actorId)) || downActors.map((actor) => actor.id).includes(parseInt(actorId))) {
-          console.log(`Skipping ${actor.name} because it's already in the ${direction} list`);
           continue;
         }
 
@@ -116,7 +123,6 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode): [ActorNo
 
         // If the actor is valid, add it to the appropriate list and recurse
         if (valid) {
-          console.log(`Current actor ${current.name} (ID = ${current.id}) shares with ${actor.name} (ID = ${actor.id})`);
           // Add this actor to the appropriate list
           if (direction === "across") {
             acrossActors.push(actor);
@@ -141,12 +147,10 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode): [ActorNo
 
       // If we reach this point, we've iterated over all actors in this credit
       // and none of them are valid. Return false to backtrack.
-      console.log(`  Backtracking from ${current.name}'s ${credit.name} because no valid actors`);
       return false;
     }
 
     // If we reach this point, we've iterated over all credits for this actor
-    console.log(`Exhausted all credits for ${current.name} (ID = ${current.id})`);
     return false;
   }
 

@@ -1,4 +1,6 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client, UploadPartCommand } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
+import { Readable } from "node:stream";
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -28,4 +30,19 @@ export async function writeTextToS3(text: string, bucket: string, key: string) {
         console.error(err);
     }
 
+}
+
+export async function writeStreamToS3(stream: Readable, bucket: string, key: string) {
+    console.log(`Writing stream to ${bucket}/${key} S3!`);
+
+    const response = new Upload({
+        client,
+        params: {
+            Bucket: bucket,
+            Key: key,
+            Body: stream,
+        },
+    });
+
+    await response.done();
 }
