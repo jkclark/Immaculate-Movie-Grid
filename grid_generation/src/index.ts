@@ -16,9 +16,9 @@ async function main(): Promise<void> {
   const graph = await getGraph();
 
   // Get valid across and down groups of actors
-  const startingActor: ActorNode = graph.actors[60158]; // Benedict Cumberbatch
+  const startingActor: ActorNode = graph.actors[4495]; // Steve Carell
   console.log(`Starting actor: ${startingActor.name}`)
-  const [across, down] = getValidAcrossAndDown(graph, startingActor);
+  const [across, down] = getValidAcrossAndDown(graph, startingActor, true);
   if (across.length === 0 || down.length === 0) {
     console.log("No valid actor groups found");
     return;
@@ -77,7 +77,7 @@ async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   return actorsWithCredits;
 }
 
-function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode): [ActorNode[], ActorNode[]] {
+function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = false): [ActorNode[], ActorNode[]] {
   console.log(`Graph: ${Object.keys(graph.actors).length} actors, ${Object.keys(graph.credits).length} credits`)
 
   const acrossActors: ActorNode[] = [startingActor];
@@ -96,10 +96,12 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode): [ActorNo
     const compareActors = direction === "down" ? acrossActors : downActors;
 
     // Iterate over all credits of the current actor
-    for (const creditId of Object.keys(current.edges)) {
+    const credits = random ? Object.keys(current.edges).sort(() => Math.random() - 0.5) : Object.keys(current.edges);
+    for (const creditId of credits) {
       const credit = graph.credits[creditId];
       // Iterate over this credit's actors
-      for (const actorId of Object.keys(credit.edges)) {
+      const actors = random ? Object.keys(credit.edges).sort(() => Math.random() - 0.5) : Object.keys(credit.edges);
+      for (const actorId of actors) {
         const actor = graph.actors[actorId];
 
         // Skip the current actor, who is inevitably in this credit's actors map
