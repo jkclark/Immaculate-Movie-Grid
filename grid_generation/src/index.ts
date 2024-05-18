@@ -16,13 +16,16 @@ async function main(): Promise<void> {
   const graph = await getGraph();
 
   // Get valid across and down groups of actors
-  const startingActor: ActorNode = graph.actors[23659]; // Will Ferrell
+  const startingActor: ActorNode = graph.actors[60158]; // Benedict Cumberbatch
   console.log(`Starting actor: ${startingActor.name}`)
   const [across, down] = getValidAcrossAndDown(graph, startingActor);
-  if (!across && !down) {
+  if (across.length === 0 || down.length === 0) {
     console.log("No valid actor groups found");
     return;
   }
+
+  console.log(`Across: ${across.map((actor) => actor.name).join(", ")}`);
+  console.log(`Down: ${down.map((actor) => actor.name).join(", ")}`);
 
   // Get grid from across and down actors
   const grid = getGrid(graph, across, down);

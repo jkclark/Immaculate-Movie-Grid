@@ -1,4 +1,4 @@
-import { PutObjectCommand, S3Client, UploadPartCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { Readable } from "node:stream";
 
