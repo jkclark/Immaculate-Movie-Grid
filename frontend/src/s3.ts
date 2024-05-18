@@ -1,7 +1,7 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
 import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
-import { Grid } from "../../common/interfaces"
+import { Grid } from "../../common/src/interfaces"
 
 const client = new S3Client({
     region: "us-east-1",

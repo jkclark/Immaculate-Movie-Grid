@@ -15,7 +15,7 @@ function App() {
         return;
       }
 
-      const jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", "test-grid.json");
+      const jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", "test-grid-graph.json");
       console.log("Grid data:");
       console.log(jsonData);
       setGridData(jsonData);

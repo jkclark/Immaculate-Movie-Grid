@@ -13,22 +13,26 @@ const Grid: React.FC<GridData> = gridData => {
     return <div></div>;
   }
 
+  const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
+
   for (let rowIndex = 0; rowIndex < size; rowIndex++) {
     for (let columnIndex = 0; columnIndex < size; columnIndex++) {
       const isAxisSquare = rowIndex === 0 || columnIndex === 0;
+      let squareImageURL = "";
       let squareText = "";
       if (isAxisSquare) {
         if (rowIndex === 0 && columnIndex === 0) {
         } else if (rowIndex === 0) {
           squareText = gridData.actors[columnIndex - 1].name;
+          squareImageURL = `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[columnIndex - 1].id}.jpg`;
         } else {
           squareText = gridData.actors[(size - 1) + (rowIndex - 1)].name;
+          squareImageURL = `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[(size - 1) + (rowIndex - 1)].id}.jpg`;
         }
       }
       squares.push(
         <div className={`${isAxisSquare ? "" : "border solid hover:bg-sky-100"} w-18 h-18`} key={`${rowIndex}-${columnIndex}`}>
-          <Square initialRow={rowIndex} initialColumn={columnIndex} text={squareText} />
-
+          <Square text={squareText} imageURL={squareImageURL} />
         </div>
       );
     }
