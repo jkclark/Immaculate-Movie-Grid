@@ -1,11 +1,6 @@
 import { APIGatewayProxyEvent, Context, Handler } from 'aws-lambda';
 import { getFromTMDBAPIJson } from '../../common/src/api';
-
-interface SearchResult {
-  media_type: string;
-  id: number;
-  title: string;
-}
+import { SearchResult } from '../../common/src/interfaces';
 
 export const handler: Handler = async (event: APIGatewayProxyEvent, context: Context) => {
   const query = event.queryStringParameters?.query;

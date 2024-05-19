@@ -14,3 +14,9 @@ export interface Grid {
     credits: CreditExport[];
     answers: { [key: number]: number[] }  // actor id -> credit id[]
 }
+
+export interface SearchResult {
+    media_type: string;
+    id: number;
+    title: string;
+}
