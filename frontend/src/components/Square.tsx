@@ -25,11 +25,8 @@ const Square: React.FC<SquareProps> = ({
   };
 
   return (
-    <div onClick={handleClick} className="aspect-content aspect-w-1 aspect-h-1 w-full h-full">
-      <div className="aspect-content">
-        <img src={imageURL} alt={text} />
-        <p className="text-center">{text}</p>
-      </div>
+    <div onClick={handleClick} className="w-full aspect-[2/3] flex items-center justify-center">
+      <img src={imageURL} alt={text} className="max-w-full max-h-full object-cover" />
     </div>
   );
 };

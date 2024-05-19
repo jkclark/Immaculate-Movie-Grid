@@ -42,7 +42,7 @@ const Grid: React.FC<GridProps> = ({ gridData, setSelectedRow, setSelectedCol })
         }
       }
       squares.push(
-        <div className={`${isAxisSquare ? "" : "border border-slate-950 solid hover:bg-sky-100 hover:cursor-pointer"} w-18 h-18`} key={`${rowIndex}-${colIndex}`}>
+        <div className={`${isAxisSquare ? "" : "border solid hover:bg-sky-100 hover:cursor-pointer"}`} key={`${rowIndex}-${colIndex}`}>
           <Square row={rowIndex - 1} col={colIndex - 1} text={squareText} imageURL={squareImageURL} setSelectedRow={squareSetRowFunc} setSelectedCol={squareSetColFunc} />
         </div>
       );
@@ -50,7 +50,7 @@ const Grid: React.FC<GridProps> = ({ gridData, setSelectedRow, setSelectedCol })
   }
 
   return (
-    <div className="grid grid-cols-4 gap-0 w-80 h-auto m-0 p-0">
+    <div className="grid grid-cols-4 grid-rows-4 max-w-[60vh] px-4" style={{ marginTop: "calc(2vh + 20px)" }}>
       {squares}
     </div>
   );

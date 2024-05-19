@@ -2,7 +2,11 @@
 export default {
   content: ["index.html", "src/**/*.{vue,js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      spacing: {
+        "2vh": "2vh",
+      }
+    },
   },
   plugins: [],
 }
