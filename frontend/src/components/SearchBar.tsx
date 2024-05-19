@@ -13,6 +13,8 @@ const SearchBar: React.FC = () => {
         .then(response => response.json())
         .then(data => { console.log("RESULTS:" + data.searchResults); setSearchResults(data.searchResults) })
         .catch(error => console.error(error));
+    } else {
+      setSearchResults([]);
     }
   }, 500), []); // dependencies array is empty because fetchResults doesn't depend on any props or state
 
@@ -31,7 +33,7 @@ const SearchBar: React.FC = () => {
         </div>
         <input type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search any movie or TV show" required onChange={e => setInputText(e.target.value)} />
         <div className="relative">
-          {searchResults && searchResults.map((result, index) => (
+          {inputText && searchResults && searchResults.map((result, index) => (
             <SearchResult key={index} {...result} />
           ))}
         </div>
