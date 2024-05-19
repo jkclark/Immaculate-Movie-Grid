@@ -3,6 +3,7 @@ import { getFromTMDBAPIJson } from '../../common/src/api';
 
 interface SearchResult {
   media_type: string;
+  id: number;
   title: string;
 }
 
@@ -32,6 +33,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     console.log(`${result.media_type}: ${result.title || result.name}`);
     resultsToReturn.push({
       media_type: result.media_type,
+      id: result.id,
       title: result.title || result.name
     });
   }

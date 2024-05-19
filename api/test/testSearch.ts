@@ -3,7 +3,7 @@ import { handler as searchHandler } from '../src/search';
 async function main() {
   const searchResults = await searchHandler({
     queryStringParameters: {
-      query: ""
+      query: "The Hangover"
     }
   }, null, null);
 
