@@ -1,5 +1,5 @@
 import debounce from "lodash.debounce";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SearchResult as SearchResultData } from "../../../common/src/interfaces";
 import SearchResult from "./SearchResult";
 
@@ -31,6 +31,12 @@ const SearchBar: React.FC = () => {
     event.stopPropagation();
   }
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
   return (
     <form onClick={handleClick} className="w-1/2 z-10 absolute top-5 md:top-10 left-1/2 transform -translate-x-1/2">
       <label htmlFor="default-search" className="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
@@ -41,7 +47,7 @@ const SearchBar: React.FC = () => {
           </svg>
         </div>
         <div className="relative">
-          <input type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search any movie or TV show" required onChange={e => setInputText(e.target.value)} />
+          <input ref={inputRef} type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search any movie or TV show" required onChange={e => setInputText(e.target.value)} />
           <div className="absolute w-full">
             {inputText && inputText === previousInputText && searchResults && searchResults.map((result, index) => (
               <SearchResult key={index} {...result} />
