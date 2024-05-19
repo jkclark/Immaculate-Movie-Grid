@@ -7,12 +7,12 @@ import SearchBar from './components/SearchBar';
 
 function App() {
   const [gridData, setGridData]: [GridData, any] = useState({} as GridData);
+  const [selectedRow, setSelectedRow] = useState(-1);
+  const [selectedCol, setSelectedCol] = useState(-1);
 
   useEffect(() => {
     async function fetchData() {
       if (Object.keys(gridData).length > 0) {
-        console.log("Grid data already fetched");
-        console.log(gridData);
         return;
       }
 
@@ -24,10 +24,15 @@ function App() {
     fetchData();
   }, [gridData]);
 
+  const handlePageClick = () => {
+    setSelectedRow(-1);
+    setSelectedCol(-1);
+  };
+
   return (
-    <div className="w-full flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white">
-      <SearchBar />
-      <Grid {...gridData} />
+    <div onClick={handlePageClick} className="w-full flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white">
+      {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar /> : null}
+      <Grid {...{ gridData, setSelectedRow, setSelectedCol }} />
     </div>
   );
 }

@@ -2,9 +2,13 @@ import React from 'react';
 import Square from './Square';
 import { Grid as GridData } from '../../../common/src/interfaces';
 
-const Grid: React.FC<GridData> = gridData => {
-  console.log("Grid data:");
-  console.log(gridData);
+interface GridProps {
+  gridData: GridData;
+  setSelectedRow: (row: number) => void;
+  setSelectedCol: (col: number) => void;
+}
+
+const Grid: React.FC<GridProps> = ({ gridData, setSelectedRow, setSelectedCol }) => {
   const size = 4;
   const squares = [];
 
@@ -15,24 +19,31 @@ const Grid: React.FC<GridData> = gridData => {
 
   const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
 
+  // The -1 everywhere is because the first row and column are for the axis labels
   for (let rowIndex = 0; rowIndex < size; rowIndex++) {
-    for (let columnIndex = 0; columnIndex < size; columnIndex++) {
-      const isAxisSquare = rowIndex === 0 || columnIndex === 0;
+    for (let colIndex = 0; colIndex < size; colIndex++) {
+      const isAxisSquare = rowIndex === 0 || colIndex === 0;
       let squareImageURL = "";
       let squareText = "";
+      let squareSetRowFunc = setSelectedRow;
+      let squareSetColFunc = setSelectedCol;
       if (isAxisSquare) {
-        if (rowIndex === 0 && columnIndex === 0) {
+        // Axis squares should not be clickable
+        squareSetRowFunc = () => { };
+        squareSetColFunc = () => { };
+
+        if (rowIndex === 0 && colIndex === 0) {
         } else if (rowIndex === 0) {
-          squareText = gridData.actors[columnIndex - 1].name;
-          squareImageURL = `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[columnIndex - 1].id}.jpg`;
+          squareText = gridData.actors[colIndex - 1].name;
+          squareImageURL = `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[colIndex - 1].id}.jpg`;
         } else {
           squareText = gridData.actors[(size - 1) + (rowIndex - 1)].name;
           squareImageURL = `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[(size - 1) + (rowIndex - 1)].id}.jpg`;
         }
       }
       squares.push(
-        <div className={`${isAxisSquare ? "" : "border solid hover:bg-sky-100"} w-18 h-18`} key={`${rowIndex}-${columnIndex}`}>
-          <Square text={squareText} imageURL={squareImageURL} />
+        <div className={`${isAxisSquare ? "" : "border solid hover:bg-sky-100"} w-18 h-18`} key={`${rowIndex}-${colIndex}`}>
+          <Square row={rowIndex - 1} col={colIndex - 1} text={squareText} imageURL={squareImageURL} setSelectedRow={squareSetRowFunc} setSelectedCol={squareSetColFunc} />
         </div>
       );
     }
