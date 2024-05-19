@@ -47,10 +47,18 @@ const SearchBar: React.FC = () => {
           </svg>
         </div>
         <div className="relative">
-          <input ref={inputRef} type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search any movie or TV show" required onChange={e => setInputText(e.target.value)} />
+          <input
+            ref={inputRef}
+            type="search"
+            id="default-search"
+            className={`block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 ${searchResults.length > 0 ? "rounded-t-lg" : "rounded-lg"} bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+            placeholder="Search any movie or TV show"
+            required
+            onChange={e => setInputText(e.target.value)}
+          />
           <div className="absolute w-full">
             {inputText && inputText === previousInputText && searchResults && searchResults.map((result, index) => (
-              <SearchResult key={index} {...result} />
+              <SearchResult key={index} {...result} isLast={index === searchResults.length - 1} />
             ))}
           </div>
         </div>
