@@ -39,7 +39,7 @@ const Grid: React.FC<GridData> = gridData => {
   }
 
   return (
-    <div className="grid grid-cols-4 gap-0 w-auto m-0 p-0" style={{ width: "20rem", height: "20rem" }}>
+    <div className="grid grid-cols-4 gap-0 w-80 h-auto m-0 p-0">
       {squares}
     </div>
   );
