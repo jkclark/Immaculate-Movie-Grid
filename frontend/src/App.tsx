@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Grid from './components/Grid';
 import { getGridDataFromS3 } from './s3';
 import { Grid as GridData } from '../../common/src/interfaces';
+import SearchBar from './components/SearchBar';
 
 function App() {
   const [gridData, setGridData]: [GridData, any] = useState({} as GridData);
@@ -24,7 +25,8 @@ function App() {
   }, [gridData]);
 
   return (
-    <div className="container mx-auto flex items-center justify-center h-screen">
+    <div className="w-full flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white">
+      <SearchBar />
       <Grid {...gridData} />
     </div>
   );
