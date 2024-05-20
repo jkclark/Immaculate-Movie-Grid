@@ -12,7 +12,7 @@ export interface CreditExport {  // For now this is the same as Credit
 export interface Grid {
     actors: ActorExport[];
     credits: CreditExport[];
-    answers: { [key: number]: number[] }  // actor id -> credit id[]
+    answers: { [key: number]: { type: "movie" | "tv", id: number }[] } // actor id -> [{type, id}, ...]
 }
 
 export interface SearchResult {

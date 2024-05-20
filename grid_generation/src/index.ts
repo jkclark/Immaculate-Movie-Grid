@@ -18,7 +18,7 @@ async function main(): Promise<void> {
   // Get valid across and down groups of actors
   const startingActor: ActorNode = graph.actors[4495]; // Steve Carell
   console.log(`Starting actor: ${startingActor.name}`)
-  const [across, down] = getValidAcrossAndDown(graph, startingActor, true);
+  const [across, down] = getValidAcrossAndDown(graph, startingActor, false);
   if (across.length === 0 || down.length === 0) {
     console.log("No valid actor groups found");
     return;
@@ -35,6 +35,7 @@ async function main(): Promise<void> {
 
   // Convert to JSON
   const jsonGrid = convertGridToJSON(grid);
+  console.log(jsonGrid);
 
   // Write grid to S3
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid-graph.json");
@@ -169,7 +170,7 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
 function getGrid(graph: Graph, across: ActorNode[], down: ActorNode[]): Grid {
   const actors = across.concat(down).map(actorNode => { return { id: actorNode.id, name: actorNode.name } });
   const credits: CreditExport[] = [];
-  const answers: { [key: number]: number[] } = {};
+  const answers: { [key: number]: { type: "movie" | "tv", id: number }[] } = {};
 
   // Create empty answers lists for each actor
   for (const actor of actors) {
@@ -187,8 +188,9 @@ function getGrid(graph: Graph, across: ActorNode[], down: ActorNode[]): Grid {
             credits.push({ type: graph.credits[creditId].type, id: creditIdNum, name: graph.credits[creditId].name });
           }
 
-          answers[actor.id].push(creditIdNum);
-          answers[otherActor.id].push(creditIdNum);
+          const answer = { type: graph.credits[creditId].type, id: creditIdNum }
+          answers[actor.id].push(answer);
+          answers[otherActor.id].push(answer);
         }
       }
     }
