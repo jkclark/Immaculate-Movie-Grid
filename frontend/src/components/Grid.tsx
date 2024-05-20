@@ -48,7 +48,7 @@ const Grid: React.FC<GridProps> = ({ gridData, selectedRow, selectedCol, setSele
         squareBackgroundColor = (rowIndex - 1) === selectedRow && (colIndex - 1) === selectedCol ? "bg-sky-100" : "";
       }
       squares.push(
-        <div className={`${squareBackgroundColor} ${isAxisSquare ? "" : "border solid hover:bg-sky-100 hover:cursor-pointer"}`} key={`${rowIndex}-${colIndex}`}>
+        <div className={`${squareBackgroundColor} ${isAxisSquare ? "" : "border border-slate-900 solid hover:bg-sky-100 hover:cursor-pointer"}`} key={`${rowIndex}-${colIndex}`}>
           <Square row={rowIndex - 1} col={colIndex - 1} text={squareText} imageURL={squareImageURL} setSelectedRow={squareSetRowFunc} setSelectedCol={squareSetColFunc} />
         </div>
       );

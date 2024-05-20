@@ -16,7 +16,7 @@ export interface Grid {
 }
 
 export interface SearchResult {
-    media_type: string;
+    media_type: "movie" | "tv";
     id: number;
     title: string;
 }
