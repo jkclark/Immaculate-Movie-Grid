@@ -33,7 +33,7 @@ function App() {
     <div onClick={handlePageClick} className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
       {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar /> : null}
       {selectedRow !== -1 && selectedCol !== -1 ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
-      <Grid {...{ gridData, setSelectedRow, setSelectedCol }} />
+      <Grid {...{ gridData, selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
     </div>
   );
 }
