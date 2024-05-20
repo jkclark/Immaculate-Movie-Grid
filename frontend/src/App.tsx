@@ -4,11 +4,15 @@ import Grid from './components/Grid';
 import { getGridDataFromS3 } from './s3';
 import { Grid as GridData } from '../../common/src/interfaces';
 import SearchBar from './components/SearchBar';
+import { GridDisplayData } from "./interfaces"
+
+const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
 
 function App() {
   const [gridData, setGridData]: [GridData, any] = useState({} as GridData);
   const [selectedRow, setSelectedRow] = useState(-1);
   const [selectedCol, setSelectedCol] = useState(-1);
+  const [gridDisplayData, setGridDisplayData] = useState<GridDisplayData[][]>([[]]);
 
   useEffect(() => {
     async function fetchData() {
@@ -20,6 +24,7 @@ function App() {
       console.log("Grid data:");
       console.log(jsonData);
       setGridData(jsonData);
+      setGridDisplayData(getInitialGridDisplayData(jsonData));
     }
     fetchData();
   }, [gridData]);
@@ -28,6 +33,36 @@ function App() {
     setSelectedRow(-1);
     setSelectedCol(-1);
   };
+
+  function getInitialGridDisplayData(gridData: GridData): GridDisplayData[][] {
+    const gridSize = gridData.actors.length / 2 + 1;
+    const displayData: GridDisplayData[][] = [];
+    for (let rowIndex = 0; rowIndex < gridSize; rowIndex++) {
+      displayData.push([])
+      for (let colIndex = 0; colIndex < gridSize; colIndex++) {
+        if (rowIndex === 0 && colIndex !== 0) {
+          const actorIndex = colIndex - 1;
+          displayData[rowIndex].push({
+            text: gridData.actors[actorIndex].name,
+            imageURL: `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[actorIndex].id}.jpg`
+          });
+        } else if (colIndex === 0 && rowIndex !== 0) {
+          const actorIndex = gridSize - 1 + rowIndex - 1;
+          displayData[rowIndex].push({
+            text: gridData.actors[actorIndex].name,
+            imageURL: `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[actorIndex].id}.jpg`
+          });
+        } else {
+          displayData[rowIndex].push({
+            text: "",
+            imageURL: ""
+          });
+        }
+      }
+    }
+
+    return displayData;
+  }
 
   function checkAnswer(type: "movie" | "tv", id: number): boolean {
     if (selectedRow === -1 || selectedCol === -1) {
@@ -51,7 +86,7 @@ function App() {
     <div onClick={handlePageClick} className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
       {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar checkAnswerFunc={checkAnswer} /> : null}
       {selectedRow !== -1 && selectedCol !== -1 ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
-      <Grid {...{ gridData, selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
+      <Grid gridData={gridDisplayData} {...{ selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
     </div>
   );
 }
