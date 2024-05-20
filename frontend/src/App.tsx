@@ -64,27 +64,44 @@ function App() {
     return displayData;
   }
 
+  function updateGridDisplayData(type: "movie" | "tv" | "actor", id: number, text: string): void {
+    const typesToS3Prefixes = {
+      actor: "actors",
+      movie: "movies",
+      tv: "tv-shows",
+    }
+    const newGridDisplayData = [...gridDisplayData];
+    newGridDisplayData[selectedRow][selectedCol] = {
+      text,
+      imageURL: `${BASE_S3_IMAGE_URL}/${typesToS3Prefixes[type]}/${id}.jpg`
+    };
+    setGridDisplayData(newGridDisplayData);
+  }
+
   function checkAnswer(type: "movie" | "tv", id: number): boolean {
     if (selectedRow === -1 || selectedCol === -1) {
       throw new Error("Selected row or column is -1");
     }
+    // We need to subtract 1 because the squares at the top and left of the grid are axis squares
+    const dataRow = selectedRow - 1;
+    const dataCol = selectedCol - 1;
 
-    const acrossActorId = gridData.actors[selectedCol].id;
-    const downActorId = gridData.actors[3 + selectedCol].id;
+    const acrossActorId = gridData.actors[dataCol].id;
+    const downActorId = gridData.actors[3 + dataRow].id;
     const acrossCorrect = gridData.answers[acrossActorId].some(answer => answer.type === type && answer.id === id);
     const downCorrect = gridData.answers[downActorId].some(answer => answer.type === type && answer.id === id);
     if (acrossCorrect && downCorrect) {
-      alert("Correct!");
+      console.log("Correct!");
       return true;
     } else {
-      alert("Incorrect!");
+      console.log("Wrong!");
       return false;
     }
   }
 
   return (
     <div onClick={handlePageClick} className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
-      {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar checkAnswerFunc={checkAnswer} /> : null}
+      {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar checkAnswerFunc={checkAnswer} setTextAndImageFunc={updateGridDisplayData} /> : null}
       {selectedRow !== -1 && selectedCol !== -1 ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
       <Grid gridData={gridDisplayData} {...{ selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
     </div>

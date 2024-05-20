@@ -4,10 +4,11 @@ import { SearchResult as SearchResultData } from "../../../common/src/interfaces
 import SearchResult from "./SearchResult";
 
 interface SearchBarProps {
-  checkAnswerFunc: (type: "movie" | "tv", id: number) => void;
+  checkAnswerFunc: (type: "movie" | "tv", id: number) => boolean;
+  setTextAndImageFunc: (type: "movie" | "tv" | "actor", id: number, text: string) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageFunc }) => {
   const [inputText, setInputText] = useState("");
   const [previousInputText, setPreviousInputText] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultData[]>([]);
@@ -62,7 +63,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc }) => {
           />
           <div className="absolute w-full max-h-72 overflow-auto rounded-b-sm">
             {inputText && inputText === previousInputText && searchResults && searchResults.map((result, index) => (
-              <SearchResult key={index} {...result} checkAnswerFunc={checkAnswerFunc} />
+              <SearchResult key={index} {...result} checkAnswerFunc={checkAnswerFunc} setTextAndImageFunc={setTextAndImageFunc} />
             ))}
           </div>
         </div>

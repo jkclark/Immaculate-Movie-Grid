@@ -19,7 +19,6 @@ const Grid: React.FC<GridProps> = ({ gridData, selectedRow, selectedCol, setSele
   const size = gridData[0].length;;
   const squares = [];
 
-  // The -1 everywhere is because the first row and column are for the axis labels
   for (let rowIndex = 0; rowIndex < size; rowIndex++) {
     for (let colIndex = 0; colIndex < size; colIndex++) {
       const isAxisSquare = rowIndex === 0 || colIndex === 0;
@@ -32,11 +31,11 @@ const Grid: React.FC<GridProps> = ({ gridData, selectedRow, selectedCol, setSele
         squareSetColFunc = () => { };
       } else {
         // Set this square's background color if it's the currently selected square
-        squareBackgroundColor = (rowIndex - 1) === selectedRow && (colIndex - 1) === selectedCol ? "bg-sky-100" : "";
+        squareBackgroundColor = (rowIndex) === selectedRow && (colIndex) === selectedCol ? "bg-sky-100" : "";
       }
       squares.push(
         <div className={`${squareBackgroundColor} ${isAxisSquare ? "" : "border border-slate-900 solid hover:bg-sky-100 hover:cursor-pointer"}`} key={`${rowIndex}-${colIndex}`}>
-          <Square row={rowIndex - 1} col={colIndex - 1} text={gridData[rowIndex][colIndex].text} imageURL={gridData[rowIndex][colIndex].imageURL} setSelectedRow={squareSetRowFunc} setSelectedCol={squareSetColFunc} />
+          <Square row={rowIndex} col={colIndex} text={gridData[rowIndex][colIndex].text} imageURL={gridData[rowIndex][colIndex].imageURL} setSelectedRow={squareSetRowFunc} setSelectedCol={squareSetColFunc} />
         </div>
       );
     }

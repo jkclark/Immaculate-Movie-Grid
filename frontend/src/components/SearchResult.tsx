@@ -1,13 +1,16 @@
 import { SearchResult as SearchResultData } from "../../../common/src/interfaces";
 
 interface SearchResultProps extends SearchResultData {
-  checkAnswerFunc: (type: "movie" | "tv", id: number) => void;
+  checkAnswerFunc: (type: "movie" | "tv", id: number) => boolean;
+  setTextAndImageFunc: (type: "movie" | "tv" | "actor", id: number, text: string) => void;
 }
 
-const SearchResult: React.FC<SearchResultProps> = ({ media_type, id, title, checkAnswerFunc }) => {
+const SearchResult: React.FC<SearchResultProps> = ({ media_type, id, title, checkAnswerFunc, setTextAndImageFunc }) => {
   function handleClick(event: React.MouseEvent) {
     event.preventDefault();  // For whatever reason the button refreshes the page without this
-    checkAnswerFunc(media_type, id);
+    if (checkAnswerFunc(media_type, id)) {
+      setTextAndImageFunc(media_type, id, title);
+    }
   }
 
   return (
