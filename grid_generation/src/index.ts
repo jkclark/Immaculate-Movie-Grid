@@ -15,10 +15,14 @@ dotenv.config();
 async function main(): Promise<void> {
   const graph = await getGraph();
 
+  // Pick random starting actor
+  const actorIds = Object.keys(graph.actors);
+  const randomActorId = actorIds[Math.floor(Math.random() * actorIds.length)];
+
   // Get valid across and down groups of actors
-  const startingActor: ActorNode = graph.actors[4495]; // Steve Carell
-  console.log(`Starting actor: ${startingActor.name}`)
-  const [across, down] = getValidAcrossAndDown(graph, startingActor, false);
+  const startingActor: ActorNode = graph.actors[randomActorId];
+  console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
+  const [across, down] = getValidAcrossAndDown(graph, startingActor, true);
   if (across.length === 0 || down.length === 0) {
     console.log("No valid actor groups found");
     return;
@@ -86,9 +90,6 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
   function getAcrossAndDownRecursive(current: ActorNode): boolean {
     // Base case: if we have a valid grid, return
     if (acrossActors.length === 3 && downActors.length === 3) {
-      console.log("Found valid grid!");
-      console.log(`Across actors: ${acrossActors.map((actor) => actor.name).join(", ")}`);
-      console.log(`Down actors: ${downActors.map((actor) => actor.name).join(", ")}`);
       return true;
     }
 
