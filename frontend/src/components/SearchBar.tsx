@@ -38,7 +38,7 @@ const SearchBar: React.FC = () => {
   }, []);
 
   return (
-    <form onClick={handleClick} className="w-full max-w-screen-lg px-10 z-10 absolute top-2vh left-1/2 transform -translate-x-1/2">
+    <form onClick={handleClick} className="w-full max-w-screen-lg px-10 z-30 absolute top-2vh left-1/2 transform -translate-x-1/2">
       <label htmlFor="default-search" className="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
       <div className="relative">
         <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
