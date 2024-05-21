@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Compile & Generate Grid",
+            "preLaunchTask": "tsc: build - tsconfig.json", // run this task before launching the program
+            "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/index.js", // the program to debug
+            "outFiles": [
+                "${workspaceFolder}/grid_generation/dist/**/*.js"
+            ], // the location of the compiled JavaScript files
+            "sourceMaps": true, // enable source maps to allow debugging of the original TypeScript files
+            "cwd": "${workspaceFolder}/grid_generation" // the current working directory for the debug process
+        }
+    ]
+}
