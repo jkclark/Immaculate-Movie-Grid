@@ -92,6 +92,9 @@ function App() {
     const downCorrect = gridData.answers[downActorId].some(answer => answer.type === type && answer.id === id);
     if (acrossCorrect && downCorrect) {
       console.log("Correct!");
+      // Hide search bar
+      setSelectedRow(-1);
+      setSelectedCol(-1);
       return true;
     } else {
       console.log("Wrong!");
