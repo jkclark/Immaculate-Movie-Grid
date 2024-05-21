@@ -4,10 +4,10 @@ import { Actor } from "./interfaces";
 export interface ActorNode {
   id: number;
   name: string;
-  edges: { [key: number]: CreditNode };
+  edges: { [key: string]: CreditNode };
 }
 
-interface CreditNode {
+export interface CreditNode {
   type: "movie" | "tv";
   id: number;
   name: string;
@@ -28,16 +28,18 @@ export function addActorToGraph(graph: Graph, id: number, name: string): void {
 }
 
 export function addCreditToGraph(graph: Graph, type: "movie" | "tv", id: number, name: string): void {
-  if (graph.credits[id]) {
-    throw new RepeatError(`Credit with id ${id} already exists: ${graph.credits[id].name}`);
+  const creditUniqueString = getCreditUniqueString(type, id);
+  if (graph.credits[creditUniqueString]) {
+    throw new RepeatError(`Credit with id ${creditUniqueString} already exists: ${graph.credits[creditUniqueString].name}`);
   }
-  graph.credits[id] = { type, id, name, edges: {} };
+  graph.credits[creditUniqueString] = { type, id, name, edges: {} };
 }
 
-export function addConnectionToGraph(graph: Graph, actorId: number, creditId: number): void {
+export function addConnectionToGraph(graph: Graph, actorId: number, creditId: number, creditType: "movie" | "tv"): void {
+  const creditUniqueString = getCreditUniqueString(creditType, creditId);
   const actor = graph.actors[actorId];
-  const credit = graph.credits[creditId];
-  actor.edges[creditId] = credit;
+  const credit = graph.credits[creditUniqueString];
+  actor.edges[creditUniqueString] = credit;
   credit.edges[actorId] = actor;
 }
 
@@ -56,7 +58,7 @@ export function generateGraph(actorsWithCredits: Actor[]): Graph {
           throw e;
         }
       }
-      addConnectionToGraph(graph, actor.id, credit.id);
+      addConnectionToGraph(graph, actor.id, credit.id, credit.type);
     }
   }
 
@@ -66,7 +68,7 @@ export function generateGraph(actorsWithCredits: Actor[]): Graph {
 interface actorNodeExport {
   id: number;
   name: string;
-  edges: number[];
+  edges: { type: "movie" | "tv", id: number }[];
 }
 
 interface creditNodeExport {
@@ -81,7 +83,7 @@ function convertGraphToJSON(graph: Graph): string {
   const actorExports: actorNodeExport[] = [];
   for (const actorId in graph.actors) {
     const actor = graph.actors[actorId];
-    const edges = Object.keys(actor.edges).map((creditId) => parseInt(creditId));
+    const edges = Object.values(actor.edges).map((credit) => { return { type: credit.type, id: credit.id } });
     actorExports.push({ id: actor.id, name: actor.name, edges });
   }
 
@@ -116,16 +118,43 @@ export function readGraphFromFile(path: string): Graph {
   }
 
   for (const actor of data.actors) {
-    for (const creditId of actor.edges) {
-      addConnectionToGraph(graph, actor.id, creditId);
+    for (const credit of actor.edges) {
+      addConnectionToGraph(graph, actor.id, credit.id, credit.type);
     }
   }
 
   return graph;
 }
 
-export function actorsShareCredit(actor1: ActorNode, actor2: ActorNode): boolean {
-  return Object.keys(actor1.edges).some((creditId) => actor2.edges[creditId]);
+export function actorsShareCredit(actor1: ActorNode, actor2: ActorNode, excludeCredits: Set<string>): CreditNode {
+  for (const credit1 of Object.values(actor1.edges)) {
+    // If this credit is to be excluded, go to the next one
+    if (excludeCredits.has(getCreditUniqueString(credit1.type, credit1.id))) {
+      continue;
+    }
+    for (const credit2 of Object.values(actor2.edges)) {
+      // If this credit is to be excluded, go to the next one
+      if (excludeCredits.has(getCreditUniqueString(credit2.type, credit2.id))) {
+        continue;
+      }
+
+      // If these credits are the same, return true
+      if (credit1.id === credit2.id && credit1.type === credit2.type) {
+        return credit1;
+      }
+    }
+  }
+
+  return null;
+}
+
+export function getCreditUniqueString(type: string, id: number): string {
+  return `${type}-${id}`;
+}
+
+function getCreditTypeAndIdFromUniqueString(uniqueString: string): { type: string, id: number } {
+  const [type, id] = uniqueString.split("-");
+  return { type: type as "movie" | "tv", id: parseInt(id) };
 }
 
 class RepeatError extends Error {

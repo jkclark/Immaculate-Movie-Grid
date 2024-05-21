@@ -4,7 +4,7 @@ import "node-fetch";
 
 import { CreditExport, Grid } from "../../common/src/interfaces";
 import { famousActorIds } from "./famousActorIds";
-import { ActorNode, Graph, actorsShareCredit, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
+import { ActorNode, CreditNode, Graph, actorsShareCredit, generateGraph, getCreditUniqueString, readGraphFromFile, writeGraphToFile } from "./graph";
 import { getAndSaveAllImagesForGrid } from "./images";
 import { Actor } from "./interfaces";
 import { writeTextToS3 } from "./s3";
@@ -20,9 +20,10 @@ async function main(): Promise<void> {
   const randomActorId = actorIds[Math.floor(Math.random() * actorIds.length)];
 
   // Get valid across and down groups of actors
-  const startingActor: ActorNode = graph.actors[randomActorId];
+  // const startingActor: ActorNode = graph.actors[randomActorId];
+  const startingActor: ActorNode = graph.actors[21007];
   console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
-  const [across, down] = getValidAcrossAndDown(graph, startingActor, true);
+  const [across, down] = getValidAcrossAndDown(graph, startingActor, false);
   if (across.length === 0 || down.length === 0) {
     console.log("No valid actor groups found");
     return;
@@ -87,6 +88,7 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
 
   const acrossActors: ActorNode[] = [startingActor];
   const downActors: ActorNode[] = [];
+  const usedCredits: Set<string> = new Set();  // Used to make sure that every pair of actors shares a unique credit
   function getAcrossAndDownRecursive(current: ActorNode): boolean {
     // Base case: if we have a valid grid, return
     if (acrossActors.length === 3 && downActors.length === 3) {
@@ -98,18 +100,27 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
     const compareActors = direction === "down" ? acrossActors : downActors;
 
     // Iterate over all credits of the current actor
-    const credits = random ? Object.keys(current.edges).sort(() => Math.random() - 0.5) : Object.keys(current.edges);
-    for (const creditId of credits) {
-      const credit = graph.credits[creditId];
+    const creditIds = random ? Object.keys(current.edges).sort(() => Math.random() - 0.5) : Object.keys(current.edges);
+    for (const creditId of creditIds) {
+      const credit: CreditNode = graph.credits[creditId];
+      // Skip credits that have already been used
+      if (usedCredits.has(getCreditUniqueString(credit.type, credit.id))) {
+        console.log(`Skipping credit ${credit.name} because it's already been used`)
+        continue;
+      }
+
       // Iterate over this credit's actors
       const actors = random ? Object.keys(credit.edges).sort(() => Math.random() - 0.5) : Object.keys(credit.edges);
       for (const actorId of actors) {
         const actor = graph.actors[actorId];
+        // Here we're keeping track of credit's we've used for this actor
+        // If we end up not using this actor, we remove these credits from the used set
+        const addedCredits: string[] = [];
 
         // Skip the current actor, who is inevitably in this credit's actors map
         // NOTE: In theory, the condition below this one should always be true
         //       if this one is, but I think it's clearer to leave this one in.
-        if (actor.id === current.id) {
+        if (parseInt(actor.id) === current.id) {
           continue;
         }
 
@@ -118,14 +129,24 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
           continue;
         }
 
-        // Check if this actor has a connection to all actors in compareActors
-        // except the last one, which is the current actor
+        // Go back and check that this actor shares credit with all previous actors
+        // on the other side of the grid
         let valid = true;
         for (let i = 0; i < compareActors.length - 1; i++) {
-          if (!actorsShareCredit(actor, compareActors[i])) {
+          const newCredit = actorsShareCredit(actor, compareActors[i], usedCredits);
+          if (newCredit === null) {
             valid = false;
+            // We're bailing early on this actor, remove the credits that were added to the used credits set
+            for (const addedCredit of addedCredits) {
+              usedCredits.delete(addedCredit);
+            }
             break;
           }
+
+          // Add this credit to the used credits set
+          const uniqueCreditString = getCreditUniqueString(newCredit.type, newCredit.id);
+          usedCredits.add(uniqueCreditString);
+          addedCredits.push(uniqueCreditString);
         }
 
         // If the actor is valid, add it to the appropriate list and recurse
@@ -136,6 +157,11 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
           } else {
             downActors.push(actor);
           }
+
+          // Add this credit to the used credits set
+          const uniqueCreditString = getCreditUniqueString(credit.type, credit.id);
+          usedCredits.add(uniqueCreditString);
+          addedCredits.push(uniqueCreditString);
 
           // Try to recurse
           const success = getAcrossAndDownRecursive(actor);
@@ -148,13 +174,14 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
             } else {
               downActors.pop();
             }
+
+            // Remove the credits that were added to the used credits set
+            for (const addedCredit of addedCredits) {
+              usedCredits.delete(addedCredit);
+            }
           }
         }
       }
-
-      // If we reach this point, we've iterated over all actors in this credit
-      // and none of them are valid. Return false to backtrack.
-      return false;
     }
 
     // If we reach this point, we've iterated over all credits for this actor
@@ -162,6 +189,11 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
   }
 
   if (getAcrossAndDownRecursive(startingActor)) {
+    // List the used credits
+    console.log("Used credits: " + usedCredits.size);
+    for (const credit of usedCredits) {
+      console.log(graph.credits[credit].name);
+    }
     return [acrossActors, downActors];
   }
 
@@ -181,15 +213,15 @@ function getGrid(graph: Graph, across: ActorNode[], down: ActorNode[]): Grid {
   // Get all credits that the across and down actors share
   for (const actor of across) {
     for (const otherActor of down) {
-      for (const creditId of Object.keys(actor.edges)) {
-        if (otherActor.edges[creditId]) {
-          const creditIdNum = parseInt(creditId);
+      for (const creditUniqueString of Object.keys(actor.edges)) {
+        if (otherActor.edges[creditUniqueString]) {
+          const creditIdNum = parseInt(creditUniqueString.split("-")[1]);
           // Create the credit if it doesn't already exist
           if (!credits.map(credit => credit.id).includes(creditIdNum)) {
-            credits.push({ type: graph.credits[creditId].type, id: creditIdNum, name: graph.credits[creditId].name });
+            credits.push({ type: graph.credits[creditUniqueString].type, id: creditIdNum, name: graph.credits[creditUniqueString].name });
           }
 
-          const answer = { type: graph.credits[creditId].type, id: creditIdNum }
+          const answer = { type: graph.credits[creditUniqueString].type, id: creditIdNum }
           answers[actor.id].push(answer);
           answers[otherActor.id].push(answer);
         }
