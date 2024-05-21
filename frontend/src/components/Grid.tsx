@@ -35,7 +35,15 @@ const Grid: React.FC<GridProps> = ({ gridData, selectedRow, selectedCol, setSele
       }
       squares.push(
         <div className={`${squareBackgroundColor} ${isAxisSquare ? "" : "border border-slate-900 solid hover:bg-sky-100 hover:cursor-pointer"}`} key={`${rowIndex}-${colIndex}`}>
-          <Square row={rowIndex} col={colIndex} text={gridData[rowIndex][colIndex].text} imageURL={gridData[rowIndex][colIndex].imageURL} setSelectedRow={squareSetRowFunc} setSelectedCol={squareSetColFunc} />
+          <Square
+            row={rowIndex}
+            col={colIndex}
+            text={gridData[rowIndex][colIndex].text}
+            div={gridData[rowIndex][colIndex].div}
+            imageURL={gridData[rowIndex][colIndex].imageURL}
+            setSelectedRow={squareSetRowFunc}
+            setSelectedCol={squareSetColFunc}
+          />
         </div>
       );
     }

@@ -5,10 +5,12 @@ import { getGridDataFromS3 } from './s3';
 import { Grid as GridData } from '../../common/src/interfaces';
 import SearchBar from './components/SearchBar';
 import { GridDisplayData } from "./interfaces"
+import GuessesRemainingDisplay from './components/GuessesRemainingDisplay';
 
 const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
 
 function App() {
+  const [guessesRemaining, setGuessesRemaining] = useState<number>(9);
   const [gridData, setGridData]: [GridData, any] = useState({} as GridData);
   const [selectedRow, setSelectedRow] = useState(-1);
   const [selectedCol, setSelectedCol] = useState(-1);
@@ -40,7 +42,13 @@ function App() {
     for (let rowIndex = 0; rowIndex < gridSize; rowIndex++) {
       displayData.push([])
       for (let colIndex = 0; colIndex < gridSize; colIndex++) {
-        if (rowIndex === 0 && colIndex !== 0) {
+        if (rowIndex === 0 && colIndex === 0) {
+          displayData[rowIndex].push({
+            text: "",
+            imageURL: "",
+            div: GuessesRemainingDisplay(guessesRemaining),
+          });
+        } else if (rowIndex === 0 && colIndex !== 0) {
           const actorIndex = colIndex - 1;
           displayData[rowIndex].push({
             text: gridData.actors[actorIndex].name,
@@ -90,6 +98,17 @@ function App() {
     const downActorId = gridData.actors[3 + dataRow].id;
     const acrossCorrect = gridData.answers[acrossActorId].some(answer => answer.type === type && answer.id === id);
     const downCorrect = gridData.answers[downActorId].some(answer => answer.type === type && answer.id === id);
+
+    // -1 guesses remaining
+    const newGridDisplayData = [...gridDisplayData];
+    newGridDisplayData[0][0] = {
+      text: "",
+      imageURL: "",
+      div: GuessesRemainingDisplay(guessesRemaining - 1),
+    };
+    setGuessesRemaining(guessesRemaining - 1);
+    setGridDisplayData(newGridDisplayData);
+
     if (acrossCorrect && downCorrect) {
       console.log("Correct!");
       // Hide search bar

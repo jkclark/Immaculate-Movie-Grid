@@ -5,6 +5,7 @@ interface SquareProps {
   col: number;
   text: string;
   imageURL: string;
+  div?: JSX.Element;
   setSelectedRow: (row: number) => void;
   setSelectedCol: (col: number) => void;
 }
@@ -14,6 +15,7 @@ const Square: React.FC<SquareProps> = ({
   col,
   text,
   imageURL,
+  div,
   setSelectedRow,
   setSelectedCol,
 }) => {
@@ -26,8 +28,9 @@ const Square: React.FC<SquareProps> = ({
 
   return (
     <div onClick={handleClick} className="w-full h-full aspect-[2/3] flex items-center justify-center relative group">
-      <img src={imageURL} alt={text} className="h-full" />
-      {(text &&
+      {div && div}
+      {!div && imageURL && <img src={imageURL} alt={text} className="h-full" />}
+      {(!div && text &&
         <>
           <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-50 transition-opacity duration-100"></div>
           <div className="absolute inset-0 flex items-center justify-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-100">
