@@ -15,6 +15,8 @@ function App() {
   const [selectedRow, setSelectedRow] = useState(-1);
   const [selectedCol, setSelectedCol] = useState(-1);
   const [gridDisplayData, setGridDisplayData] = useState<GridDisplayData[][]>([[]]);
+  // This could be a set, but I think it's clearer if it's a list of objects like this
+  const [usedAnswers, setUsedAnswers] = useState<{ type: "movie" | "tv", id: number }[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -111,6 +113,9 @@ function App() {
 
     if (acrossCorrect && downCorrect) {
       console.log("Correct!");
+      // Add this answer to used answers
+      setUsedAnswers([...usedAnswers, { type, id }]);
+
       // Hide search bar
       setSelectedRow(-1);
       setSelectedCol(-1);
@@ -123,7 +128,7 @@ function App() {
 
   return (
     <div onClick={handlePageClick} className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
-      {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar checkAnswerFunc={checkAnswer} setTextAndImageFunc={updateGridDisplayData} /> : null}
+      {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar checkAnswerFunc={checkAnswer} setTextAndImageFunc={updateGridDisplayData} usedAnswers={usedAnswers} /> : null}
       {selectedRow !== -1 && selectedCol !== -1 ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
       <Grid gridData={gridDisplayData} {...{ selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
     </div>

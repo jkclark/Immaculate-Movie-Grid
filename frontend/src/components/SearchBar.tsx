@@ -6,9 +6,10 @@ import SearchResult from "./SearchResult";
 interface SearchBarProps {
   checkAnswerFunc: (type: "movie" | "tv", id: number) => boolean;
   setTextAndImageFunc: (type: "movie" | "tv" | "actor", id: number, text: string) => void;
+  usedAnswers: { type: "movie" | "tv", id: number }[];
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageFunc }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageFunc, usedAnswers }) => {
   const [inputText, setInputText] = useState("");
   const [previousInputText, setPreviousInputText] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultData[]>([]);
@@ -62,9 +63,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
             onChange={e => setInputText(e.target.value)}
           />
           <div className="absolute w-full max-h-72 overflow-auto rounded-b-sm">
-            {inputText && inputText === previousInputText && searchResults && searchResults.map((result, index) => (
-              <SearchResult key={index} {...result} checkAnswerFunc={checkAnswerFunc} setTextAndImageFunc={setTextAndImageFunc} />
-            ))}
+            {inputText && inputText === previousInputText && searchResults && searchResults.map((result, index) => {
+              // Do not show results that have already been used
+              if (usedAnswers.some(usedAnswer => usedAnswer.type === result.media_type && usedAnswer.id === result.id)) {
+                return null;
+              }
+
+              return (
+                <SearchResult key={index} {...result} checkAnswerFunc={checkAnswerFunc} setTextAndImageFunc={setTextAndImageFunc} />
+              );
+            })}
           </div>
         </div>
       </div>
