@@ -26,11 +26,25 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
       continue;
     }
     console.log(`${result.media_type}: ${result.title || result.name}`);
-    resultsToReturn.push({
-      media_type: result.media_type,
-      id: result.id,
-      title: result.title || result.name
-    });
+    if (result.media_type === "movie") {
+      resultsToReturn.push({
+        media_type: result.media_type,
+        id: result.id,
+        title: result.title,
+        release_date: result.release_date
+      });
+    } else {
+      // Get the last air date from the API
+      const tvShowResponse = await getFromTMDBAPIJson(`https://api.themoviedb.org/3/tv/${result.id}`);
+
+      resultsToReturn.push({
+        media_type: result.media_type,
+        id: result.id,
+        title: result.name,
+        first_air_date: result.first_air_date,
+        last_air_date: tvShowResponse.last_air_date,
+      });
+    }
   }
 
   return {

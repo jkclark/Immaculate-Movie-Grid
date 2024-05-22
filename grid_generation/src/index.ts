@@ -20,10 +20,9 @@ async function main(): Promise<void> {
   const randomActorId = actorIds[Math.floor(Math.random() * actorIds.length)];
 
   // Get valid across and down groups of actors
-  // const startingActor: ActorNode = graph.actors[randomActorId];
-  const startingActor: ActorNode = graph.actors[21007];
+  const startingActor: ActorNode = graph.actors[randomActorId];
   console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
-  const [across, down] = getValidAcrossAndDown(graph, startingActor, false);
+  const [across, down] = getValidAcrossAndDown(graph, startingActor, true);
   if (across.length === 0 || down.length === 0) {
     console.log("No valid actor groups found");
     return;

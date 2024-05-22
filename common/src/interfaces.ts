@@ -19,4 +19,7 @@ export interface SearchResult {
     media_type: "movie" | "tv";
     id: number;
     title: string;
+    release_date?: string;   // Only for movies
+    first_air_date?: string; // Only for TV shows
+    last_air_date?: string;  // Only for TV shows
 }

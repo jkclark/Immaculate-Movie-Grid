@@ -69,8 +69,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
                 return null;
               }
 
+              if (result.media_type === "movie") {
+                return (
+                  <SearchResult key={index} {...result} release_year={result.release_date?.split("-")[0]} checkAnswerFunc={checkAnswerFunc} setTextAndImageFunc={setTextAndImageFunc} />
+                );
+              }
+
               return (
-                <SearchResult key={index} {...result} checkAnswerFunc={checkAnswerFunc} setTextAndImageFunc={setTextAndImageFunc} />
+                <SearchResult key={index} {...result} first_air_year={result.first_air_date?.split("-")[0]} last_air_year={result.last_air_date?.split("-")[0]} checkAnswerFunc={checkAnswerFunc} setTextAndImageFunc={setTextAndImageFunc} />
               );
             })}
           </div>
