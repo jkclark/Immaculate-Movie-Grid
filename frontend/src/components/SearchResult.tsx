@@ -15,7 +15,7 @@ const SearchResult: React.FC<SearchResultProps> = ({ media_type, id, title, chec
 
   return (
     <div className={"bg-gray-800 text-white p-4 shadow-lg border border-gray-600 text-sm hover:bg-gray-700 flex justify-between items-center"}>
-      <span>{`${media_type}: ${id} - ${title}`}</span>
+      <span>{`${media_type === "movie" ? "📽️" : "📺"} ${title}`}</span>
       <button onClick={handleClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
         Select
       </button>
