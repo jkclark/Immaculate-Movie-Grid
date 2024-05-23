@@ -995,7 +995,6 @@ export const famousActorIds: number[] = [
   16420, // Richard Boone
   7062, // Andrew Lincoln
   105207, // Barbi Benton
-  1571086, // David Tennant
   11181, // Kenneth Branagh
   1674162, // Jonathan Majors
   1524, // Harold Ramis
