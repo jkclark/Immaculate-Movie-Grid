@@ -68,6 +68,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
             placeholder="Search any movie or TV show"
             required
             onChange={e => setInputText(e.target.value)}
+            autoComplete="off"
           />
           {isLoading && (
             <div className="absolute right-0 top-0 bottom-0 flex items-center justify-end pr-3">
