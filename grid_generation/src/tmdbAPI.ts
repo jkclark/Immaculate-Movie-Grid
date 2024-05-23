@@ -72,8 +72,10 @@ function isCreditValid(credit: any): boolean {
         1667, // Saturday Night Live
         2224, // The Daily Show
         3739, // E! True Hollywood Story
+        13667, // MTV Movie & TV Awards
         27023, // The Oscars
         30048, // Tony Awards
+        89293, // Bambi Awards
         1111889, // Carol Burnett: 90 Years of Laughter + Love
     ]
     const isInvalidShow: boolean = credit.media_type === "tv" && INVALID_TV_SHOW_IDS.includes(credit.id);
