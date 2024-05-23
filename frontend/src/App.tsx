@@ -90,6 +90,17 @@ function App() {
     setGridDisplayData(newGridDisplayData);
   }
 
+  function updateGuessesRemaining(newGuessesRemaining: number): void {
+    const newGridDisplayData = [...gridDisplayData];
+    newGridDisplayData[0][0] = {
+      text: "",
+      imageURL: "",
+      div: GuessesRemainingDisplay(newGuessesRemaining),
+    };
+    setGuessesRemaining(newGuessesRemaining);
+    setGridDisplayData(newGridDisplayData);
+  }
+
   function checkAnswer(type: "movie" | "tv", id: number): boolean {
     if (selectedRow === -1 || selectedCol === -1) {
       throw new Error("Selected row or column is -1");
@@ -104,14 +115,7 @@ function App() {
     const downCorrect = gridData.answers[downActorId].some(answer => answer.type === type && answer.id === id);
 
     // -1 guesses remaining
-    const newGridDisplayData = [...gridDisplayData];
-    newGridDisplayData[0][0] = {
-      text: "",
-      imageURL: "",
-      div: GuessesRemainingDisplay(guessesRemaining - 1),
-    };
-    setGuessesRemaining(guessesRemaining - 1);
-    setGridDisplayData(newGridDisplayData);
+    updateGuessesRemaining(guessesRemaining - 1);
 
     if (acrossCorrect && downCorrect) {
       console.log("Correct!");
@@ -128,13 +132,20 @@ function App() {
     }
   }
 
+  function endGame() {
+    setGameOver(true);
+    updateGuessesRemaining(0);
+    setSelectedRow(-1);
+    setSelectedCol(-1);
+  }
+
   return (
     <div onClick={handlePageClick} className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
       {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar checkAnswerFunc={checkAnswer} setTextAndImageFunc={updateGridDisplayData} usedAnswers={usedAnswers} /> : null}
       {selectedRow !== -1 && selectedCol !== -1 || gameOver ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
       {gameOver ? <Summary {...gridData} /> : null}
       <Grid gridData={gridDisplayData} {...{ selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
-      <button onClick={() => { setGameOver(true); }} className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded mt-4">Give up</button>
+      <button onClick={endGame} className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded mt-4">Give up</button>
     </div>
   );
 }
