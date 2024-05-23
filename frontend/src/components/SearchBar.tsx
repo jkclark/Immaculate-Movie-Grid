@@ -75,6 +75,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
               <PiFilmSlate className="w-6 h-6 animate-spin" />
             </div>
           )}
+          {!isLoading && inputText && inputText === previousInputText && (
+            <div className="absolute right-0 top-0 bottom-0 flex items-center justify-end pr-3 text-sm text-gray-400">
+              <p>{searchResults.length} results </p>
+            </div>
+          )}
           <div className="absolute w-full max-h-72 overflow-auto rounded-b-sm">
             {inputText && inputText === previousInputText && searchResults && searchResults.map((result, index) => {
               // Do not show results that have already been used
