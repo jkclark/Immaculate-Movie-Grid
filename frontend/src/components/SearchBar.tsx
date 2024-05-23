@@ -1,3 +1,4 @@
+import { PiFilmSlate } from "react-icons/pi";
 import debounce from "lodash.debounce";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SearchResult as SearchResultData } from "../../../common/src/interfaces";
@@ -13,17 +14,23 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
   const [inputText, setInputText] = useState("");
   const [previousInputText, setPreviousInputText] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchResults = useCallback(debounce((query) => {
     if (query.length > 0) {
+      setIsLoading(true);
       fetch(`https://api.immaculatemoviegrid.com/dev/search?query=${encodeURIComponent(query)}`)
         .then(response => response.json())
         .then(data => {
           console.log("RESULTS:" + data.searchResults);
           setSearchResults(data.searchResults);
           setPreviousInputText(query);
+          setIsLoading(false);
         })
-        .catch(error => console.error(error));
+        .catch(error => {
+          console.error(error);
+          setIsLoading(false);
+        });
     } else {
       setSearchResults([]);
     }
@@ -62,6 +69,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
             required
             onChange={e => setInputText(e.target.value)}
           />
+          {isLoading && (
+            <div className="absolute right-0 top-0 bottom-0 flex items-center justify-end pr-3">
+              <PiFilmSlate className="w-6 h-6 animate-spin" />
+            </div>
+          )}
           <div className="absolute w-full max-h-72 overflow-auto rounded-b-sm">
             {inputText && inputText === previousInputText && searchResults && searchResults.map((result, index) => {
               // Do not show results that have already been used
