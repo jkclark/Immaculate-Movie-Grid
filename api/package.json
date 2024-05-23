@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "build-and-zip": "tsc --outDir ./dist && cp package*.json ./dist && cd dist && npm install --production && zip -r ../dist.zip ."
+    "build": "tsc --outDir ./dist",
+    "zip": "cp package*.json ./dist && cd dist && yarn install --production && zip -r ../dist.zip .",
+    "build-and-zip": "yarn run build && yarn run zip"
   },
   "dependencies": {
     "@types/aws-lambda": "^8.10.138",
