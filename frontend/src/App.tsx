@@ -6,6 +6,7 @@ import { Grid as GridData } from '../../common/src/interfaces';
 import SearchBar from './components/SearchBar';
 import { GridDisplayData } from "./interfaces"
 import GuessesRemainingDisplay from './components/GuessesRemainingDisplay';
+import Summary from './components/Summary';
 
 const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
 
@@ -17,6 +18,7 @@ function App() {
   const [gridDisplayData, setGridDisplayData] = useState<GridDisplayData[][]>([[]]);
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [usedAnswers, setUsedAnswers] = useState<{ type: "movie" | "tv", id: number }[]>([]);
+  const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -129,8 +131,10 @@ function App() {
   return (
     <div onClick={handlePageClick} className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
       {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar checkAnswerFunc={checkAnswer} setTextAndImageFunc={updateGridDisplayData} usedAnswers={usedAnswers} /> : null}
-      {selectedRow !== -1 && selectedCol !== -1 ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
+      {selectedRow !== -1 && selectedCol !== -1 || gameOver ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
+      {gameOver ? <Summary {...gridData} /> : null}
       <Grid gridData={gridDisplayData} {...{ selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
+      <button onClick={() => { setGameOver(true); }} className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded mt-4">Give up</button>
     </div>
   );
 }
