@@ -32,7 +32,7 @@ async function main(): Promise<void> {
   console.log(`Down: ${down.map((actor) => actor.name).join(", ")}`);
 
   // Get grid from across and down actors
-  const grid = getGrid(graph, across, down);
+  const grid = getGridFromGraphAndActors(graph, across, down);
 
   // Get images for actors and credits and save them to S3
   await getAndSaveAllImagesForGrid(grid);
@@ -199,7 +199,7 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
   return [[], []];
 }
 
-function getGrid(graph: Graph, across: ActorNode[], down: ActorNode[]): Grid {
+function getGridFromGraphAndActors(graph: Graph, across: ActorNode[], down: ActorNode[]): Grid {
   const actors = across.concat(down).map(actorNode => { return { id: actorNode.id, name: actorNode.name } });
   const credits: CreditExport[] = [];
   const answers: { [key: number]: { type: "movie" | "tv", id: number }[] } = {};
