@@ -32,6 +32,11 @@ const Grid: React.FC<GridProps> = ({ gridData, selectedRow, selectedCol, setSele
       } else {
         // Set this square's background color if it's the currently selected square
         squareBackgroundColor = (rowIndex) === selectedRow && (colIndex) === selectedCol ? "bg-sky-100" : "";
+
+        if (gridData[rowIndex][colIndex].imageURL) {
+          squareSetRowFunc = () => { };
+          squareSetColFunc = () => { };
+        }
       }
       squares.push(
         <div className={`${squareBackgroundColor} ${isAxisSquare ? "" : "border border-slate-900 solid hover:bg-sky-200 hover:cursor-pointer"}`} key={`${rowIndex}-${colIndex}`}>
