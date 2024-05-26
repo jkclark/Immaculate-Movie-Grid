@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { Actor } from "./interfaces";
+import { Actor, Credit } from "./interfaces";
 
 export interface ActorNode {
   id: number;
@@ -11,6 +11,7 @@ export interface CreditNode {
   type: "movie" | "tv";
   id: number;
   name: string;
+  genre_ids: number[];
   edges: { [key: number]: ActorNode };
 }
 
@@ -27,18 +28,24 @@ export function addActorToGraph(graph: Graph, id: number, name: string): void {
   graph.actors[id] = { id, name, edges: {} };
 }
 
-export function addCreditToGraph(graph: Graph, type: "movie" | "tv", id: number, name: string): void {
-  const creditUniqueString = getCreditUniqueString(type, id);
+export function addCreditToGraph(credit: Credit, graph: Graph): void {
+  const creditUniqueString = getCreditUniqueString(credit.type, credit.id);
   if (graph.credits[creditUniqueString]) {
     throw new RepeatError(`Credit with id ${creditUniqueString} already exists: ${graph.credits[creditUniqueString].name}`);
   }
-  graph.credits[creditUniqueString] = { type, id, name, edges: {} };
+  graph.credits[creditUniqueString] = {
+    type: credit.type,
+    id: credit.id,
+    name: credit.name,
+    genre_ids: credit.genre_ids,
+    edges: {}
+  };
 }
 
 export function addConnectionToGraph(graph: Graph, actorId: number, creditId: number, creditType: "movie" | "tv"): void {
   const creditUniqueString = getCreditUniqueString(creditType, creditId);
-  const actor = graph.actors[actorId];
-  const credit = graph.credits[creditUniqueString];
+  const actor: ActorNode = graph.actors[actorId];
+  const credit: CreditNode = graph.credits[creditUniqueString];
   actor.edges[creditUniqueString] = credit;
   credit.edges[actorId] = actor;
 }
@@ -50,7 +57,7 @@ export function generateGraph(actorsWithCredits: Actor[]): Graph {
     addActorToGraph(graph, actor.id, actor.name);
     for (const credit of actor.credits) {
       try {
-        addCreditToGraph(graph, credit.type, credit.id, credit.name);
+        addCreditToGraph(credit, graph);
       } catch (e) {
         if (e instanceof RepeatError) {
           console.error(e.message);
@@ -75,6 +82,7 @@ interface creditNodeExport {
   type: "movie" | "tv"
   id: number;
   name: string;
+  genre_ids: number[];
   edges: number[];
 }
 
@@ -84,7 +92,7 @@ function convertGraphToJSON(graph: Graph): string {
   for (const actorId in graph.actors) {
     const actor = graph.actors[actorId];
     const edges = Object.values(actor.edges).map((credit) => { return { type: credit.type, id: credit.id } });
-    actorExports.push({ id: actor.id, name: actor.name, edges });
+    actorExports.push({ ...actor, edges });
   }
 
   // Convert creditNodes to creditNodeExports (remove the references to edges, just keep the IDs)
@@ -92,7 +100,10 @@ function convertGraphToJSON(graph: Graph): string {
   for (const creditId in graph.credits) {
     const credit = graph.credits[creditId];
     const edges = Object.keys(credit.edges).map((actorId) => parseInt(actorId));
-    creditExports.push({ type: credit.type, id: credit.id, name: credit.name, edges });
+    creditExports.push({
+      ...credit,
+      edges
+    });
   }
 
   return JSON.stringify({ actors: actorExports, credits: creditExports });
@@ -114,7 +125,7 @@ export function readGraphFromFile(path: string): Graph {
   }
 
   for (const credit of data.credits) {
-    addCreditToGraph(graph, credit.type, credit.id, credit.name);
+    addCreditToGraph(credit, graph);
   }
 
   for (const actor of data.actors) {
@@ -126,7 +137,8 @@ export function readGraphFromFile(path: string): Graph {
   return graph;
 }
 
-export function actorsShareCredit(actor1: ActorNode, actor2: ActorNode, excludeCredits: Set<string>): CreditNode {
+export function getSharedCreditsForActors(actor1: ActorNode, actor2: ActorNode, excludeCredits: Set<string>): CreditNode[] {
+  const sharedCredits: CreditNode[] = [];
   for (const credit1 of Object.values(actor1.edges)) {
     // If this credit is to be excluded, go to the next one
     if (excludeCredits.has(getCreditUniqueString(credit1.type, credit1.id))) {
@@ -140,12 +152,12 @@ export function actorsShareCredit(actor1: ActorNode, actor2: ActorNode, excludeC
 
       // If these credits are the same, return true
       if (credit1.id === credit2.id && credit1.type === credit2.type) {
-        return credit1;
+        sharedCredits.push(credit1);
       }
     }
   }
 
-  return null;
+  return sharedCredits;
 }
 
 export function getCreditUniqueString(type: string, id: number): string {

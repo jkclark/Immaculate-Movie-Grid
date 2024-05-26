@@ -35,7 +35,12 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
     const credits: Set<Credit> = new Set();
     for (const credit of responseJson["cast"]) {
         // Movies have a "title", TV shows have a "name"
-        credits.add({ type: credit.media_type, id: credit.id, name: credit.title || credit.name });
+        credits.add({
+            type: credit.media_type,
+            id: credit.id,
+            name: credit.title || credit.name,
+            genre_ids: credit.genre_ids
+        });
     }
 
     return credits;

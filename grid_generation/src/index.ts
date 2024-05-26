@@ -4,7 +4,7 @@ import "node-fetch";
 
 import { CreditExport, Grid } from "../../common/src/interfaces";
 import { famousActorIds } from "./famousActorIds";
-import { ActorNode, CreditNode, Graph, actorsShareCredit, generateGraph, getCreditUniqueString, readGraphFromFile, writeGraphToFile } from "./graph";
+import { ActorNode, CreditNode, Graph, getSharedCreditsForActors, generateGraph, getCreditUniqueString, readGraphFromFile, writeGraphToFile } from "./graph";
 import { getAndSaveAllImagesForGrid } from "./images";
 import { Actor } from "./interfaces";
 import { writeTextToS3 } from "./s3";
@@ -20,9 +20,10 @@ async function main(): Promise<void> {
   const randomActorId = actorIds[Math.floor(Math.random() * actorIds.length)];
 
   // Get valid across and down groups of actors
-  const startingActor: ActorNode = graph.actors[randomActorId];
+  // const startingActor: ActorNode = graph.actors[randomActorId];
+  const startingActor: ActorNode = graph.actors[23659];
   console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
-  const [across, down] = getValidAcrossAndDown(graph, startingActor, true);
+  const [across, down] = getValidAcrossAndDown(graph, startingActor, [], [isLegitCredit], true);
   if (across.length === 0 || down.length === 0) {
     console.log("No valid actor groups found");
     return;
@@ -82,8 +83,20 @@ async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   return actorsWithCredits;
 }
 
-function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = false): [ActorNode[], ActorNode[]] {
+function getValidAcrossAndDown(
+  graph: Graph,
+  startingActor: ActorNode,
+  actorConditions: ((actor: ActorNode) => boolean)[],
+  creditConditions: ((credit: CreditNode) => boolean)[],
+  random = false
+): [ActorNode[], ActorNode[]] {
   console.log(`Graph: ${Object.keys(graph.actors).length} actors, ${Object.keys(graph.credits).length} credits`)
+
+  // Make sure starting actor satisfies all actor conditions
+  if (!actorConditions.every((condition) => condition(startingActor))) {
+    // console.error("Starting actor does not satisfy actor conditions");
+    return [[], []];
+  }
 
   const acrossActors: ActorNode[] = [startingActor];
   const downActors: ActorNode[] = [];
@@ -104,7 +117,13 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
       const credit: CreditNode = graph.credits[creditId];
       // Skip credits that have already been used
       if (usedCredits.has(getCreditUniqueString(credit.type, credit.id))) {
-        console.log(`Skipping credit ${credit.name} because it's already been used`)
+        // console.log(`Skipping credit ${credit.name} because it's already been used`)
+        continue;
+      }
+
+      // Skip credits that don't satisfy all credit conditions
+      if (!creditConditions.every((condition) => condition(credit))) {
+        // console.log(`Skipping credit ${credit.name} does not satisfy credit conditions`);
         continue;
       }
 
@@ -112,9 +131,6 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
       const actors = random ? Object.keys(credit.edges).sort(() => Math.random() - 0.5) : Object.keys(credit.edges);
       for (const actorId of actors) {
         const actor = graph.actors[actorId];
-        // Here we're keeping track of credit's we've used for this actor
-        // If we end up not using this actor, we remove these credits from the used set
-        const addedCredits: string[] = [];
 
         // Skip the current actor, who is inevitably in this credit's actors map
         // NOTE: In theory, the condition below this one should always be true
@@ -128,24 +144,59 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
           continue;
         }
 
+        // Skip actors that don't satisfy all actor conditions
+        if (!actorConditions.every((condition) => condition(actor))) {
+          // console.log(`Skipping actor ${actor.name} does not satisfy actor conditions`);
+          continue;
+        }
+
+        // Here we're keeping track of credits we've used for this actor
+        // If we end up not using this actor, we remove these credits from the used set
+        const addedCredits: string[] = [];
+
         // Go back and check that this actor shares credit with all previous actors
         // on the other side of the grid
         let valid = true;
         for (let i = 0; i < compareActors.length - 1; i++) {
-          const newCredit = actorsShareCredit(actor, compareActors[i], usedCredits);
-          if (newCredit === null) {
-            valid = false;
-            // We're bailing early on this actor, remove the credits that were added to the used credits set
-            for (const addedCredit of addedCredits) {
-              usedCredits.delete(addedCredit);
+          let chosenSharedCredit: CreditNode = null;
+
+          // Iterate over the shared credits between the current actor and the compare actor
+          const sharedCredits = getSharedCreditsForActors(actor, compareActors[i], usedCredits);
+          if (sharedCredits.length > 0) {
+            // If this credit satisfies all credit conditions, choose it
+            for (const sharedCredit of sharedCredits) {
+              // Don't consider credits that have already been used
+              // or the current credit, which we're already considering
+              if (
+                usedCredits.has(getCreditUniqueString(sharedCredit.type, sharedCredit.id)) ||
+                sharedCredit.id === credit.id
+              ) {
+                console.log(`\n\n\nXXXXXXXXXXXXXXXXXX ${sharedCredit.name} XXXXXXXXXXXXXXXXXX\n\n\n`);
+                continue;
+              }
+
+              if (creditConditions.every((condition) => condition(sharedCredit))) {
+                chosenSharedCredit = sharedCredit;
+                break;
+              }
             }
-            break;
+
+            // If we found a valid shared credit, add it to the used credits set
+            if (chosenSharedCredit) {
+              const uniqueCreditString = getCreditUniqueString(chosenSharedCredit.type, chosenSharedCredit.id);
+              usedCredits.add(uniqueCreditString);
+              addedCredits.push(uniqueCreditString);
+              continue;
+            }
           }
 
-          // Add this credit to the used credits set
-          const uniqueCreditString = getCreditUniqueString(newCredit.type, newCredit.id);
-          usedCredits.add(uniqueCreditString);
-          addedCredits.push(uniqueCreditString);
+          // We could not find a valid shared credit for all previous actors
+          // Remove the credits that were added to the used credits set
+          valid = false;
+          for (const addedCredit of addedCredits) {
+            usedCredits.delete(addedCredit);
+          }
+          break;
         }
 
         // If the actor is valid, add it to the appropriate list and recurse
@@ -157,24 +208,25 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
             downActors.push(actor);
           }
 
-          // Add this credit to the used credits set
+          // Add the credit to the used credits set
           const uniqueCreditString = getCreditUniqueString(credit.type, credit.id);
+          // console.log(`Adding credit ${uniqueCreditString} (${credit.name}) to used credits`);
           usedCredits.add(uniqueCreditString);
           addedCredits.push(uniqueCreditString);
 
           // Try to recurse
-          const success = getAcrossAndDownRecursive(actor);
-          if (success) {
+          if (getAcrossAndDownRecursive(actor)) {
             return true;
-          } else {
-            // If the recursion fails, remove the actor from the list and continue
+          }
+
+          // If the recursion fails, remove the actor and their credits from the lists and continue
+          else {
             if (direction === "across") {
               acrossActors.pop();
             } else {
               downActors.pop();
             }
 
-            // Remove the credits that were added to the used credits set
             for (const addedCredit of addedCredits) {
               usedCredits.delete(addedCredit);
             }
@@ -191,12 +243,71 @@ function getValidAcrossAndDown(graph: Graph, startingActor: ActorNode, random = 
     // List the used credits
     console.log("Used credits: " + usedCredits.size);
     for (const credit of usedCredits) {
-      console.log(graph.credits[credit].name);
+      console.log(`${credit}: ${graph.credits[credit].name}`);
     }
     return [acrossActors, downActors];
   }
 
   return [[], []];
+}
+
+function isLegitCredit(credit: CreditNode): boolean {
+  if (credit.type === "movie") {
+    return isLegitMovie(credit);
+  }
+
+  if (credit.type === "tv") {
+    return isLegitTVShow(credit);
+  }
+
+  return false;
+}
+
+function isLegitMovie(credit: CreditNode): boolean {
+  if (!(credit.type === "movie")) {
+    console.log(`${credit.name} is not a movie`);
+  }
+
+  const INVALID_MOVIE_GENRE_IDS: number[] = [
+    99, // Documentary
+  ];
+  const isInvalidGenre: boolean = credit.genre_ids.some(id => INVALID_MOVIE_GENRE_IDS.includes(id));
+
+  const INVALID_MOVIE_IDS: number[] = [
+    10788, // Kambakkht Ishq
+  ]
+  const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(credit.id);
+
+  return !isInvalidGenre && !isInvalidMovie;
+}
+
+function isLegitTVShow(credit: CreditNode): boolean {
+  if (!(credit.type === "tv")) {
+    console.log(`${credit.name} is not a TV show`);
+  }
+
+  const INVALID_TV_GENRE_IDS: number[] = [
+    10763, // News
+    10767, // Talk shows
+  ];
+  const isInvalidGenre: boolean = credit.genre_ids.some(id => INVALID_TV_GENRE_IDS.includes(id));
+
+  const INVALID_TV_SHOW_IDS: number[] = [
+    456, // The Simpsons
+    1667, // Saturday Night Live
+    2224, // The Daily Show
+    3739, // E! True Hollywood Story
+    13667, // MTV Movie & TV Awards
+    23521, // Kids' Choice Awards
+    27023, // The Oscars
+    30048, // Tony Awards
+    43117, // Teen Choice Awards
+    89293, // Bambi Awards
+    1111889, // Carol Burnett: 90 Years of Laughter + Love
+  ]
+  const isInvalidShow: boolean = INVALID_TV_SHOW_IDS.includes(credit.id);
+
+  return !isInvalidGenre && !isInvalidShow;
 }
 
 function getGridFromGraphAndActors(graph: Graph, across: ActorNode[], down: ActorNode[]): Grid {

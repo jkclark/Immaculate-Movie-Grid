@@ -8,5 +8,6 @@ export interface Credit {
   type: "movie" | "tv";
   id: number;
   name: string;
+  genre_ids: number[];
 }
 
