@@ -39,7 +39,7 @@ const Grid: React.FC<GridProps> = ({ gridData, selectedRow, selectedCol, setSele
         }
       }
       squares.push(
-        <div className={`${squareBackgroundColor} ${isAxisSquare ? "" : "border border-slate-900 solid hover:bg-sky-200 hover:cursor-pointer"}`} key={`${rowIndex}-${colIndex}`}>
+        <div className={`${squareBackgroundColor} ${isAxisSquare ? "" : "border border-slate-900 solid hover:bg-sky-200"} ${gridData[rowIndex][colIndex].text ? "hover:cursor-default" : "hover:cursor-pointer"}`} key={`${rowIndex}-${colIndex}`}>
           <Square
             row={rowIndex}
             col={colIndex}
