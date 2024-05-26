@@ -46,6 +46,11 @@ async function main(): Promise<void> {
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid-graph.json");
 }
 
+/**
+ * Get a graph object from a file if it exists, otherwise scrape the data, generate the graph, and write it to file.
+ * 
+ * @returns A promise that resolves to a Graph object
+ */
 async function getGraph(): Promise<Graph> {
   // If graph exists, read it and return
   const GRAPH_PATH = "./src/complete_graph.json";
@@ -72,6 +77,11 @@ async function getGraph(): Promise<Graph> {
   }
 }
 
+/**
+ * Get actor and credit information for a list of actor IDs
+ * @param actorIds the list of actor IDs to get information for
+ * @returns A promise that resolves to a list of actors with their credits
+ */
 async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   const actorsWithCredits: Actor[] = [];
   for (const id of famousActorIds) {
@@ -83,6 +93,24 @@ async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   return actorsWithCredits;
 }
 
+/**
+ * Get a valid pair of across and down actors for a grid.
+ * 
+ * This function is effectively a breadth-first search over the graph of actors and credits,
+ * starting with the given actor. It recursively searches for valid pairs of actors that share
+ * credits with each other, satisfying the given actor and credit conditions.
+ * 
+ * The random flag determines whether to shuffle the lists of actors and credits used
+ * while searching. If random is false, the function will iterate over actors and credits
+ * in the same order every time. This is useful for debugging.
+ * 
+ * @param graph The graph of actors and credits
+ * @param startingActor The first actor in the grid
+ * @param actorConditions A list of functions that take an actor and return true if the actor satisfies some condition
+ * @param creditConditions A list of functions that take a credit and return true if the credit satisfies some condition
+ * @param random Whether to randomize the order of actors and credits while searching 
+ * @returns A tuple of two lists of actors, representing the across and down groups of actors in the grid
+ */
 function getValidAcrossAndDown(
   graph: Graph,
   startingActor: ActorNode,
@@ -251,6 +279,12 @@ function getValidAcrossAndDown(
   return [[], []];
 }
 
+/**
+ * Determine if a credit is "legit" based on certain criteria.
+ * 
+ * @param credit The credit to check
+ * @returns true if the credit is "legit", false otherwise
+ */
 function isLegitCredit(credit: CreditNode): boolean {
   if (credit.type === "movie") {
     return isLegitMovie(credit);
@@ -263,6 +297,16 @@ function isLegitCredit(credit: CreditNode): boolean {
   return false;
 }
 
+/**
+ * Determine if a movie credit is "legit" based on certain criteria.
+ * 
+ * Currently, we check that:
+ * - None of the movie's genres are in a list of invalid genres
+ * - The movie is not in a list of invalid movies
+ * 
+ * @param credit The credit to check
+ * @returns true if the credit is "legit", false otherwise
+ */
 function isLegitMovie(credit: CreditNode): boolean {
   if (!(credit.type === "movie")) {
     console.log(`${credit.name} is not a movie`);
@@ -281,6 +325,12 @@ function isLegitMovie(credit: CreditNode): boolean {
   return !isInvalidGenre && !isInvalidMovie;
 }
 
+/**
+ * Determine if a TV show credit is "legit" based on certain criteria.
+ * 
+ * @param credit The credit to check
+ * @returns true if the credit is "legit", false otherwise
+ */
 function isLegitTVShow(credit: CreditNode): boolean {
   if (!(credit.type === "tv")) {
     console.log(`${credit.name} is not a TV show`);
@@ -310,6 +360,18 @@ function isLegitTVShow(credit: CreditNode): boolean {
   return !isInvalidGenre && !isInvalidShow;
 }
 
+/**
+ * Get a Grid object from a graph and two lists of actors.
+ * 
+ * The Grid object will contain the actors, credits, and answers for the grid.
+ * The Grid will contain all of an actor's credits, whether or not they were
+ * "legit" for the purposes of generating the two lists of actors.
+ * 
+ * @param graph A graph of all actors and credits
+ * @param across The actors going across the grid
+ * @param down The actors going down the grid
+ * @returns A Grid object representing the grid
+ */
 function getGridFromGraphAndActors(graph: Graph, across: ActorNode[], down: ActorNode[]): Grid {
   const actors = across.concat(down).map(actorNode => { return { id: actorNode.id, name: actorNode.name } });
   const credits: CreditExport[] = [];
@@ -346,6 +408,12 @@ function getGridFromGraphAndActors(graph: Graph, across: ActorNode[], down: Acto
   };
 }
 
+/**
+ * Convert a Grid object to a JSON string.
+ * 
+ * @param grid The Grid object to convert to JSON
+ * @returns The JSON string representation of the Grid object
+ */
 function convertGridToJSON(grid: Grid): string {
   return JSON.stringify(grid);
 }
