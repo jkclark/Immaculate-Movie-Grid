@@ -19,6 +19,7 @@ function App() {
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [usedAnswers, setUsedAnswers] = useState<{ type: "movie" | "tv", id: number }[]>([]);
   const [gameOver, setGameOver] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
@@ -31,6 +32,7 @@ function App() {
       console.log(jsonData);
       setGridData(jsonData);
       setGridDisplayData(getInitialGridDisplayData(jsonData));
+      setIsLoading(false); // Show the "Give up" button
     }
     fetchData();
   }, [gridData]);
@@ -145,7 +147,7 @@ function App() {
       {selectedRow !== -1 && selectedCol !== -1 || gameOver ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
       {gameOver ? <Summary {...gridData} /> : null}
       <Grid gridData={gridDisplayData} {...{ selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
-      <button onClick={endGame} className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded mt-4">Give up</button>
+      {!isLoading && <button onClick={endGame} className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded mt-4">Give up</button>}
     </div>
   );
 }
