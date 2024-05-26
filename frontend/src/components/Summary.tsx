@@ -25,21 +25,20 @@ const Summary: React.FC<Grid> = ({ actors, credits, answers }) => {
   }
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center z-20">
-      <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-lg">
-        <div className="grid grid-cols-3 gap-4">
+    <div className="absolute inset-0 flex items-center justify-center z-20 overflow-auto max-w-full max-h-full">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-lg max-w-full max-h-full overflow-auto">
+        <div className="grid grid-cols-3 gap-4 max-w-full max-h-full overflow-auto">
           {downActors.map((downActor) => (
             acrossActors.map((acrossActor) => (
-              <div key={`${acrossActor.id}-${downActor.id}`} className="border p-2">
+              <div key={`${acrossActor.id}-${downActor.id}`} className="border p-2 max-h-64 overflow-auto">
                 <p className="font-bold">{`${acrossActor.name} & ${downActor.name}:`}</p>
                 {Array.from(getAnswersForPair(acrossActor.id, downActor.id)).map((answer, answerIndex) => (
-                  <p key={answerIndex} className="pl-4">{answer}</p>
+                  <p key={answerIndex} className="pl-4">{`• ${answer}`}</p>
                 ))}
               </div>
             ))
           ))}
         </div>
-
       </div>
     </div>
   );
