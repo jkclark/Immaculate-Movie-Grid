@@ -1,10 +1,11 @@
 import * as dotenv from "dotenv";
 import fs from 'fs';
 import "node-fetch";
+import * as readline from 'readline';
 
 import { CreditExport, Grid } from "../../common/src/interfaces";
 import { famousActorIds } from "./famousActorIds";
-import { ActorNode, CreditNode, Graph, getSharedCreditsForActors, generateGraph, getCreditUniqueString, readGraphFromFile, writeGraphToFile } from "./graph";
+import { ActorNode, CreditNode, Graph, generateGraph, getCreditUniqueString, getSharedCreditsForActors, readGraphFromFile, writeGraphToFile } from "./graph";
 import { getAndSaveAllImagesForGrid } from "./images";
 import { Actor } from "./interfaces";
 import { writeTextToS3 } from "./s3";
@@ -21,7 +22,7 @@ async function main(): Promise<void> {
 
   // Get valid across and down groups of actors
   // const startingActor: ActorNode = graph.actors[randomActorId];
-  const startingActor: ActorNode = graph.actors[23659];
+  const startingActor: ActorNode = graph.actors[4495];
   console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
   const [across, down] = getValidAcrossAndDown(graph, startingActor, [], [isLegitCredit], true);
   if (across.length === 0 || down.length === 0) {
@@ -32,18 +33,33 @@ async function main(): Promise<void> {
   console.log(`Across: ${across.map((actor) => actor.name).join(", ")}`);
   console.log(`Down: ${down.map((actor) => actor.name).join(", ")}`);
 
-  // Get grid from across and down actors
-  const grid = getGridFromGraphAndActors(graph, across, down);
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
 
-  // Get images for actors and credits and save them to S3
-  await getAndSaveAllImagesForGrid(grid);
+  rl.question('Continue? (y/n) ', async (answer) => {
+    if (answer.toLowerCase() !== 'y') {
+      rl.close();
+      return;
+    }
 
-  // Convert to JSON
-  const jsonGrid = convertGridToJSON(grid);
-  console.log(jsonGrid);
+    // Continue with the rest of your code here...
+    // Get grid from across and down actors
+    const grid = getGridFromGraphAndActors(graph, across, down);
 
-  // Write grid to S3
-  await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid-graph.json");
+    // Get images for actors and credits and save them to S3
+    await getAndSaveAllImagesForGrid(grid);
+
+    // Convert to JSON
+    const jsonGrid = convertGridToJSON(grid);
+    console.log(jsonGrid);
+
+    // Write grid to S3
+    await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid-graph.json");
+
+    rl.close();
+  });
 }
 
 /**
