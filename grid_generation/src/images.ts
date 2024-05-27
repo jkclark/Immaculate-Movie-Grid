@@ -11,19 +11,19 @@ export async function getAndSaveAllImagesForGrid(grid: Grid): Promise<void> {
     const imageSize = "original";
 
     for (const actor of grid.actors) {
-        await getAndSaveImage(imagesBaseURL, imageSize, actor.id, "actor");
+        await getAndSaveImage(imagesBaseURL, actor.id, "actor", imageSize);
     }
 
     for (const credit of grid.credits) {
-        await getAndSaveImage(imagesBaseURL, imageSize, credit.id, credit.type);
+        await getAndSaveImage(imagesBaseURL, credit.id, credit.type, imageSize);
     }
 }
 
 async function getAndSaveImage(
     imagesBaseURL: string,
-    imageSize: string,
     id: number,
     type: "actor" | "movie" | "tv",
+    imageSize: string,
 ) {
     const IMAGE_S3_BUCKET = "immaculate-movie-grid-images";
     const ACTOR_S3_PREFIX = "actors";

@@ -663,12 +663,12 @@ video {
   height: 100vh;
 }
 
-.max-h-72 {
-  max-height: 18rem;
-}
-
 .max-h-64 {
   max-height: 16rem;
+}
+
+.max-h-72 {
+  max-height: 18rem;
 }
 
 .max-h-full {
@@ -691,12 +691,12 @@ video {
   max-width: 60vh;
 }
 
-.max-w-screen-lg {
-  max-width: 1024px;
-}
-
 .max-w-full {
   max-width: 100%;
+}
+
+.max-w-screen-lg {
+  max-width: 1024px;
 }
 
 .-translate-x-1\/2 {
@@ -928,6 +928,10 @@ video {
 
 .opacity-0 {
   opacity: 0;
+}
+
+.opacity-100 {
+  opacity: 1;
 }
 
 .opacity-50 {
