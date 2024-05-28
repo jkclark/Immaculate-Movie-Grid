@@ -5,8 +5,10 @@ import { Grid as GridData } from '../../common/src/interfaces';
 import Grid from './components/Grid';
 import SearchBar from './components/SearchBar';
 import { GridDisplayData } from "./interfaces";
-import gameLogic, { BASE_S3_IMAGE_URL } from './logic/gameLogic';
+import gameLogic from './logic/gameLogic';
+import postGameLogic from './logic/postGameLogic';
 import { getGridDataFromS3 } from './s3';
+import { getInitialGridDisplayData } from './gridDisplayData';
 
 function App() {
   const [activeTab, setActiveTab] = useState<string>("Your answers")
@@ -29,6 +31,10 @@ function App() {
     endGame,
   } = gameLogic();
 
+  const {
+    getAllAnswerGridDisplayData,
+  } = postGameLogic();
+
   useEffect(() => {
     async function fetchData() {
       if (Object.keys(gridData).length > 0) {
@@ -45,53 +51,12 @@ function App() {
     fetchData();
   }, []);
 
-  function getInitialGridDisplayData(gridData: GridData): GridDisplayData[][] {
-    const gridSize = gridData.actors.length / 2;
-    const displayData: GridDisplayData[][] = [];
-    for (let rowIndex = 0; rowIndex < gridSize + 1; rowIndex++) {
-      displayData.push([])
-      for (let colIndex = 0; colIndex < gridSize + 1; colIndex++) {
-        if (rowIndex === 0 && colIndex !== 0) {
-          const actorIndex = colIndex - 1;
-          displayData[rowIndex].push({
-            text: gridData.actors[actorIndex].name,
-            imageURL: `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[actorIndex].id}.jpg`
-          });
-        } else if (colIndex === 0 && rowIndex !== 0) {
-          const actorIndex = gridSize + rowIndex - 1;
-          displayData[rowIndex].push({
-            text: gridData.actors[actorIndex].name,
-            imageURL: `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[actorIndex].id}.jpg`
-          });
-        } else {
-          displayData[rowIndex].push({
-            text: "",
-            imageURL: ""
-          });
-        }
-      }
-    }
-
-    return displayData;
-  }
-
-  function insertInnerGridDisplayData(gridDisplayData: GridDisplayData[][], innerGridDisplayData: GridDisplayData[][]): GridDisplayData[][] {
-    const newGridDisplayData = [...gridDisplayData];
-    for (let rowIndex = 0; rowIndex < innerGridDisplayData.length; rowIndex++) {
-      for (let colIndex = 0; colIndex < innerGridDisplayData[rowIndex].length; colIndex++) {
-        // 1 + rowIndex and 1 + colIndex because the inner grid starts at (1, 1) in the outer grid
-        newGridDisplayData[1 + rowIndex][1 + colIndex] = innerGridDisplayData[rowIndex][colIndex];
-      }
-    }
-    return newGridDisplayData;
-  }
-
   return (
     <div onClick={closeOverlay} className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
       {gameOver && (
         <div className="flex space-x-4">
           <button onClick={() => { setActiveTab("Your answers"); setGridDisplayData(finalGameGridDisplayData); }} className={`${activeTab === "Your answers" ? "bg-blue-700" : ""}`}>Your answers</button>
-          <button onClick={() => { setActiveTab("All answers"); setGridDisplayData(getAllAnswerGridDisplayData()); }} className={`${activeTab === "All answers" ? "bg-blue-700" : ""}`}>
+          <button onClick={() => { setActiveTab("All answers"); setGridDisplayData(getAllAnswerGridDisplayData(gridData)); }} className={`${activeTab === "All answers" ? "bg-blue-700" : ""}`}>
             All answers
           </button>
           <button onClick={() => setActiveTab("Popular answers")} className={`${activeTab === "Popular answers" ? "bg-blue-700" : ""}`}>

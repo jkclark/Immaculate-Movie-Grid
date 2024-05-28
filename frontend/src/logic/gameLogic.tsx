@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Grid as GridData } from '../../../common/src/interfaces';
 import GuessesRemainingDisplay from "../components/GuessesRemainingDisplay";
 import { GridDisplayData } from "../interfaces";
-
-export const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
+import { BASE_S3_IMAGE_URL } from '../constants';
 
 export function gameLogic() {
   const [guessesRemaining, setGuessesRemaining] = useState<number>(9);
