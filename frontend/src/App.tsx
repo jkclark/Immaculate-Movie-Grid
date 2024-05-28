@@ -6,11 +6,11 @@ import { Grid as GridData } from '../../common/src/interfaces';
 import SearchBar from './components/SearchBar';
 import { GridDisplayData } from "./interfaces"
 import GuessesRemainingDisplay from './components/GuessesRemainingDisplay';
-import Summary from './components/Summary';
 
 const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
 
 function App() {
+  const [activeTab, setActiveTab] = useState<string>("Your answers")
   const [guessesRemaining, setGuessesRemaining] = useState<number>(9);
   const [gridData, setGridData]: [GridData, any] = useState({} as GridData);
   const [selectedRow, setSelectedRow] = useState(-1);
@@ -18,6 +18,7 @@ function App() {
   const [gridDisplayData, setGridDisplayData] = useState<GridDisplayData[][]>([[]]);
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [usedAnswers, setUsedAnswers] = useState<{ type: "movie" | "tv", id: number }[]>([]);
+  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useState<GridDisplayData[][]>([[]]);
   const [gameOver, setGameOver] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,7 +36,7 @@ function App() {
       setIsLoading(false); // Show the "Give up" button
     }
     fetchData();
-  }, [gridData]);
+  }, []);
 
   const handlePageClick = () => {
     setSelectedRow(-1);
@@ -43,16 +44,16 @@ function App() {
   };
 
   function getInitialGridDisplayData(gridData: GridData): GridDisplayData[][] {
-    const gridSize = gridData.actors.length / 2 + 1;
+    const gridSize = gridData.actors.length / 2;
     const displayData: GridDisplayData[][] = [];
-    for (let rowIndex = 0; rowIndex < gridSize; rowIndex++) {
+    for (let rowIndex = 0; rowIndex < gridSize + 1; rowIndex++) {
       displayData.push([])
-      for (let colIndex = 0; colIndex < gridSize; colIndex++) {
+      for (let colIndex = 0; colIndex < gridSize + 1; colIndex++) {
         if (rowIndex === 0 && colIndex === 0) {
           displayData[rowIndex].push({
             text: "",
             imageURL: "",
-            div: GuessesRemainingDisplay(guessesRemaining),
+            div: GuessesRemainingDisplay(gridSize * gridSize),
           });
         } else if (rowIndex === 0 && colIndex !== 0) {
           const actorIndex = colIndex - 1;
@@ -61,7 +62,7 @@ function App() {
             imageURL: `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[actorIndex].id}.jpg`
           });
         } else if (colIndex === 0 && rowIndex !== 0) {
-          const actorIndex = gridSize - 1 + rowIndex - 1;
+          const actorIndex = gridSize + rowIndex - 1;
           displayData[rowIndex].push({
             text: gridData.actors[actorIndex].name,
             imageURL: `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[actorIndex].id}.jpg`
@@ -78,7 +79,7 @@ function App() {
     return displayData;
   }
 
-  function updateGridDisplayData(type: "movie" | "tv" | "actor", id: number, text: string): void {
+  function addAnswerToGridDisplayData(type: "movie" | "tv" | "actor", id: number, text: string): void {
     const typesToS3Prefixes = {
       actor: "actors",
       movie: "movies",
@@ -135,20 +136,99 @@ function App() {
   }
 
   function endGame() {
+    setFinalGameGridDisplayData(gridDisplayData);
     setGameOver(true);
     updateGuessesRemaining(0);
     setSelectedRow(-1);
     setSelectedCol(-1);
   }
 
+  function insertInnerGridDisplayData(gridDisplayData: GridDisplayData[][], innerGridDisplayData: GridDisplayData[][]): GridDisplayData[][] {
+    const newGridDisplayData = [...gridDisplayData];
+    for (let rowIndex = 0; rowIndex < innerGridDisplayData.length; rowIndex++) {
+      for (let colIndex = 0; colIndex < innerGridDisplayData[rowIndex].length; colIndex++) {
+        // 1 + rowIndex and 1 + colIndex because the inner grid starts at (1, 1) in the outer grid
+        newGridDisplayData[1 + rowIndex][1 + colIndex] = innerGridDisplayData[rowIndex][colIndex];
+      }
+    }
+    return newGridDisplayData;
+  }
+
+  function getAnswersForPair(actor1Id: number, actor2Id: number): Set<string> {
+    const answerNames: Set<string> = new Set();
+    const actor1Answers = gridData.answers[actor1Id];
+    const actor2Answers = gridData.answers[actor2Id];
+
+    for (const actor1Answer of actor1Answers) {
+      for (const actor2Answer of actor2Answers) {
+        if (actor1Answer.type === actor2Answer.type && actor1Answer.id === actor2Answer.id) {
+          // Look up this credit's title in the credits array
+          const answer = gridData.credits.find((credit) => credit.id === actor1Answer.id);
+          if (answer) {
+            answerNames.add(answer.name);
+          }
+        }
+      }
+    }
+
+    return answerNames;
+  }
+
+  function getAllAnswerGridDisplayData(): GridDisplayData[][] {
+    const newInnerGridData: GridDisplayData[][] = [];
+    const acrossActors = gridData.actors.slice(0, gridData.actors.length / 2);
+    const downActors = gridData.actors.slice(gridData.actors.length / 2);
+    for (const acrossActor of acrossActors) {
+      const innerGridRow: GridDisplayData[] = [];
+      for (const downActor of downActors) {
+        const answers = getAnswersForPair(acrossActor.id, downActor.id);
+        const answerText = `${Array.from(answers).length}`;
+        innerGridRow.push({
+          text: "",
+          imageURL: "",
+          div: <div className="flex items-center justify-center h-full text-7xl">{answerText}</div>
+        });
+      }
+      newInnerGridData.push(innerGridRow);
+    }
+
+    const newGridData = getInitialGridDisplayData(gridData);
+    // Replace "guesses left" with total number of answers
+    newGridData[0][0] = {
+      text: "",
+      imageURL: "",
+      div: (
+        <div className="text-center">
+          <div className="text-7xl">{gridData.credits.length}</div>
+          <div className="text-xl">total</div>
+        </div>
+      )
+    };
+    return insertInnerGridDisplayData(newGridData, newInnerGridData);
+  }
+
   return (
     <div onClick={handlePageClick} className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
-      {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar checkAnswerFunc={checkAnswer} setTextAndImageFunc={updateGridDisplayData} usedAnswers={usedAnswers} /> : null}
-      {selectedRow !== -1 && selectedCol !== -1 || gameOver ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
-      {gameOver ? <Summary {...gridData} /> : null}
+      {gameOver && (
+        <div className="flex space-x-4">
+          <button onClick={() => { setActiveTab("Your answers"); setGridDisplayData(finalGameGridDisplayData); }} className={`${activeTab === "Your answers" ? "bg-blue-700" : ""}`}>Your answers</button>
+          <button onClick={() => { setActiveTab("All answers"); setGridDisplayData(getAllAnswerGridDisplayData()); }} className={`${activeTab === "All answers" ? "bg-blue-700" : ""}`}>
+            All answers
+          </button>
+          <button onClick={() => setActiveTab("Popular answers")} className={`${activeTab === "Popular answers" ? "bg-blue-700" : ""}`}>
+            Popular answers
+          </button>
+          <button onClick={() => setActiveTab("Answered %")} className={`${activeTab === "Answered %" ? "bg-blue-700" : ""}`}>
+            Answered %
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !gameOver && <button onClick={endGame}>Give up</button>}
+      {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar checkAnswerFunc={checkAnswer} setTextAndImageFunc={addAnswerToGridDisplayData} usedAnswers={usedAnswers} /> : null}
+      {selectedRow !== -1 && selectedCol !== -1 ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
       <Grid gridData={gridDisplayData} {...{ selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
-      {!isLoading && <button onClick={endGame} className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded mt-4">Give up</button>}
-    </div>
+    </div >
   );
 }
 
