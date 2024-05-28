@@ -1,6 +1,9 @@
 import { Grid as GridData } from '../../common/src/interfaces';
 import { BASE_S3_IMAGE_URL } from "./constants";
-import { GridDisplayData } from "./interfaces";
+
+export interface GridDisplayData {
+  text: string, imageURL: string, div?: JSX.Element,
+};
 
 export function getInitialGridDisplayData(gridData: GridData): GridDisplayData[][] {
   const gridSize = gridData.actors.length / 2;

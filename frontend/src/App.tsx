@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Grid as GridData } from '../../common/src/interfaces';
 import Grid from './components/Grid';
 import SearchBar from './components/SearchBar';
-import { GridDisplayData } from "./interfaces";
+import { GridDisplayData } from "./gridDisplayData";
 import gameLogic from './logic/gameLogic';
 import postGameLogic from './logic/postGameLogic';
 import { getGridDataFromS3 } from './s3';

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Grid as GridData } from '../../../common/src/interfaces';
 import GuessesRemainingDisplay from "../components/GuessesRemainingDisplay";
-import { GridDisplayData } from "../interfaces";
+import { GridDisplayData } from "../gridDisplayData";
 import { BASE_S3_IMAGE_URL } from '../constants';
 import { insertGridDisplayDatumAtRowCol } from '../gridDisplayData';
 

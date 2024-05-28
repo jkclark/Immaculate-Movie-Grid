@@ -1,6 +1,6 @@
 import { Grid as GridData } from '../../../common/src/interfaces';
 import { getInitialGridDisplayData, insertInnerGridDisplayData } from '../gridDisplayData';
-import { GridDisplayData } from '../interfaces';
+import { GridDisplayData } from '../gridDisplayData';
 
 export function postGameLogic() {
   function getAnswersForPair(
