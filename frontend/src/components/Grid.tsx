@@ -3,14 +3,14 @@ import Square from './Square';
 import { GridDisplayData } from '../interfaces';
 
 interface GridProps {
-  gridData: GridDisplayData[][];
+  gridDisplayData: GridDisplayData[][];
   selectedRow: number;
   selectedCol: number;
   setSelectedRow: (row: number) => void;
   setSelectedCol: (col: number) => void;
 }
 
-const Grid: React.FC<GridProps> = ({ gridData, selectedRow, selectedCol, setSelectedRow, setSelectedCol }) => {
+const Grid: React.FC<GridProps> = ({ gridDisplayData: gridData, selectedRow, selectedCol, setSelectedRow, setSelectedCol }) => {
   const [squares, setSquares] = React.useState<JSX.Element[]>([]);
 
   useEffect(() => {

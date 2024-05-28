@@ -227,7 +227,7 @@ function App() {
       {!isLoading && !gameOver && <button onClick={endGame}>Give up</button>}
       {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar checkAnswerFunc={checkAnswer} setTextAndImageFunc={addAnswerToGridDisplayData} usedAnswers={usedAnswers} /> : null}
       {selectedRow !== -1 && selectedCol !== -1 ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
-      <Grid gridData={gridDisplayData} {...{ selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
+      <Grid gridDisplayData={gridDisplayData} {...{ selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
     </div >
   );
 }
