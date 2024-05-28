@@ -8,7 +8,8 @@ import { GridDisplayData } from "./interfaces";
 import gameLogic from './logic/gameLogic';
 import postGameLogic from './logic/postGameLogic';
 import { getGridDataFromS3 } from './s3';
-import { getInitialGridDisplayData } from './gridDisplayData';
+import { getInitialGridDisplayData, insertGridDisplayDatumAtRowCol } from './gridDisplayData';
+import GuessesRemainingDisplay from './components/GuessesRemainingDisplay';
 
 function App() {
   const [activeTab, setActiveTab] = useState<string>("Your answers")
@@ -45,7 +46,19 @@ function App() {
       console.log("Grid data:");
       console.log(jsonData);
       setGridData(jsonData);
-      setGridDisplayData(getInitialGridDisplayData(jsonData));
+      const initialGridDisplayData = getInitialGridDisplayData(jsonData);
+      // Add guess count to top left
+      insertGridDisplayDatumAtRowCol(
+        {
+          text: "",
+          imageURL: "",
+          div: GuessesRemainingDisplay(jsonData.actors.length / 2 * jsonData.actors.length / 2),
+        },
+        0,
+        0,
+        initialGridDisplayData
+      );
+      setGridDisplayData(initialGridDisplayData);
       setIsLoading(false); // Show the "Give up" button
     }
     fetchData();

@@ -3,6 +3,7 @@ import { Grid as GridData } from '../../../common/src/interfaces';
 import GuessesRemainingDisplay from "../components/GuessesRemainingDisplay";
 import { GridDisplayData } from "../interfaces";
 import { BASE_S3_IMAGE_URL } from '../constants';
+import { insertGridDisplayDatumAtRowCol } from '../gridDisplayData';
 
 export function gameLogic() {
   const [guessesRemaining, setGuessesRemaining] = useState<number>(9);
@@ -11,18 +12,6 @@ export function gameLogic() {
   const [usedAnswers, setUsedAnswers] = useState<{ type: "movie" | "tv", id: number }[]>([]);
   const [gameOver, setGameOver] = useState(false);
   const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useState<GridDisplayData[][]>([[]]);
-
-  function updateGridDisplayData(
-    newGridDisplayDatum: GridDisplayData,
-    rowIndex: number,
-    colIndex: number,
-    gridDisplayData: GridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void
-  ): void {
-    const newGridDisplayData = [...gridDisplayData];
-    newGridDisplayData[rowIndex][colIndex] = newGridDisplayDatum;
-    setGridDisplayData(newGridDisplayData)
-  }
 
   function addAnswerToGridDisplayData(
     type: "movie" | "tv" | "actor",
@@ -36,16 +25,17 @@ export function gameLogic() {
       movie: "movies",
       tv: "tv-shows",
     }
-    updateGridDisplayData(
-      {
-        text,
-        imageURL: `${BASE_S3_IMAGE_URL}/${typesToS3Prefixes[type]}/${id}.jpg`
-      },
-      selectedRow,
-      selectedCol,
-      gridDisplayData,
-      setGridDisplayData
-    );
+    setGridDisplayData(
+      insertGridDisplayDatumAtRowCol(
+        {
+          text,
+          imageURL: `${BASE_S3_IMAGE_URL}/${typesToS3Prefixes[type]}/${id}.jpg`
+        },
+        selectedRow,
+        selectedCol,
+        gridDisplayData,
+      )
+    )
   }
 
   function updateGuessesRemaining(
@@ -53,16 +43,17 @@ export function gameLogic() {
     gridDisplayData: GridDisplayData[][],
     setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void
   ): void {
-    updateGridDisplayData(
-      {
-        text: "",
-        imageURL: "",
-        div: GuessesRemainingDisplay(newGuessesRemaining),
-      },
-      0,
-      0,
-      gridDisplayData,
-      setGridDisplayData,
+    setGridDisplayData(
+      insertGridDisplayDatumAtRowCol(
+        {
+          text: "",
+          imageURL: "",
+          div: GuessesRemainingDisplay(newGuessesRemaining),
+        },
+        0,
+        0,
+        gridDisplayData,
+      )
     );
     setGuessesRemaining(newGuessesRemaining);
   }
