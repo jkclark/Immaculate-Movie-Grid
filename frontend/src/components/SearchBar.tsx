@@ -1,16 +1,33 @@
-import { PiFilmSlate } from "react-icons/pi";
 import debounce from "lodash.debounce";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { SearchResult as SearchResultData } from "../../../common/src/interfaces";
+import { PiFilmSlate } from "react-icons/pi";
+
+import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
+import { GridDisplayData } from "../interfaces";
 import SearchResult from "./SearchResult";
 
 interface SearchBarProps {
-  checkAnswerFunc: (type: "movie" | "tv", id: number) => boolean;
-  setTextAndImageFunc: (type: "movie" | "tv" | "actor", id: number, text: string) => void;
+  checkAnswerFunc: (
+    type: "movie" | "tv",
+    id: number,
+    gridData: GridData,
+    gridDisplayData: GridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void,
+  ) => boolean;
+  setTextAndImageFunc: (
+    type: "movie" | "tv",
+    id: number,
+    text: string,
+    gridDisplayData: GridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void,
+  ) => void;
+  gridData: GridData;
+  gridDisplayData: GridDisplayData[][];
+  setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void;
   usedAnswers: { type: "movie" | "tv", id: number }[];
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageFunc, usedAnswers }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageFunc, gridData, gridDisplayData, setGridDisplayData, usedAnswers }) => {
   const [inputText, setInputText] = useState("");
   const [previousInputText, setPreviousInputText] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultData[]>([]);
@@ -89,12 +106,27 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
 
               if (result.media_type === "movie") {
                 return (
-                  <SearchResult key={index} {...result} release_year={result.release_date?.split("-")[0]} checkAnswerFunc={checkAnswerFunc} setTextAndImageFunc={setTextAndImageFunc} />
+                  <SearchResult
+                    key={index}
+                    {...result}
+                    release_year={result.release_date?.split("-")[0]}
+                    checkAnswerFunc={checkAnswerFunc}
+                    setTextAndImageFunc={setTextAndImageFunc}
+                    {...{ gridData, gridDisplayData, setGridDisplayData }}
+                  />
                 );
               }
 
               return (
-                <SearchResult key={index} {...result} first_air_year={result.first_air_date?.split("-")[0]} last_air_year={result.last_air_date?.split("-")[0]} checkAnswerFunc={checkAnswerFunc} setTextAndImageFunc={setTextAndImageFunc} />
+                <SearchResult
+                  key={index}
+                  {...result}
+                  first_air_year={result.first_air_date?.split("-")[0]}
+                  last_air_year={result.last_air_date?.split("-")[0]}
+                  checkAnswerFunc={checkAnswerFunc}
+                  setTextAndImageFunc={setTextAndImageFunc}
+                  {...{ gridData, gridDisplayData, setGridDisplayData }}
+                />
               );
             })}
           </div>

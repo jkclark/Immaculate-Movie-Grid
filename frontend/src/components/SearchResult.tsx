@@ -1,9 +1,25 @@
 import { useState } from "react";
-import { SearchResult as SearchResultData } from "../../../common/src/interfaces";
+import { Grid as GridData, SearchResult as SearchResultData } from '../../../common/src/interfaces';
+import { GridDisplayData } from "../interfaces";
 
 interface SearchResultProps extends SearchResultData {
-  checkAnswerFunc: (type: "movie" | "tv", id: number) => boolean;
-  setTextAndImageFunc: (type: "movie" | "tv" | "actor", id: number, text: string) => void;
+  checkAnswerFunc: (
+    type: "movie" | "tv",
+    id: number,
+    gridData: GridData,
+    gridDisplayData: GridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void,
+  ) => boolean;
+  setTextAndImageFunc: (
+    type: "movie" | "tv",
+    id: number,
+    text: string,
+    gridDisplayData: GridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void,
+  ) => void;
+  gridData: GridData;
+  gridDisplayData: GridDisplayData[][];
+  setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void;
   release_year?: string;
   first_air_year?: string;
   last_air_year?: string;
@@ -18,13 +34,16 @@ const SearchResult: React.FC<SearchResultProps> = ({
   last_air_year,
   checkAnswerFunc,
   setTextAndImageFunc,
+  gridData,
+  gridDisplayData,
+  setGridDisplayData,
 }) => {
   const [isWrong, setIsWrong] = useState(false);
 
   function handleClick(event: React.MouseEvent) {
     event.preventDefault();  // For whatever reason the button refreshes the page without this
-    if (checkAnswerFunc(media_type, id)) {
-      setTextAndImageFunc(media_type, id, title);
+    if (checkAnswerFunc(media_type, id, gridData, gridDisplayData, setGridDisplayData)) {
+      setTextAndImageFunc(media_type, id, title, gridDisplayData, setGridDisplayData);
     } else {
       setIsWrong(true);
     }
