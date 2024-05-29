@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Grid as GridData } from '../../../common/src/interfaces';
 import GuessesRemainingDisplay from "../components/GuessesRemainingDisplay";
-import { GridDisplayData } from "../gridDisplayData";
+import { GridDisplayData, getInitialGridDisplayData, insertInnerGridDisplayData } from "../gridDisplayData";
 import { BASE_S3_IMAGE_URL } from '../constants';
 import { insertGridDisplayDatumAtRowCol } from '../gridDisplayData';
 
@@ -12,6 +12,45 @@ export function gameLogic() {
   const [usedAnswers, setUsedAnswers] = useState<{ type: "movie" | "tv", id: number }[]>([]);
   const [gameOver, setGameOver] = useState(false);
   const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useState<GridDisplayData[][]>([[]]);
+
+  function getGameGridDisplayData(gridData: GridData): GridDisplayData[][] {
+    const newInnerGridData: GridDisplayData[][] = [];
+
+    // Create squares for inner grid
+    for (let rowIndex = 0; rowIndex < gridData.actors.length / 2; rowIndex++) {
+      const innerGridRow: GridDisplayData[] = [];
+      for (let colIndex = 0; colIndex < gridData.actors.length / 2; colIndex++) {
+        innerGridRow.push({
+          text: "",
+          imageURL: "",
+          clickHandler: () => {
+            setSelectedRow(rowIndex + 1);
+            setSelectedCol(colIndex + 1);
+            console.log(`Clicked on ${rowIndex}, ${colIndex}`);
+          }
+        });
+      }
+      newInnerGridData.push(innerGridRow);
+    }
+
+    // Get grid data with axes populated
+    const newGridData = getInitialGridDisplayData(gridData);
+
+    // Add guesses left
+    const newGridDataWithGuesses = insertGridDisplayDatumAtRowCol(
+      {
+        text: "",
+        imageURL: "",
+        div: GuessesRemainingDisplay(guessesRemaining),
+      },
+      0,
+      0,
+      newGridData
+    );
+
+    // Insert inner grid into outer grid
+    return insertInnerGridDisplayData(newGridDataWithGuesses, newInnerGridData);
+  }
 
   function addAnswerToGridDisplayData(
     type: "movie" | "tv" | "actor",
@@ -68,7 +107,8 @@ export function gameLogic() {
     if (selectedRow === -1 || selectedCol === -1) {
       throw new Error("Selected row or column is -1");
     }
-    // We need to subtract 1 because the squares at the top and left of the grid are axis squares
+
+    // - 1 because the first row and column are the axes
     const dataRow = selectedRow - 1;
     const dataCol = selectedCol - 1;
 
@@ -115,6 +155,7 @@ export function gameLogic() {
     usedAnswers,
     gameOver,
     finalGameGridDisplayData,
+    getGameGridDisplayData,
     addAnswerToGridDisplayData,
     checkAnswer,
     closeOverlay,

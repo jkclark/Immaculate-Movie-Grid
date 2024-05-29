@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Grid as GridData, SearchResult as SearchResultData } from '../../../common/src/interfaces';
-import { GridDisplayData } from "../interfaces";
+import { GridDisplayData } from "../gridDisplayData";
 
 interface SearchResultProps extends SearchResultData {
   checkAnswerFunc: (

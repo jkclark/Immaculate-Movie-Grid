@@ -2,7 +2,10 @@ import { Grid as GridData } from '../../common/src/interfaces';
 import { BASE_S3_IMAGE_URL } from "./constants";
 
 export interface GridDisplayData {
-  text: string, imageURL: string, div?: JSX.Element,
+  text: string,
+  imageURL: string,
+  div?: JSX.Element,
+  clickHandler?: () => void,
 };
 
 export function getInitialGridDisplayData(gridData: GridData): GridDisplayData[][] {
@@ -47,11 +50,11 @@ export function insertGridDisplayDatumAtRowCol(
 }
 
 export function insertInnerGridDisplayData(gridDisplayData: GridDisplayData[][], innerGridDisplayData: GridDisplayData[][]): GridDisplayData[][] {
-  const newGridDisplayData = [...gridDisplayData];
+  let newGridDisplayData = [...gridDisplayData];
   for (let rowIndex = 0; rowIndex < innerGridDisplayData.length; rowIndex++) {
     for (let colIndex = 0; colIndex < innerGridDisplayData[rowIndex].length; colIndex++) {
       // 1 + rowIndex and 1 + colIndex because the inner grid starts at (1, 1) in the outer grid
-      insertGridDisplayDatumAtRowCol(
+      newGridDisplayData = insertGridDisplayDatumAtRowCol(
         innerGridDisplayData[rowIndex][colIndex],
         1 + rowIndex,
         1 + colIndex,

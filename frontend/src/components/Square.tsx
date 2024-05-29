@@ -1,23 +1,17 @@
 import React, { useState } from 'react';
 
 interface SquareProps {
-  row: number;
-  col: number;
   text: string;
   imageURL: string;
   div?: JSX.Element;
-  setSelectedRow: (row: number) => void;
-  setSelectedCol: (col: number) => void;
+  clickHandler?: () => void;
 }
 
 const Square: React.FC<SquareProps> = ({
-  row,
-  col,
   text,
   imageURL,
   div,
-  setSelectedRow,
-  setSelectedCol,
+  clickHandler,
 }) => {
   const [isTextVisible, setIsTextVisible] = useState(false);
 
@@ -26,16 +20,7 @@ const Square: React.FC<SquareProps> = ({
   const handleClick = (event: React.MouseEvent) => {
     // Necessary to prevent the page's click handler from resetting this state
     event.stopPropagation();
-    if (isMobile && imageURL) {
-      setIsTextVisible(!isTextVisible);
-      if (!isTextVisible) {
-        setSelectedRow(row);
-        setSelectedCol(col);
-      }
-    } else {
-      setSelectedRow(row);
-      setSelectedCol(col);
-    }
+    (clickHandler || (() => { }))();
   };
 
   return (
