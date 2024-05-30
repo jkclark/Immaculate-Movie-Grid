@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PiFilmSlate } from "react-icons/pi";
 
 import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
-import { GridDisplayData } from "../interfaces";
+import { AnyGridDisplayData } from "../gridDisplayData";
 import SearchResult from "./SearchResult";
 
 interface SearchBarProps {
@@ -11,19 +11,19 @@ interface SearchBarProps {
     type: "movie" | "tv",
     id: number,
     gridData: GridData,
-    gridDisplayData: GridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void,
+    gridDisplayData: AnyGridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void,
   ) => boolean;
   setTextAndImageFunc: (
     type: "movie" | "tv",
     id: number,
     text: string,
-    gridDisplayData: GridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void,
+    gridDisplayData: AnyGridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void,
   ) => void;
   gridData: GridData;
-  gridDisplayData: GridDisplayData[][];
-  setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void;
+  gridDisplayData: AnyGridDisplayData[][];
+  setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void;
   usedAnswers: { type: "movie" | "tv", id: number }[];
 }
 

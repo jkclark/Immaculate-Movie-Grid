@@ -1,13 +1,12 @@
-// import React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import { Grid as GridData } from '../../common/src/interfaces';
-import Grid from './components/Grid';
-import SearchBar from './components/SearchBar';
+import { Grid as GridData } from "../../common/src/interfaces";
+import Grid from "./components/Grid";
+import SearchBar from "./components/SearchBar";
 import { AnyGridDisplayData } from "./gridDisplayData";
-import GameLogic from './logic/GameLogic';
-import PostGameLogic from './logic/PostGameLogic';
-import { getGridDataFromS3 } from './s3';
+import GameLogic from "./logic/GameLogic";
+import PostGameLogic from "./logic/PostGameLogic";
+import { getGridDataFromS3 } from "./s3";
 
 function App() {
   const [activeTab, setActiveTab] = useState<string>("Your answers")
@@ -17,6 +16,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   const {
+    // State
     selectedRow,
     selectedCol,
     setSelectedRow,
@@ -24,6 +24,8 @@ function App() {
     usedAnswers,
     gameOver,
     finalGameGridDisplayData,
+
+    // Functions
     getGameGridDisplayData,
     addAnswerToGridDisplayData,
     checkAnswer,

@@ -1,5 +1,5 @@
-import { Grid as GridData } from '../../../common/src/interfaces';
-import { AnyGridDisplayData, TextGridDisplayData, getInitialGridDisplayData, insertGridDisplayDatumAtRowCol, insertInnerGridDisplayData } from '../gridDisplayData';
+import { Grid as GridData } from "../../../common/src/interfaces";
+import { AnyGridDisplayData, TextGridDisplayData, getInitialGridDisplayData, insertGridDisplayDatumAtRowCol, insertInnerGridDisplayData } from "../gridDisplayData";
 
 export function PostGameLogic() {
   function getAnswersForPair(

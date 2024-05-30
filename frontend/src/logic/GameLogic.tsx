@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Grid as GridData } from '../../../common/src/interfaces';
-import { BASE_S3_IMAGE_URL } from '../constants';
+import { useState } from "react";
+import { Grid as GridData } from "../../../common/src/interfaces";
+import { BASE_S3_IMAGE_URL } from "../constants";
 import { AnyGridDisplayData, getInitialGridDisplayData, insertGridDisplayDatumAtRowCol, insertInnerGridDisplayData } from "../gridDisplayData";
 
 export function GameLogic() {
@@ -145,6 +145,7 @@ export function GameLogic() {
   }
 
   return {
+    // State
     selectedRow,
     selectedCol,
     setSelectedRow,
@@ -152,6 +153,8 @@ export function GameLogic() {
     usedAnswers,
     gameOver,
     finalGameGridDisplayData,
+
+    // Functions
     getGameGridDisplayData,
     addAnswerToGridDisplayData,
     checkAnswer,

@@ -1,7 +1,7 @@
-import React from 'react';
-import BlankSquare from './BlankSquare';
-import ImageSquare from './ImageSquare';
-import TextSquare from './TextSquare';
+import React from "react";
+import BlankSquare from "./BlankSquare";
+import ImageSquare from "./ImageSquare";
+import TextSquare from "./TextSquare";
 
 interface GridSquare {
   imageURL?: string;
@@ -31,17 +31,14 @@ const GridSquare: React.FC<GridSquare> = ({
   let inner: JSX.Element;
 
   if (mainText) {
-    console.log("Returning text square");
     inner = <TextSquare {...{ mainText, subText }} />;
   }
 
   else if (imageURL) {
-    console.log("Returning image square");
     inner = <ImageSquare {...{ imageURL }} hoverText={hoverText || ""} />;
   }
 
   else {
-    console.log("Returning blank square");
     inner = <BlankSquare clickHandler={stopPropClickHandler} />;
   }
 

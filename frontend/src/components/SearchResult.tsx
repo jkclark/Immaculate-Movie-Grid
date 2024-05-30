@@ -1,25 +1,25 @@
 import { useState } from "react";
-import { Grid as GridData, SearchResult as SearchResultData } from '../../../common/src/interfaces';
-import { GridDisplayData } from "../gridDisplayData";
+import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
+import { AnyGridDisplayData } from "../gridDisplayData";
 
 interface SearchResultProps extends SearchResultData {
   checkAnswerFunc: (
     type: "movie" | "tv",
     id: number,
     gridData: GridData,
-    gridDisplayData: GridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void,
+    gridDisplayData: AnyGridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void,
   ) => boolean;
   setTextAndImageFunc: (
     type: "movie" | "tv",
     id: number,
     text: string,
-    gridDisplayData: GridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void,
+    gridDisplayData: AnyGridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void,
   ) => void;
   gridData: GridData;
-  gridDisplayData: GridDisplayData[][];
-  setGridDisplayData: (gridDisplayData: GridDisplayData[][]) => void;
+  gridDisplayData: AnyGridDisplayData[][];
+  setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void;
   release_year?: string;
   first_air_year?: string;
   last_air_year?: string;

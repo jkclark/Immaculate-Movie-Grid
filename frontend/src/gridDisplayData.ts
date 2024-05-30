@@ -1,4 +1,4 @@
-import { Grid as GridData } from '../../common/src/interfaces';
+import { Grid as GridData } from "../../common/src/interfaces";
 import { BASE_S3_IMAGE_URL } from "./constants";
 
 interface GridDisplayData {

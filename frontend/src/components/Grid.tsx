@@ -1,6 +1,6 @@
-import React from 'react';
-import { AnyGridDisplayData } from '../gridDisplayData';
-import GridSquare from './GridSquare';
+import React from "react";
+import { AnyGridDisplayData } from "../gridDisplayData";
+import GridSquare from "./GridSquare";
 
 interface GridProps {
   gridDisplayData: AnyGridDisplayData[][];
