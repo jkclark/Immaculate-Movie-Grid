@@ -1,8 +1,7 @@
 import { Grid as GridData } from '../../../common/src/interfaces';
-import { getInitialGridDisplayData, insertInnerGridDisplayData } from '../gridDisplayData';
-import { GridDisplayData } from '../gridDisplayData';
+import { TextGridDisplayData, TextOrImageGridDisplayData, getInitialGridDisplayData, insertGridDisplayDatumAtRowCol, insertInnerGridDisplayData } from '../gridDisplayData';
 
-export function postGameLogic() {
+export function PostGameLogic() {
   function getAnswersForPair(
     actor1Id: number,
     actor2Id: number,
@@ -27,37 +26,36 @@ export function postGameLogic() {
     return answerNames;
   }
 
-  function getAllAnswerGridDisplayData(gridData: GridData): GridDisplayData[][] {
-    const newInnerGridData: GridDisplayData[][] = [];
+  function getAllAnswerGridDisplayData(gridData: GridData): TextOrImageGridDisplayData[][] {
+    const newInnerGridData: TextGridDisplayData[][] = [];
     const acrossActors = gridData.actors.slice(0, gridData.actors.length / 2);
     const downActors = gridData.actors.slice(gridData.actors.length / 2);
     for (const acrossActor of acrossActors) {
-      const innerGridRow: GridDisplayData[] = [];
+      const innerGridRow: TextGridDisplayData[] = [];
       for (const downActor of downActors) {
         const answers = getAnswersForPair(acrossActor.id, downActor.id, gridData);
         const answerText = `${Array.from(answers).length}`;
         innerGridRow.push({
-          text: "",
-          imageURL: "",
-          div: <div className="flex items-center justify-center h-full text-7xl">{answerText}</div>
+          mainText: answerText,
         });
       }
       newInnerGridData.push(innerGridRow);
     }
 
-    const newGridData = getInitialGridDisplayData(gridData);
+    // Get grid data with axes populated
+    const newGridData: TextOrImageGridDisplayData[][] = getInitialGridDisplayData(gridData);
+
     // Replace "guesses left" with total number of answers
-    newGridData[0][0] = {
-      text: "",
-      imageURL: "",
-      div: (
-        <div className="text-center">
-          <div className="text-7xl">{gridData.credits.length}</div>
-          <div className="text-xl">total</div>
-        </div>
-      )
-    };
-    return insertInnerGridDisplayData(newGridData, newInnerGridData);
+    const newGridDataWithTotal = insertGridDisplayDatumAtRowCol(
+      {
+        mainText: `${gridData.credits.length}`,
+        subText: "total"
+      },
+      0,
+      0,
+      newGridData
+    );
+    return insertInnerGridDisplayData(newGridDataWithTotal, newInnerGridData);
   }
 
   return {
@@ -65,4 +63,4 @@ export function postGameLogic() {
   }
 }
 
-export default postGameLogic;
+export default PostGameLogic;

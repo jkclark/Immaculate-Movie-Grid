@@ -4,15 +4,15 @@ import { useEffect, useState } from 'react';
 import { Grid as GridData } from '../../common/src/interfaces';
 import Grid from './components/Grid';
 import SearchBar from './components/SearchBar';
-import { GridDisplayData } from "./gridDisplayData";
-import gameLogic from './logic/gameLogic';
-import postGameLogic from './logic/postGameLogic';
+import { ImageGridDisplayData, TextGridDisplayData } from "./gridDisplayData";
+import GameLogic from './logic/GameLogic';
+import PostGameLogic from './logic/PostGameLogic';
 import { getGridDataFromS3 } from './s3';
 
 function App() {
   const [activeTab, setActiveTab] = useState<string>("Your answers")
   const [gridData, setGridData]: [GridData, any] = useState({} as GridData);
-  const [gridDisplayData, setGridDisplayData] = useState<GridDisplayData[][]>([[]]);
+  const [gridDisplayData, setGridDisplayData] = useState<(TextGridDisplayData | ImageGridDisplayData)[][]>([[]]);
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,11 +29,11 @@ function App() {
     checkAnswer,
     closeOverlay,
     endGame,
-  } = gameLogic();
+  } = GameLogic();
 
   const {
     getAllAnswerGridDisplayData,
-  } = postGameLogic();
+  } = PostGameLogic();
 
   useEffect(() => {
     async function fetchData() {
