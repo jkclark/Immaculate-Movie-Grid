@@ -26,7 +26,7 @@ function App() {
     finalGameGridDisplayData,
 
     // Functions
-    getGameGridDisplayData,
+    getInitialGameGridDisplayData,
     addAnswerToGridDisplayData,
     checkAnswer,
     closeOverlay,
@@ -47,7 +47,7 @@ function App() {
       console.log("Grid data:");
       console.log(jsonData);
       setGridData(jsonData);
-      setGridDisplayData(getGameGridDisplayData(jsonData));
+      setGridDisplayData(getInitialGameGridDisplayData(jsonData));
       setIsLoading(false); // Show the "Give up" button
     }
     fetchData();
@@ -82,7 +82,7 @@ function App() {
       }
 
       {selectedRow !== -1 && selectedCol !== -1 ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
-      <Grid gridDisplayData={gridDisplayData} {...{ selectedRow, selectedCol, setSelectedRow, setSelectedCol }} />
+      <Grid gridDisplayData={gridDisplayData} {...{ selectedRow, selectedCol }} />
     </div >
   );
 }

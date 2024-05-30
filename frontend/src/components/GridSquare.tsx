@@ -9,6 +9,10 @@ interface GridSquare {
   mainText?: string;
   subText?: string;
   clickHandler?: () => void;
+  row: number;
+  col: number;
+  selectedRow: number;
+  selectedCol: number;
 }
 
 const GridSquare: React.FC<GridSquare> = ({
@@ -17,6 +21,10 @@ const GridSquare: React.FC<GridSquare> = ({
   mainText,
   subText,
   clickHandler,
+  row,
+  col,
+  selectedRow,
+  selectedCol,
 }) => {
 
   function stopPropClickHandler(event: React.MouseEvent) {
@@ -39,7 +47,7 @@ const GridSquare: React.FC<GridSquare> = ({
   }
 
   else {
-    inner = <BlankSquare clickHandler={stopPropClickHandler} />;
+    inner = <BlankSquare clickHandler={stopPropClickHandler} isHighlighted={row === selectedRow && col === selectedCol} />;
   }
 
   return (

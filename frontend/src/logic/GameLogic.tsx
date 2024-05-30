@@ -18,7 +18,7 @@ export function GameLogic() {
     }
   }
 
-  function getGameGridDisplayData(gridData: GridData): AnyGridDisplayData[][] {
+  function getInitialGameGridDisplayData(gridData: GridData): AnyGridDisplayData[][] {
     const newInnerGridData: AnyGridDisplayData[][] = [];
 
     // Create squares for inner grid
@@ -155,7 +155,7 @@ export function GameLogic() {
     finalGameGridDisplayData,
 
     // Functions
-    getGameGridDisplayData,
+    getInitialGameGridDisplayData,
     addAnswerToGridDisplayData,
     checkAnswer,
     closeOverlay,
