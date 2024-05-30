@@ -8,7 +8,7 @@ const BlankSquare: React.FC<BlankSquareProps> = ({
   clickHandler,
 }) => {
   return (
-    <div onClick={clickHandler} className={`w-full h-full ${clickHandler ? "hover:cursor-pointer" : "hover:cursor-default"}`}></div>
+    <div onClick={clickHandler} className={`w-full h-full hover:bg-sky-100 ${clickHandler ? "hover:cursor-pointer" : "hover:cursor-default"}`}></div>
   );
 }
 
