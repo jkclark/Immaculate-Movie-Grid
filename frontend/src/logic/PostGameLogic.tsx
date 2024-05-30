@@ -1,5 +1,5 @@
 import { Grid as GridData } from '../../../common/src/interfaces';
-import { TextGridDisplayData, TextOrImageGridDisplayData, getInitialGridDisplayData, insertGridDisplayDatumAtRowCol, insertInnerGridDisplayData } from '../gridDisplayData';
+import { AnyGridDisplayData, TextGridDisplayData, getInitialGridDisplayData, insertGridDisplayDatumAtRowCol, insertInnerGridDisplayData } from '../gridDisplayData';
 
 export function PostGameLogic() {
   function getAnswersForPair(
@@ -26,7 +26,7 @@ export function PostGameLogic() {
     return answerNames;
   }
 
-  function getAllAnswerGridDisplayData(gridData: GridData): TextOrImageGridDisplayData[][] {
+  function getAllAnswerGridDisplayData(gridData: GridData): AnyGridDisplayData[][] {
     const newInnerGridData: TextGridDisplayData[][] = [];
     const acrossActors = gridData.actors.slice(0, gridData.actors.length / 2);
     const downActors = gridData.actors.slice(gridData.actors.length / 2);
@@ -43,7 +43,7 @@ export function PostGameLogic() {
     }
 
     // Get grid data with axes populated
-    const newGridData: TextOrImageGridDisplayData[][] = getInitialGridDisplayData(gridData);
+    const newGridData: AnyGridDisplayData[][] = getInitialGridDisplayData(gridData);
 
     // Replace "guesses left" with total number of answers
     const newGridDataWithTotal = insertGridDisplayDatumAtRowCol(

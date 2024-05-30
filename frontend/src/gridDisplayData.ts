@@ -15,11 +15,11 @@ export interface ImageGridDisplayData extends GridDisplayData {
   hoverText: string,
 };
 
-export type TextOrImageGridDisplayData = TextGridDisplayData | ImageGridDisplayData;
+export type AnyGridDisplayData = GridDisplayData | TextGridDisplayData | ImageGridDisplayData;
 
-export function getInitialGridDisplayData(gridData: GridData): TextOrImageGridDisplayData[][] {
+export function getInitialGridDisplayData(gridData: GridData): AnyGridDisplayData[][] {
   const gridSize = gridData.actors.length / 2;
-  const displayData: TextOrImageGridDisplayData[][] = [];
+  const displayData: AnyGridDisplayData[][] = [];
   for (let rowIndex = 0; rowIndex < gridSize + 1; rowIndex++) {
     displayData.push([])
     for (let colIndex = 0; colIndex < gridSize + 1; colIndex++) {
@@ -48,20 +48,20 @@ export function getInitialGridDisplayData(gridData: GridData): TextOrImageGridDi
 }
 
 export function insertGridDisplayDatumAtRowCol(
-  newGridDisplayDatum: TextOrImageGridDisplayData,
+  newGridDisplayDatum: AnyGridDisplayData,
   rowIndex: number,
   colIndex: number,
-  gridDisplayData: TextOrImageGridDisplayData[][]
-): TextOrImageGridDisplayData[][] {
+  gridDisplayData: AnyGridDisplayData[][]
+): AnyGridDisplayData[][] {
   const newGridDisplayData = [...gridDisplayData];
   newGridDisplayData[rowIndex][colIndex] = newGridDisplayDatum;
   return newGridDisplayData;
 }
 
 export function insertInnerGridDisplayData(
-  gridDisplayData: TextOrImageGridDisplayData[][],
-  innerGridDisplayData: TextOrImageGridDisplayData[][]
-): TextOrImageGridDisplayData[][] {
+  gridDisplayData: AnyGridDisplayData[][],
+  innerGridDisplayData: AnyGridDisplayData[][]
+): AnyGridDisplayData[][] {
   let newGridDisplayData = [...gridDisplayData];
   for (let rowIndex = 0; rowIndex < innerGridDisplayData.length; rowIndex++) {
     for (let colIndex = 0; colIndex < innerGridDisplayData[rowIndex].length; colIndex++) {

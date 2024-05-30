@@ -1,9 +1,9 @@
 import React from 'react';
-import { ImageGridDisplayData, TextGridDisplayData } from '../gridDisplayData';
+import { AnyGridDisplayData } from '../gridDisplayData';
 import GridSquare from './GridSquare';
 
 interface GridProps {
-  gridDisplayData: (ImageGridDisplayData | TextGridDisplayData)[][];
+  gridDisplayData: AnyGridDisplayData[][];
 }
 
 const Grid: React.FC<GridProps> = ({ gridDisplayData: gridData }) => {

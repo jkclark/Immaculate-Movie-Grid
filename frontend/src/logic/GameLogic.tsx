@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Grid as GridData } from '../../../common/src/interfaces';
-import { TextOrImageGridDisplayData, getInitialGridDisplayData, insertInnerGridDisplayData } from "../gridDisplayData";
 import { BASE_S3_IMAGE_URL } from '../constants';
-import { insertGridDisplayDatumAtRowCol } from '../gridDisplayData';
+import { AnyGridDisplayData, getInitialGridDisplayData, insertGridDisplayDatumAtRowCol, insertInnerGridDisplayData } from "../gridDisplayData";
 
 export function GameLogic() {
   const [guessesRemaining, setGuessesRemaining] = useState<number>(9);
@@ -10,25 +9,23 @@ export function GameLogic() {
   const [selectedCol, setSelectedCol] = useState(-1);
   const [usedAnswers, setUsedAnswers] = useState<{ type: "movie" | "tv", id: number }[]>([]);
   const [gameOver, setGameOver] = useState(false);
-  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useState<TextOrImageGridDisplayData[][]>([[]]);
+  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useState<AnyGridDisplayData[][]>([[]]);
 
-  function getGuessesRemainingGridDatum(newGuessesRemaining: number): TextOrImageGridDisplayData {
+  function getGuessesRemainingGridDatum(newGuessesRemaining: number): AnyGridDisplayData {
     return {
       mainText: `${newGuessesRemaining}`,
       subText: "guesses left",
     }
   }
 
-  function getGameGridDisplayData(gridData: GridData): TextOrImageGridDisplayData[][] {
-    const newInnerGridData: TextOrImageGridDisplayData[][] = [];
+  function getGameGridDisplayData(gridData: GridData): AnyGridDisplayData[][] {
+    const newInnerGridData: AnyGridDisplayData[][] = [];
 
     // Create squares for inner grid
     for (let rowIndex = 0; rowIndex < gridData.actors.length / 2; rowIndex++) {
-      const innerGridRow: TextOrImageGridDisplayData[] = [];
+      const innerGridRow: AnyGridDisplayData[] = [];
       for (let colIndex = 0; colIndex < gridData.actors.length / 2; colIndex++) {
         innerGridRow.push({
-          hoverText: "",
-          imageURL: "",
           clickHandler: () => {
             if (!gameOver) {
               setSelectedRow(rowIndex + 1);
@@ -60,8 +57,8 @@ export function GameLogic() {
     type: "movie" | "tv" | "actor",
     id: number,
     text: string,
-    gridDisplayData: TextOrImageGridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: TextOrImageGridDisplayData[][]) => void
+    gridDisplayData: AnyGridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void
   ): void {
     const typesToS3Prefixes = {
       actor: "actors",
@@ -83,8 +80,8 @@ export function GameLogic() {
 
   function updateGuessesRemaining(
     newGuessesRemaining: number,
-    gridDisplayData: TextOrImageGridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: TextOrImageGridDisplayData[][]) => void
+    gridDisplayData: AnyGridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void
   ): void {
     setGridDisplayData(
       insertGridDisplayDatumAtRowCol(
@@ -101,8 +98,8 @@ export function GameLogic() {
     type: "movie" | "tv",
     id: number,
     gridData: GridData,
-    gridDisplayData: TextOrImageGridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: TextOrImageGridDisplayData[][]) => void
+    gridDisplayData: AnyGridDisplayData[][],
+    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void
   ): boolean {
     if (selectedRow === -1 || selectedCol === -1) {
       throw new Error("Selected row or column is -1");
@@ -140,7 +137,7 @@ export function GameLogic() {
     setSelectedCol(-1);
   }
 
-  function endGame(gridDisplayData: TextOrImageGridDisplayData[][]) {
+  function endGame(gridDisplayData: AnyGridDisplayData[][]) {
     setFinalGameGridDisplayData(gridDisplayData);
     setGameOver(true);
     setSelectedRow(-1);
