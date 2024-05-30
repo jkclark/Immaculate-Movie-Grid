@@ -6,9 +6,10 @@ interface GridProps {
   gridDisplayData: AnyGridDisplayData[][];
   selectedRow: number;
   selectedCol: number;
+  gameOver: boolean;
 }
 
-const Grid: React.FC<GridProps> = ({ gridDisplayData: gridData, selectedRow, selectedCol }) => {
+const Grid: React.FC<GridProps> = ({ gridDisplayData: gridData, selectedRow, selectedCol, gameOver }) => {
   console.log("Selected row and col: ", selectedRow, selectedCol);
   return (
     <div className="grid grid-cols-4 grid-rows-4 max-w-[60vh] px-4" style={{ marginTop: "calc(2vh + 20px)" }}>
@@ -17,7 +18,7 @@ const Grid: React.FC<GridProps> = ({ gridDisplayData: gridData, selectedRow, sel
         <GridSquare
           key={index}
           {...square}
-          {...{ selectedRow, selectedCol }}
+          {...{ selectedRow, selectedCol, gameOver }}
           row={Math.floor(index / 4)}
           col={index % 4}
         />

@@ -1,5 +1,5 @@
 import React from "react";
-import BlankSquare from "./BlankSquare";
+import EmptyGameSquare from "./EmptyGameSquare";
 import ImageSquare from "./ImageSquare";
 import TextSquare from "./TextSquare";
 
@@ -13,6 +13,7 @@ interface GridSquare {
   col: number;
   selectedRow: number;
   selectedCol: number;
+  gameOver: boolean;
 }
 
 const GridSquare: React.FC<GridSquare> = ({
@@ -25,6 +26,7 @@ const GridSquare: React.FC<GridSquare> = ({
   col,
   selectedRow,
   selectedCol,
+  gameOver,
 }) => {
 
   function stopPropClickHandler(event: React.MouseEvent) {
@@ -47,7 +49,11 @@ const GridSquare: React.FC<GridSquare> = ({
   }
 
   else {
-    inner = <BlankSquare clickHandler={stopPropClickHandler} isHighlighted={row === selectedRow && col === selectedCol} />;
+    inner = <EmptyGameSquare
+      clickHandler={stopPropClickHandler}
+      isHighlighted={row === selectedRow && col === selectedCol}
+      gameOver={gameOver}
+    />;
   }
 
   return (

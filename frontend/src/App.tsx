@@ -82,7 +82,7 @@ function App() {
       }
 
       {selectedRow !== -1 && selectedCol !== -1 ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
-      <Grid gridDisplayData={gridDisplayData} {...{ selectedRow, selectedCol }} />
+      <Grid gridDisplayData={gridDisplayData} {...{ selectedRow, selectedCol, gameOver }} />
     </div >
   );
 }
