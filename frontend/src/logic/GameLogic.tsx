@@ -30,7 +30,6 @@ export function GameLogic() {
             if (!gameOver) {
               setSelectedRow(rowIndex + 1);
               setSelectedCol(colIndex + 1);
-              console.log(`Clicked on ${rowIndex}, ${colIndex}`);
             }
           }
         });
