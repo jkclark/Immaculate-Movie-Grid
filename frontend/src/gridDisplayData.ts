@@ -1,5 +1,5 @@
 import { Grid as GridData } from "../../common/src/interfaces";
-import { BASE_S3_IMAGE_URL } from "./constants";
+import { getS3ImageURLForType } from "./s3";
 
 interface GridDisplayData {
   clickHandler?: () => void,
@@ -27,13 +27,13 @@ export function getInitialGridDisplayData(gridData: GridData): AnyGridDisplayDat
         const actorIndex = colIndex - 1;
         displayData[rowIndex].push({
           hoverText: gridData.actors[actorIndex].name,
-          imageURL: `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[actorIndex].id}.jpg`
+          imageURL: getS3ImageURLForType("actor", gridData.actors[actorIndex].id),
         });
       } else if (colIndex === 0 && rowIndex !== 0) {
         const actorIndex = gridSize + rowIndex - 1;
         displayData[rowIndex].push({
           hoverText: gridData.actors[actorIndex].name,
-          imageURL: `${BASE_S3_IMAGE_URL}/actors/${gridData.actors[actorIndex].id}.jpg`
+          imageURL: getS3ImageURLForType("actor", gridData.actors[actorIndex].id),
         });
       } else {
         displayData[rowIndex].push({

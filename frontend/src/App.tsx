@@ -35,6 +35,7 @@ function App() {
 
   const {
     getAllAnswerGridDisplayData,
+    getAllPairAnswerGridDisplayData,
   } = PostGameLogic();
 
   useEffect(() => {
@@ -58,7 +59,7 @@ function App() {
       {gameOver && (
         <div className="flex space-x-4">
           <button onClick={() => { setActiveTab("Your answers"); setGridDisplayData(finalGameGridDisplayData); }} className={`${activeTab === "Your answers" ? "bg-blue-700" : ""}`}>Your answers</button>
-          <button onClick={() => { setActiveTab("All answers"); setGridDisplayData(getAllAnswerGridDisplayData(gridData)); }} className={`${activeTab === "All answers" ? "bg-blue-700" : ""}`}>
+          <button onClick={() => { setActiveTab("All answers"); setGridDisplayData(getAllAnswerGridDisplayData(gridData, setGridDisplayData)); }} className={`${activeTab === "All answers" ? "bg-blue-700" : ""}`}>
             All answers
           </button>
           <button onClick={() => setActiveTab("Popular answers")} className={`${activeTab === "Popular answers" ? "bg-blue-700" : ""}`}>

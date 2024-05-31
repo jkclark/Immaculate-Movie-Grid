@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Grid as GridData } from "../../../common/src/interfaces";
-import { BASE_S3_IMAGE_URL } from "../constants";
 import { AnyGridDisplayData, getInitialGridDisplayData, insertGridDisplayDatumAtRowCol, insertInnerGridDisplayData } from "../gridDisplayData";
+import { getS3ImageURLForType } from "../s3";
 
 export function GameLogic() {
   const [guessesRemaining, setGuessesRemaining] = useState<number>(9);
@@ -60,16 +60,11 @@ export function GameLogic() {
     gridDisplayData: AnyGridDisplayData[][],
     setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void
   ): void {
-    const typesToS3Prefixes = {
-      actor: "actors",
-      movie: "movies",
-      tv: "tv-shows",
-    }
     setGridDisplayData(
       insertGridDisplayDatumAtRowCol(
         {
           hoverText: text,
-          imageURL: `${BASE_S3_IMAGE_URL}/${typesToS3Prefixes[type]}/${id}.jpg`
+          imageURL: getS3ImageURLForType(type, id),
         },
         selectedRow,
         selectedCol,

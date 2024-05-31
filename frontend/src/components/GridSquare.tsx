@@ -41,7 +41,7 @@ const GridSquare: React.FC<GridSquare> = ({
   let inner: JSX.Element;
 
   if (mainText) {
-    inner = <TextSquare {...{ mainText, subText }} />;
+    inner = <TextSquare {...{ mainText, subText, clickHandler }} />;
   }
 
   else if (imageURL) {
