@@ -142,8 +142,6 @@ export function GameLogic() {
     // State
     selectedRow,
     selectedCol,
-    setSelectedRow,
-    setSelectedCol,
     usedAnswers,
     gameOver,
     finalGameGridDisplayData,

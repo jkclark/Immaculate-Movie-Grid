@@ -23,6 +23,15 @@ export function getS3ImageURLForType(type: "movie" | "tv" | "actor", id: number)
   return `${BASE_S3_IMAGE_URL}/${typesToS3Prefixes[type]}/${id}.jpg`
 }
 
+export async function preloadImageURL(imageURL: string) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = resolve;
+    image.onerror = reject;
+    image.src = imageURL;
+  });
+}
+
 async function streamToString(stream: ReadableStream): Promise<string> {
   const reader = stream.getReader();
   const decoder = new TextDecoder('utf-8');

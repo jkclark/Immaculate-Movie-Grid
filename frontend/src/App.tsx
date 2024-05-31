@@ -6,7 +6,7 @@ import SearchBar from "./components/SearchBar";
 import { AnyGridDisplayData } from "./gridDisplayData";
 import GameLogic from "./logic/GameLogic";
 import PostGameLogic from "./logic/PostGameLogic";
-import { getGridDataFromS3 } from "./s3";
+import { getGridDataFromS3, getS3ImageURLForType, preloadImageURL } from "./s3";
 
 function App() {
   const [activeTab, setActiveTab] = useState<string>("Your answers")
@@ -19,8 +19,6 @@ function App() {
     // State
     selectedRow,
     selectedCol,
-    setSelectedRow,
-    setSelectedCol,
     usedAnswers,
     gameOver,
     finalGameGridDisplayData,
@@ -53,6 +51,19 @@ function App() {
     }
     fetchData();
   }, []);
+
+  // Preload all other images once the page has loaded
+  useEffect(() => {
+    if (!isLoading) {
+      async function preloadImages() {
+        await Promise.all(gridData.credits.map(credit => {
+          const imageURL = getS3ImageURLForType(credit.type, credit.id);
+          return preloadImageURL(imageURL);
+        }));
+      }
+      preloadImages();
+    }
+  }, [isLoading]);
 
   return (
     <div onClick={closeOverlay} className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
