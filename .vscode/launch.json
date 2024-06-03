@@ -11,7 +11,11 @@
                 "${workspaceFolder}/grid_generation/dist/**/*.js"
             ], // the location of the compiled JavaScript files
             "sourceMaps": true, // enable source maps to allow debugging of the original TypeScript files
-            "cwd": "${workspaceFolder}/grid_generation" // the current working directory for the debug process
+            "cwd": "${workspaceFolder}/grid_generation", // the current working directory for the debug process
+            "args": [
+                "test-grid-graph",
+            ],
+            "console": "integratedTerminal",
         }
     ]
 }
