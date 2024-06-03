@@ -25,49 +25,37 @@ async function main(): Promise<void> {
 
   const graph = await getGraph();
 
-  // Pick random starting actor
-  const actorIds = Object.keys(graph.actors);
-  const randomActorId = actorIds[Math.floor(Math.random() * actorIds.length)];
-
-  // Get valid across and down groups of actors
-  const startingActor: ActorNode = graph.actors[randomActorId];
-  console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
-  const [across, down] = getValidAcrossAndDown(graph, startingActor, [], [isLegitCredit], true);
-  if (across.length === 0 || down.length === 0) {
-    console.log("No valid actor groups found");
-    return;
-  }
-
-  console.log(`Across: ${across.map((actor) => actor.name).join(", ")}`);
-  console.log(`Down: ${down.map((actor) => actor.name).join(", ")}`);
-
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
 
-  rl.question('Continue? (y/n) ', async (answer) => {
-    if (answer.toLowerCase() !== 'y') {
+  let across: ActorNode[], down: ActorNode[];
+  // Generate across/down until the user approves
+  do {
+    // Generate the across and down
+    [across, down] = await pickRandomStartingActorAndGetValidAcrossAndDown(graph);
+
+    // Ask the user if they want to continue    
+    const answer = await new Promise<string>(resolve => rl.question('Continue? (y/n) ', resolve));
+    if (answer.toLowerCase() === 'y') {
       rl.close();
-      return;
+      break;
     }
+  } while (true);
 
-    // Continue with the rest of your code here...
-    // Get grid from across and down actors
-    const grid = getGridFromGraphAndActors(graph, across, down);
+  // Get grid from across and down actors
+  const grid = getGridFromGraphAndActors(graph, across, down);
 
-    // Get images for actors and credits and save them to S3
-    await getAndSaveAllImagesForGrid(grid);
+  // Get images for actors and credits and save them to S3
+  await getAndSaveAllImagesForGrid(grid);
 
-    // Convert to JSON
-    const jsonGrid = convertGridToJSON(grid);
-    console.log(jsonGrid);
+  // Convert to JSON
+  const jsonGrid = convertGridToJSON(grid);
+  console.log(jsonGrid);
 
-    // Write grid to S3
-    await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
-
-    rl.close();
-  });
+  // Write grid to S3
+  await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
 }
 
 /**
@@ -117,6 +105,27 @@ async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
 
   return actorsWithCredits;
 }
+
+async function pickRandomStartingActorAndGetValidAcrossAndDown(graph: Graph): Promise<[ActorNode[], ActorNode[]]> {
+  // Pick random starting actor
+  const actorIds = Object.keys(graph.actors);
+  const randomActorId = actorIds[Math.floor(Math.random() * actorIds.length)];
+
+  // Get valid across and down groups of actors
+  const startingActor: ActorNode = graph.actors[randomActorId];
+  console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
+  const [across, down] = getValidAcrossAndDown(graph, startingActor, [], [isLegitCredit], true);
+  if (across.length === 0 || down.length === 0) {
+    console.log("No valid actor groups found");
+    return;
+  }
+
+  console.log(`Across: ${across.map((actor) => actor.name).join(", ")}`);
+  console.log(`Down: ${down.map((actor) => actor.name).join(", ")}`);
+
+  return [across, down];
+}
+
 
 /**
  * Get a valid pair of across and down actors for a grid.
