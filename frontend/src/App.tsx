@@ -27,7 +27,15 @@ function App() {
         return;
       }
 
-      const jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", "test-grid-graph.json");
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date();
+      const todayString = today.toISOString().split("T")[0];
+
+      // Load the grid named with today's date
+      const jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", `${todayString}.json`);
+
+      // TODO: What should we do if there is no grid for today?
+
       console.log("Grid data:");
       console.log(jsonData);
       setGridData(jsonData);
