@@ -21,8 +21,7 @@ async function main(): Promise<void> {
   const randomActorId = actorIds[Math.floor(Math.random() * actorIds.length)];
 
   // Get valid across and down groups of actors
-  // const startingActor: ActorNode = graph.actors[randomActorId];
-  const startingActor: ActorNode = graph.actors[4495];
+  const startingActor: ActorNode = graph.actors[randomActorId];
   console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
   const [across, down] = getValidAcrossAndDown(graph, startingActor, [], [isLegitCredit], true);
   if (across.length === 0 || down.length === 0) {
@@ -100,6 +99,7 @@ async function getGraph(): Promise<Graph> {
  */
 async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   const actorsWithCredits: Actor[] = [];
+  // for (const id of famousActorIds) {
   for (const id of famousActorIds) {
     const actor = await getActorWithCreditsById(id);
     actorsWithCredits.push(actor);
@@ -338,7 +338,11 @@ function isLegitMovie(credit: CreditNode): boolean {
   ]
   const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(credit.id);
 
-  return !isInvalidGenre && !isInvalidMovie;
+  // Still need to tweak this
+  const MINIMUM_POPULARITY = 10;
+  const popularEnough = credit.popularity > MINIMUM_POPULARITY;
+
+  return !isInvalidGenre && !isInvalidMovie && popularEnough;
 }
 
 /**
@@ -352,12 +356,15 @@ function isLegitTVShow(credit: CreditNode): boolean {
     console.log(`${credit.name} is not a TV show`);
   }
 
+  // Genre
   const INVALID_TV_GENRE_IDS: number[] = [
+    99,    // Documentary
     10763, // News
     10767, // Talk shows
   ];
   const isInvalidGenre: boolean = credit.genre_ids.some(id => INVALID_TV_GENRE_IDS.includes(id));
 
+  // Invalid TV shows
   const INVALID_TV_SHOW_IDS: number[] = [
     456, // The Simpsons
     1667, // Saturday Night Live
@@ -369,9 +376,15 @@ function isLegitTVShow(credit: CreditNode): boolean {
     30048, // Tony Awards
     43117, // Teen Choice Awards
     89293, // Bambi Awards
+    122843, // Honest Trailers
     1111889, // Carol Burnett: 90 Years of Laughter + Love
   ]
   const isInvalidShow: boolean = INVALID_TV_SHOW_IDS.includes(credit.id);
+
+  // Popularity
+  // Still need to tweak this
+  const MINIMUM_POPULARITY = 100;
+  const popularEnough = credit.popularity > MINIMUM_POPULARITY;
 
   return !isInvalidGenre && !isInvalidShow;
 }

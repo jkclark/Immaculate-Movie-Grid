@@ -12,6 +12,7 @@ export interface CreditNode {
   id: number;
   name: string;
   genre_ids: number[];
+  popularity: number;
   edges: { [key: number]: ActorNode };
 }
 
@@ -34,10 +35,7 @@ export function addCreditToGraph(credit: Credit, graph: Graph): void {
     throw new RepeatError(`Credit with id ${creditUniqueString} already exists: ${graph.credits[creditUniqueString].name}`);
   }
   graph.credits[creditUniqueString] = {
-    type: credit.type,
-    id: credit.id,
-    name: credit.name,
-    genre_ids: credit.genre_ids,
+    ...credit,
     edges: {}
   };
 }
@@ -83,6 +81,7 @@ interface creditNodeExport {
   id: number;
   name: string;
   genre_ids: number[];
+  popularity: number;
   edges: number[];
 }
 

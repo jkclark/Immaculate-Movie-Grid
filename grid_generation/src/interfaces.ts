@@ -9,5 +9,6 @@ export interface Credit {
   id: number;
   name: string;
   genre_ids: number[];
+  popularity: number;
 }
 
