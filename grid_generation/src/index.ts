@@ -14,24 +14,19 @@ import { getActorWithCreditsById } from "./tmdbAPI";
 dotenv.config();
 
 async function main(): Promise<void> {
-  // Process args
-  // We invoke the script with `npm run generate-grid`, so we need to slice off the first two arguments
-  const args = process.argv.slice(2);
-  if (args.length < 1) {
-    console.error("Usage: npm run generate-grid <grid-date>\n\ngrid-date should be supplied in the format YYYY-MM-DD\n");
-    return;
-  }
-  const gridDate = args[0];
+  // Read arguments
+  const gridDate = processArgs();
 
+  // Load the graph, or generate it if it doesn't exist
   const graph = await getGraph();
 
+  // Generate across/down until the user approves
+  let across: ActorNode[], down: ActorNode[];
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
 
-  let across: ActorNode[], down: ActorNode[];
-  // Generate across/down until the user approves
   do {
     // Generate the across and down
     [across, down] = await pickRandomStartingActorAndGetValidAcrossAndDown(graph);
@@ -56,6 +51,18 @@ async function main(): Promise<void> {
 
   // Write grid to S3
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
+}
+
+function processArgs() {
+  // We invoke the script with `npm run generate-grid`, so we need to slice off the first two arguments
+  const args = process.argv.slice(2);
+  if (args.length < 1) {
+    console.error("Usage: npm run generate-grid <grid-date>\n\ngrid-date should be supplied in the format YYYY-MM-DD\n");
+    return;
+  }
+  const gridDate = args[0];
+  return gridDate;
+
 }
 
 /**
