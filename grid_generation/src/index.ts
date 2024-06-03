@@ -14,6 +14,15 @@ import { getActorWithCreditsById } from "./tmdbAPI";
 dotenv.config();
 
 async function main(): Promise<void> {
+  // Process args
+  // We invoke the script with `npm run generate-grid`, so we need to slice off the first two arguments
+  const args = process.argv.slice(2);
+  if (args.length < 1) {
+    console.error("Usage: npm run generate-grid <grid-date>\n\ngrid-date should be supplied in the format YYYY-MM-DD\n");
+    return;
+  }
+  const gridDate = args[0];
+
   const graph = await getGraph();
 
   // Pick random starting actor
@@ -55,7 +64,7 @@ async function main(): Promise<void> {
     console.log(jsonGrid);
 
     // Write grid to S3
-    await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid-graph.json");
+    await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
 
     rl.close();
   });
