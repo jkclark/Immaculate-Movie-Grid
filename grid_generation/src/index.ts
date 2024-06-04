@@ -16,6 +16,10 @@ dotenv.config();
 async function main(): Promise<void> {
   // Read arguments
   const gridDate = processArgs();
+  if (!gridDate) {
+    console.error("Usage: npm run generate-grid <grid-date>\n\ngrid-date should be supplied in the format YYYY-MM-DD\n");
+    return;
+  }
 
   // Load the graph, or generate it if it doesn't exist
   const graph = await getGraph();
@@ -53,11 +57,10 @@ async function main(): Promise<void> {
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
 }
 
-function processArgs() {
+function processArgs(): string {
   // We invoke the script with `npm run generate-grid`, so we need to slice off the first two arguments
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.error("Usage: npm run generate-grid <grid-date>\n\ngrid-date should be supplied in the format YYYY-MM-DD\n");
     return;
   }
   const gridDate = args[0];
@@ -240,7 +243,6 @@ function getValidAcrossAndDown(
                 usedCredits.has(getCreditUniqueString(sharedCredit.type, sharedCredit.id)) ||
                 sharedCredit.id === credit.id
               ) {
-                console.log(`\n\n\nXXXXXXXXXXXXXXXXXX ${sharedCredit.name} XXXXXXXXXXXXXXXXXX\n\n\n`);
                 continue;
               }
 
@@ -364,7 +366,7 @@ function isLegitMovie(credit: CreditNode): boolean {
   const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(credit.id);
 
   // Still need to tweak this
-  const MINIMUM_POPULARITY = 10;
+  const MINIMUM_POPULARITY = 20;
   const popularEnough = credit.popularity > MINIMUM_POPULARITY;
 
   return !isInvalidGenre && !isInvalidMovie && popularEnough;
@@ -408,7 +410,7 @@ function isLegitTVShow(credit: CreditNode): boolean {
 
   // Popularity
   // Still need to tweak this
-  const MINIMUM_POPULARITY = 100;
+  const MINIMUM_POPULARITY = 200;
   const popularEnough = credit.popularity > MINIMUM_POPULARITY;
 
   return !isInvalidGenre && !isInvalidShow;
