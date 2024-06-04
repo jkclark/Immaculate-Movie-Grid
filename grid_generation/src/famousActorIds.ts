@@ -62,7 +62,7 @@ export const famousActorIds: number[] = [
   190, // Clint Eastwood
   2461, // Mel Gibson
   4483, // Dustin Hoffman
-  1118965, // Kevin Hart
+  55638, // Kevin Hart
   7399, // Ben Stiller
   70851, // Jack Black
   14405, // Courteney Cox
@@ -74,7 +74,7 @@ export const famousActorIds: number[] = [
   28238, // David Hasselhoff
   41798, // George Lopez
   1813, // Anne Hathaway
-  1399286, // Michael J. Fox
+  521, // Michael J. Fox
   19537, // Megan Fox
   1245, // Scarlett Johansson
   4173, // Anthony Hopkins
@@ -162,7 +162,7 @@ export const famousActorIds: number[] = [
   4430, // Sharon Stone
   31903, // Henry Winkler
   8892, // Olivia Newton-John
-  2010778, // Julie Andrews
+  5823, // Julie Andrews
   8349, // Martin Sheen
   10297, // Matthew McConaughey
   3131, // Antonio Banderas
@@ -181,7 +181,7 @@ export const famousActorIds: number[] = [
   55536, // Melissa McCarthy
   10980, // Daniel Radcliffe
   18892, // Goldie Hawn
-  2181240, // Mike Myers
+  12073, // Mike Myers
   14837, // Carol Burnett
   15757, // Ray Romano
   2178, // Forest Whitaker
@@ -263,7 +263,7 @@ export const famousActorIds: number[] = [
   74036, // Tom Arnold
   15152, // James Earl Jones
   37917, // Kristen Stewart
-  2157822, // Matthew Broderick
+  4756, // Matthew Broderick
   14407, // Matt LeBlanc
   10127, // Jon Voight
   117642, // Jason Momoa
@@ -359,7 +359,7 @@ export const famousActorIds: number[] = [
   18973, // Mila Kunis
   96010, // Carrot Top
   3085, // James Caan
-  1059040, // Lou Ferrigno
+  19137, // Lou Ferrigno
   75343, // Florence Henderson
   18735, // Rock Hudson
   5726, // Cedric the Entertainer
@@ -369,7 +369,7 @@ export const famousActorIds: number[] = [
   16896, // James Garner
   2778, // Dennis Hopper
   96623, // Richard Dawson
-  1011495, // Russell Brand
+  59919, // Russell Brand
   589, // Daryl Hannah
   4110, // Humphrey Bogart
   68812, // Ed Asner
@@ -401,7 +401,7 @@ export const famousActorIds: number[] = [
   2223, // Fred Savage
   7056, // Emma Thompson
   59175, // Blake Lively
-  1487246, // Emma Roberts
+  328387, // Emma Roberts
   5577, // Chris O'Donnell
   5293, // Willem Dafoe
   17835, // Ricky Gervais
@@ -412,7 +412,7 @@ export const famousActorIds: number[] = [
   9205, // Denise Richards
   6450, // Faye Dunaway
   120057, // Jane Seymour
-  1577365, // Charles Bronson
+  4960, // Charles Bronson
   83414, // Tim Conway
   4070, // Grace Kelly
   4111, // Ingrid Bergman
@@ -433,7 +433,7 @@ export const famousActorIds: number[] = [
   43975, // Elizabeth Montgomery
   16757, // Sophia Loren
   64, // Gary Oldman
-  3073575, // Elizabeth Hurley
+  13918, // Elizabeth Hurley
   4810, // Rosie Perez
   11160, // Danny Trejo
   131, // Jake Gyllenhaal
@@ -600,7 +600,7 @@ export const famousActorIds: number[] = [
   7632, // Shelley Winters
   13472, // Tim Curry
   3019, // Olympia Dukakis
-  1230844, // Amy Adams
+  9273, // Amy Adams
   2314, // Peter Falk
   3033, // Wil Wheaton
   22090, // Barbara Eden
@@ -742,7 +742,7 @@ export const famousActorIds: number[] = [
   8902, // Sid Caesar
   3293, // Rachel Weisz
   51965, // Kevin Sorbo
-  1288647, // Maggie Smith
+  10978, // Maggie Smith
   60158, // Shirley Jones
   17637, // Taye Diggs
   35321, // Rex Harrison
@@ -767,7 +767,7 @@ export const famousActorIds: number[] = [
   1639, // Emily Watson
   10690, // Anna Paquin
   14060, // Robert Vaughn
-  1417352, // Ben Kingsley
+  2282, // Ben Kingsley
   77234, // Priyanka Chopra
   11864, // Ryan Phillippe
   151627, // Danny Thomas
@@ -775,7 +775,7 @@ export const famousActorIds: number[] = [
   1534, // Chris Elliott
   13640, // Harvey Korman
   1121, // Benicio del Toro
-  3396031, // John C. Reilly
+  4764, // John C. Reilly
   96635, // Aaron Neville
   20391, // Jane Wyman
   19536, // Josh Duhamel
