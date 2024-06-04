@@ -47,7 +47,7 @@ async function main(): Promise<void> {
   const grid = getGridFromGraphAndActors(graph, across, down);
 
   // Get images for actors and credits and save them to S3
-  await getAndSaveAllImagesForGrid(grid);
+  await getAndSaveAllImagesForGrid(grid, false);
 
   // Convert to JSON
   const jsonGrid = convertGridToJSON(grid);
@@ -366,7 +366,7 @@ function isLegitMovie(credit: CreditNode): boolean {
   const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(credit.id);
 
   // Still need to tweak this
-  const MINIMUM_POPULARITY = 20;
+  const MINIMUM_POPULARITY = 40;
   const popularEnough = credit.popularity > MINIMUM_POPULARITY;
 
   return !isInvalidGenre && !isInvalidMovie && popularEnough;
@@ -393,24 +393,25 @@ function isLegitTVShow(credit: CreditNode): boolean {
 
   // Invalid TV shows
   const INVALID_TV_SHOW_IDS: number[] = [
-    456, // The Simpsons
-    1667, // Saturday Night Live
-    2224, // The Daily Show
-    3739, // E! True Hollywood Story
-    13667, // MTV Movie & TV Awards
-    23521, // Kids' Choice Awards
-    27023, // The Oscars
-    30048, // Tony Awards
-    43117, // Teen Choice Awards
-    89293, // Bambi Awards
-    122843, // Honest Trailers
+    456,     // The Simpsons
+    1667,    // Saturday Night Live
+    2224,    // The Daily Show
+    3739,    // E! True Hollywood Story
+    4779,    // Hallmark Hall of Fame
+    13667,   // MTV Movie & TV Awards
+    23521,   // Kids' Choice Awards
+    27023,   // The Oscars
+    30048,   // Tony Awards
+    43117,   // Teen Choice Awards
+    89293,   // Bambi Awards
+    122843,  // Honest Trailers
     1111889, // Carol Burnett: 90 Years of Laughter + Love
   ]
   const isInvalidShow: boolean = INVALID_TV_SHOW_IDS.includes(credit.id);
 
   // Popularity
   // Still need to tweak this
-  const MINIMUM_POPULARITY = 200;
+  const MINIMUM_POPULARITY = 400;
   const popularEnough = credit.popularity > MINIMUM_POPULARITY;
 
   return !isInvalidGenre && !isInvalidShow;
