@@ -34,6 +34,11 @@ async function main(): Promise<void> {
   do {
     // Generate the across and down
     [across, down] = await pickRandomStartingActorAndGetValidAcrossAndDown(graph);
+    if (across.length === 0 || down.length === 0) {
+      console.log("No valid actor groups found");
+      return;
+    }
+
 
     // Ask the user if they want to continue    
     const answer = await new Promise<string>(resolve => rl.question('Continue? (y/n) ', resolve));
@@ -134,10 +139,6 @@ async function pickRandomStartingActorAndGetValidAcrossAndDown(graph: Graph): Pr
   const startingActor: ActorNode = graph.actors[randomActorId];
   console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
   const [across, down] = getValidAcrossAndDown(graph, startingActor, [], [isLegitCredit], true);
-  if (across.length === 0 || down.length === 0) {
-    console.log("No valid actor groups found");
-    return;
-  }
 
   console.log(`Across: ${across.map((actor) => actor.name).join(", ")}`);
   console.log(`Down: ${down.map((actor) => actor.name).join(", ")}`);
@@ -410,6 +411,7 @@ function isLegitTVShow(credit: CreditNode): boolean {
     13667,   // MTV Movie & TV Awards
     23521,   // Kids' Choice Awards
     27023,   // The Oscars
+    28464,   // The Emmy Awards
     30048,   // Tony Awards
     43117,   // Teen Choice Awards
     89293,   // Bambi Awards
