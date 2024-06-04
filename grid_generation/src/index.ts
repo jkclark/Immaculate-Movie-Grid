@@ -15,9 +15,9 @@ dotenv.config();
 
 async function main(): Promise<void> {
   // Read arguments
-  const gridDate = processArgs();
+  const [gridDate, overwriteImages] = processArgs();
   if (!gridDate) {
-    console.error("Usage: npm run generate-grid <grid-date>\n\ngrid-date should be supplied in the format YYYY-MM-DD\n");
+    console.error("Usage: npm run generate-grid -- <grid-date> [--overwrite-images]\n\ngrid-date should be supplied in the format YYYY-MM-DD\n");
     return;
   }
 
@@ -47,7 +47,7 @@ async function main(): Promise<void> {
   const grid = getGridFromGraphAndActors(graph, across, down);
 
   // Get images for actors and credits and save them to S3
-  await getAndSaveAllImagesForGrid(grid, false);
+  await getAndSaveAllImagesForGrid(grid, overwriteImages);
 
   // Convert to JSON
   const jsonGrid = convertGridToJSON(grid);
@@ -57,15 +57,24 @@ async function main(): Promise<void> {
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
 }
 
-function processArgs(): string {
-  // We invoke the script with `npm run generate-grid`, so we need to slice off the first two arguments
+function processArgs(): [string, boolean] {
   const args = process.argv.slice(2);
-  if (args.length < 1) {
-    return;
-  }
-  const gridDate = args[0];
-  return gridDate;
+  let gridDate = '';
+  let overwriteImages = false;
 
+  if (args.length < 1) {
+    return [gridDate, overwriteImages];
+  }
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--overwrite-images') {
+      overwriteImages = true;
+    } else {
+      gridDate = args[i];
+    }
+  }
+
+  return [gridDate, overwriteImages];
 }
 
 /**
