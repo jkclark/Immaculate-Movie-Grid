@@ -401,7 +401,7 @@ export const famousActorIds: number[] = [
   2223, // Fred Savage
   7056, // Emma Thompson
   59175, // Blake Lively
-  328387, // Emma Roberts
+  34847, // Emma Roberts
   5577, // Chris O'Donnell
   5293, // Willem Dafoe
   17835, // Ricky Gervais
