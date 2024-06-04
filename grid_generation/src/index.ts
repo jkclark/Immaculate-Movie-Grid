@@ -14,52 +14,55 @@ import { getActorWithCreditsById } from "./tmdbAPI";
 dotenv.config();
 
 async function main(): Promise<void> {
+  // Read arguments
+  const gridDate = processArgs();
+
+  // Load the graph, or generate it if it doesn't exist
   const graph = await getGraph();
 
-  // Pick random starting actor
-  const actorIds = Object.keys(graph.actors);
-  const randomActorId = actorIds[Math.floor(Math.random() * actorIds.length)];
-
-  // Get valid across and down groups of actors
-  // const startingActor: ActorNode = graph.actors[randomActorId];
-  const startingActor: ActorNode = graph.actors[4495];
-  console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
-  const [across, down] = getValidAcrossAndDown(graph, startingActor, [], [isLegitCredit], true);
-  if (across.length === 0 || down.length === 0) {
-    console.log("No valid actor groups found");
-    return;
-  }
-
-  console.log(`Across: ${across.map((actor) => actor.name).join(", ")}`);
-  console.log(`Down: ${down.map((actor) => actor.name).join(", ")}`);
-
+  // Generate across/down until the user approves
+  let across: ActorNode[], down: ActorNode[];
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
 
-  rl.question('Continue? (y/n) ', async (answer) => {
-    if (answer.toLowerCase() !== 'y') {
+  do {
+    // Generate the across and down
+    [across, down] = await pickRandomStartingActorAndGetValidAcrossAndDown(graph);
+
+    // Ask the user if they want to continue    
+    const answer = await new Promise<string>(resolve => rl.question('Continue? (y/n) ', resolve));
+    if (answer.toLowerCase() === 'y') {
       rl.close();
-      return;
+      break;
     }
+  } while (true);
 
-    // Continue with the rest of your code here...
-    // Get grid from across and down actors
-    const grid = getGridFromGraphAndActors(graph, across, down);
+  // Get grid from across and down actors
+  const grid = getGridFromGraphAndActors(graph, across, down);
 
-    // Get images for actors and credits and save them to S3
-    await getAndSaveAllImagesForGrid(grid);
+  // Get images for actors and credits and save them to S3
+  await getAndSaveAllImagesForGrid(grid);
 
-    // Convert to JSON
-    const jsonGrid = convertGridToJSON(grid);
-    console.log(jsonGrid);
+  // Convert to JSON
+  const jsonGrid = convertGridToJSON(grid);
+  console.log(jsonGrid);
 
-    // Write grid to S3
-    await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", "test-grid-graph.json");
+  // Write grid to S3
+  await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
+}
 
-    rl.close();
-  });
+function processArgs() {
+  // We invoke the script with `npm run generate-grid`, so we need to slice off the first two arguments
+  const args = process.argv.slice(2);
+  if (args.length < 1) {
+    console.error("Usage: npm run generate-grid <grid-date>\n\ngrid-date should be supplied in the format YYYY-MM-DD\n");
+    return;
+  }
+  const gridDate = args[0];
+  return gridDate;
+
 }
 
 /**
@@ -100,6 +103,7 @@ async function getGraph(): Promise<Graph> {
  */
 async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   const actorsWithCredits: Actor[] = [];
+  // for (const id of famousActorIds) {
   for (const id of famousActorIds) {
     const actor = await getActorWithCreditsById(id);
     actorsWithCredits.push(actor);
@@ -108,6 +112,27 @@ async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
 
   return actorsWithCredits;
 }
+
+async function pickRandomStartingActorAndGetValidAcrossAndDown(graph: Graph): Promise<[ActorNode[], ActorNode[]]> {
+  // Pick random starting actor
+  const actorIds = Object.keys(graph.actors);
+  const randomActorId = actorIds[Math.floor(Math.random() * actorIds.length)];
+
+  // Get valid across and down groups of actors
+  const startingActor: ActorNode = graph.actors[randomActorId];
+  console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
+  const [across, down] = getValidAcrossAndDown(graph, startingActor, [], [isLegitCredit], true);
+  if (across.length === 0 || down.length === 0) {
+    console.log("No valid actor groups found");
+    return;
+  }
+
+  console.log(`Across: ${across.map((actor) => actor.name).join(", ")}`);
+  console.log(`Down: ${down.map((actor) => actor.name).join(", ")}`);
+
+  return [across, down];
+}
+
 
 /**
  * Get a valid pair of across and down actors for a grid.
@@ -338,7 +363,11 @@ function isLegitMovie(credit: CreditNode): boolean {
   ]
   const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(credit.id);
 
-  return !isInvalidGenre && !isInvalidMovie;
+  // Still need to tweak this
+  const MINIMUM_POPULARITY = 10;
+  const popularEnough = credit.popularity > MINIMUM_POPULARITY;
+
+  return !isInvalidGenre && !isInvalidMovie && popularEnough;
 }
 
 /**
@@ -352,12 +381,15 @@ function isLegitTVShow(credit: CreditNode): boolean {
     console.log(`${credit.name} is not a TV show`);
   }
 
+  // Genre
   const INVALID_TV_GENRE_IDS: number[] = [
+    99,    // Documentary
     10763, // News
     10767, // Talk shows
   ];
   const isInvalidGenre: boolean = credit.genre_ids.some(id => INVALID_TV_GENRE_IDS.includes(id));
 
+  // Invalid TV shows
   const INVALID_TV_SHOW_IDS: number[] = [
     456, // The Simpsons
     1667, // Saturday Night Live
@@ -369,9 +401,15 @@ function isLegitTVShow(credit: CreditNode): boolean {
     30048, // Tony Awards
     43117, // Teen Choice Awards
     89293, // Bambi Awards
+    122843, // Honest Trailers
     1111889, // Carol Burnett: 90 Years of Laughter + Love
   ]
   const isInvalidShow: boolean = INVALID_TV_SHOW_IDS.includes(credit.id);
+
+  // Popularity
+  // Still need to tweak this
+  const MINIMUM_POPULARITY = 100;
+  const popularEnough = credit.popularity > MINIMUM_POPULARITY;
 
   return !isInvalidGenre && !isInvalidShow;
 }

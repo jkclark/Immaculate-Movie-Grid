@@ -89,7 +89,7 @@ export const famousActorIds: number[] = [
   16619, // Mr. T
   5064, // Meryl Streep
   1532, // Bill Murray
-  2080867, // Emma Stone
+  54693, // Emma Stone
   61303, // Dick Van Dyke
   1229, // Jeff Bridges
   21411, // Ice-T

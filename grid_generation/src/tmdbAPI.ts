@@ -39,7 +39,8 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
       type: credit.media_type,
       id: credit.id,
       name: credit.title || credit.name,
-      genre_ids: credit.genre_ids
+      genre_ids: credit.genre_ids,
+      popularity: credit.popularity,
     });
   }
 
