@@ -3,7 +3,7 @@ import { Grid as GridData } from "../../../common/src/interfaces";
 import { AnyGridDisplayData, getInitialGridDisplayData, insertGridDisplayDatumAtRowCol, insertInnerGridDisplayData } from "../gridDisplayData";
 import { getS3ImageURLForType } from "../s3";
 
-export function GameLogic() {
+export function GameLogic(gridDisplayData: AnyGridDisplayData[][], setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void) {
   const [guessesRemaining, setGuessesRemaining] = useState<number>(9);
   const [selectedRow, setSelectedRow] = useState(-1);
   const [selectedCol, setSelectedCol] = useState(-1);
@@ -56,8 +56,6 @@ export function GameLogic() {
     type: "movie" | "tv" | "actor",
     id: number,
     text: string,
-    gridDisplayData: AnyGridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void
   ): void {
     setGridDisplayData(
       insertGridDisplayDatumAtRowCol(
@@ -74,8 +72,6 @@ export function GameLogic() {
 
   function updateGuessesRemaining(
     newGuessesRemaining: number,
-    gridDisplayData: AnyGridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void
   ): void {
     setGridDisplayData(
       insertGridDisplayDatumAtRowCol(
@@ -92,8 +88,6 @@ export function GameLogic() {
     type: "movie" | "tv",
     id: number,
     gridData: GridData,
-    gridDisplayData: AnyGridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void
   ): boolean {
     if (selectedRow === -1 || selectedCol === -1) {
       throw new Error("Selected row or column is -1");
@@ -109,7 +103,7 @@ export function GameLogic() {
     const downCorrect = gridData.answers[downActorId].some(answer => answer.type === type && answer.id === id);
 
     // -1 guesses remaining
-    updateGuessesRemaining(guessesRemaining - 1, gridDisplayData, setGridDisplayData);
+    updateGuessesRemaining(guessesRemaining - 1);
 
     if (acrossCorrect && downCorrect) {
       console.log("Correct!");

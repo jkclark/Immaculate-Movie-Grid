@@ -9,7 +9,7 @@ import {
 } from "../gridDisplayData";
 import { getS3ImageURLForType } from "../s3";
 
-export function PostGameLogic() {
+export function PostGameLogic(setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void) {
   function getAnswersForPair(
     actor1Id: number,
     actor2Id: number,
@@ -46,7 +46,6 @@ export function PostGameLogic() {
 
   function getAllAnswerGridDisplayData(
     gridData: GridData,
-    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void
   ): AnyGridDisplayData[][] {
     const newInnerGridData: TextGridDisplayData[][] = [];
     const acrossActors = gridData.actors.slice(0, gridData.actors.length / 2);

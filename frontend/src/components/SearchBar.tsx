@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PiFilmSlate } from "react-icons/pi";
 
 import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
-import { AnyGridDisplayData } from "../gridDisplayData";
 import SearchResult from "./SearchResult";
 
 interface SearchBarProps {
@@ -11,23 +10,17 @@ interface SearchBarProps {
     type: "movie" | "tv",
     id: number,
     gridData: GridData,
-    gridDisplayData: AnyGridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void,
   ) => boolean;
   setTextAndImageFunc: (
     type: "movie" | "tv",
     id: number,
     text: string,
-    gridDisplayData: AnyGridDisplayData[][],
-    setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void,
   ) => void;
   gridData: GridData;
-  gridDisplayData: AnyGridDisplayData[][];
-  setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void;
   usedAnswers: { type: "movie" | "tv", id: number }[];
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageFunc, gridData, gridDisplayData, setGridDisplayData, usedAnswers }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageFunc, gridData, usedAnswers }) => {
   const [inputText, setInputText] = useState("");
   const [previousInputText, setPreviousInputText] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultData[]>([]);
@@ -112,7 +105,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
                     release_year={result.release_date?.split("-")[0]}
                     checkAnswerFunc={checkAnswerFunc}
                     setTextAndImageFunc={setTextAndImageFunc}
-                    {...{ gridData, gridDisplayData, setGridDisplayData }}
+                    {...{ gridData }}
                   />
                 );
               }
@@ -125,7 +118,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
                   last_air_year={result.last_air_date?.split("-")[0]}
                   checkAnswerFunc={checkAnswerFunc}
                   setTextAndImageFunc={setTextAndImageFunc}
-                  {...{ gridData, gridDisplayData, setGridDisplayData }}
+                  {...{ gridData }}
                 />
               );
             })}
