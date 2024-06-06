@@ -16,7 +16,7 @@ export interface TextGridDisplayData extends GridDisplayData {
 export interface ImageGridDisplayData extends GridDisplayData {
   imageURL: string;
   hoverText: string;
-  backupImageURL?: string;
+  backupImageURL: string;
 }
 
 export type AnyGridDisplayData = GridDisplayData | TextGridDisplayData | ImageGridDisplayData;
@@ -39,12 +39,10 @@ export function getInitialGridDisplayData(gridData: GridData): AnyGridDisplayDat
         displayData[rowIndex].push({
           hoverText: gridData.actors[actorIndex].name,
           imageURL: getS3ImageURLForType("actor", gridData.actors[actorIndex].id),
+          backupImageURL: getS3BackupImageURLForType("actor"),
         });
       } else {
-        displayData[rowIndex].push({
-          hoverText: "",
-          imageURL: "",
-        });
+        displayData[rowIndex].push({});
       }
     }
   }
