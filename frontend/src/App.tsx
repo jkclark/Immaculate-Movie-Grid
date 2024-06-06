@@ -5,7 +5,7 @@ import Grid from "./components/Grid";
 import SearchBar from "./components/SearchBar";
 import { AnyGridDisplayData } from "./gridDisplayData";
 import GameLogic from "./logic/GameLogic";
-import PostGameLogic from "./logic/PostGameLogic";
+import { getAllAnswerGridDisplayData } from "./logic/PostGameLogic";
 import { getGridDataFromS3, getS3ImageURLForType, preloadImageURL } from "./s3";
 
 function App() {
@@ -30,11 +30,6 @@ function App() {
     closeOverlay,
     endGame,
   } = GameLogic(gridDisplayData, setGridDisplayData);
-
-  const {
-    getAllAnswerGridDisplayData,
-    getAllPairAnswerGridDisplayData,
-  } = PostGameLogic(setGridDisplayData);
 
   useEffect(() => {
     async function fetchData() {
