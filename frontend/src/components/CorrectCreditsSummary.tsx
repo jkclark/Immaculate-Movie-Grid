@@ -1,21 +1,35 @@
+import { useSetAtom } from "jotai";
 import React from "react";
 import { CreditExport } from "../../../common/src/interfaces";
+import { overlayContentsAtom } from "./Overlay";
 
 interface CorrectCreditsSummaryProps {
   credits: CreditExport[];
 }
 
 const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }) => {
+  const setOverlayContents = useSetAtom(overlayContentsAtom);
+
   const movies = credits.filter((credit) => credit.type === "movie");
   const tvShows = credits.filter((credit) => credit.type === "tv");
 
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="flex flex-col md:flex-row bg-white dark:bg-gray-800 w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-2 md:p-6"
+      className="flex flex-col md:flex-row bg-white dark:bg-gray-800 w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-2 md:p-6 relative"
     >
       {CreditList("Movies", movies)}
       {CreditList("TV Shows", tvShows)}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        className="h-6 w-6 absolute top-2 right-2 cursor-pointer hover:text-blue-500"
+        onClick={() => setOverlayContents(null)}
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
     </div>
   );
 };
