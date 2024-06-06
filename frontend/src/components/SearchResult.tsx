@@ -1,9 +1,15 @@
+import { useAtom } from "jotai";
 import { useState } from "react";
 import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
+import {
+  getGuessesRemainingGridDatum,
+  gridDisplayDataAtom,
+  insertGridDisplayDatumAtRowCol,
+} from "../gridDisplayData";
+import { getS3ImageURLForType } from "../s3";
+import { guessesRemainingAtom, selectedColAtom, selectedRowAtom, usedAnswersAtom } from "../state/GameState";
 
 interface SearchResultProps extends SearchResultData {
-  checkAnswerFunc: (type: "movie" | "tv", id: number, gridData: GridData) => boolean;
-  setTextAndImageFunc: (type: "movie" | "tv", id: number, text: string) => void;
   gridData: GridData;
   release_year?: string;
   first_air_year?: string;
@@ -17,19 +23,79 @@ const SearchResult: React.FC<SearchResultProps> = ({
   release_year,
   first_air_year,
   last_air_year,
-  checkAnswerFunc,
-  setTextAndImageFunc,
   gridData,
 }) => {
+  const [selectedRow, setSelectedRow] = useAtom(selectedRowAtom);
+  const [selectedCol, setSelectedCol] = useAtom(selectedColAtom);
+  const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
+  const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
+  const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
   const [isWrong, setIsWrong] = useState(false);
 
   function handleClick(event: React.MouseEvent) {
     event.preventDefault(); // For whatever reason the button refreshes the page without this
-    if (checkAnswerFunc(media_type, id, gridData)) {
-      setTextAndImageFunc(media_type, id, title);
+    if (checkAnswer(media_type, id, gridData)) {
+      addAnswerToGridDisplayData(media_type, id, title);
     } else {
       setIsWrong(true);
     }
+  }
+
+  function checkAnswer(type: "movie" | "tv", id: number, gridData: GridData): boolean {
+    if (selectedRow === -1 || selectedCol === -1) {
+      throw new Error("Selected row or column is -1");
+    }
+
+    // - 1 because the first row and column are the axes
+    const dataRow = selectedRow - 1;
+    const dataCol = selectedCol - 1;
+
+    const acrossActorId = gridData.actors[dataCol].id;
+    const downActorId = gridData.actors[3 + dataRow].id;
+    const acrossCorrect = gridData.answers[acrossActorId].some(
+      (answer) => answer.type === type && answer.id === id
+    );
+    const downCorrect = gridData.answers[downActorId].some(
+      (answer) => answer.type === type && answer.id === id
+    );
+
+    // -1 guesses remaining
+    updateGuessesRemaining(guessesRemaining - 1);
+
+    if (acrossCorrect && downCorrect) {
+      console.log("Correct!");
+      // Add this answer to used answers
+      setUsedAnswers([...usedAnswers, { type, id }]);
+
+      // Hide search bar
+      setSelectedRow(-1);
+      setSelectedCol(-1);
+      return true;
+    } else {
+      console.log("Wrong!");
+      return false;
+    }
+  }
+
+  function updateGuessesRemaining(newGuessesRemaining: number): void {
+    setGridDisplayData(
+      insertGridDisplayDatumAtRowCol(getGuessesRemainingGridDatum(newGuessesRemaining), 0, 0, gridDisplayData)
+    );
+    setGuessesRemaining(newGuessesRemaining);
+  }
+
+  function addAnswerToGridDisplayData(type: "movie" | "tv" | "actor", id: number, text: string): void {
+    setGridDisplayData(
+      insertGridDisplayDatumAtRowCol(
+        {
+          hoverText: text,
+          imageURL: getS3ImageURLForType(type, id),
+        },
+        selectedRow,
+        selectedCol,
+        gridDisplayData
+      )
+    );
   }
 
   const emoji = media_type === "movie" ? "📽️" : "📺";

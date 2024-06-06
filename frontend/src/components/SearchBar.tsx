@@ -8,12 +8,10 @@ import { usedAnswersAtom } from "../state/GameState";
 import SearchResult from "./SearchResult";
 
 interface SearchBarProps {
-  checkAnswerFunc: (type: "movie" | "tv", id: number, gridData: GridData) => boolean;
-  setTextAndImageFunc: (type: "movie" | "tv", id: number, text: string) => void;
   gridData: GridData;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageFunc, gridData }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ gridData }) => {
   const [inputText, setInputText] = useState("");
   const [previousInputText, setPreviousInputText] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultData[]>([]);
@@ -128,8 +126,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
                       key={index}
                       {...result}
                       release_year={result.release_date?.split("-")[0]}
-                      checkAnswerFunc={checkAnswerFunc}
-                      setTextAndImageFunc={setTextAndImageFunc}
                       {...{ gridData }}
                     />
                   );
@@ -141,8 +137,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageF
                     {...result}
                     first_air_year={result.first_air_date?.split("-")[0]}
                     last_air_year={result.last_air_date?.split("-")[0]}
-                    checkAnswerFunc={checkAnswerFunc}
-                    setTextAndImageFunc={setTextAndImageFunc}
                     {...{ gridData }}
                   />
                 );

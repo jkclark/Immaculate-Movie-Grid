@@ -1,9 +1,12 @@
+import { atom } from "jotai";
 import { Grid as GridData } from "../../common/src/interfaces";
 import { getS3ImageURLForType } from "./s3";
 
 interface GridDisplayData {
   clickHandler?: () => void;
 }
+
+export const gridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);
 
 export interface TextGridDisplayData extends GridDisplayData {
   mainText: string;
@@ -75,4 +78,11 @@ export function insertInnerGridDisplayData(
     }
   }
   return newGridDisplayData;
+}
+
+export function getGuessesRemainingGridDatum(newGuessesRemaining: number): AnyGridDisplayData {
+  return {
+    mainText: `${newGuessesRemaining}`,
+    subText: "guesses left",
+  };
 }

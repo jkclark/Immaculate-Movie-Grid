@@ -4,13 +4,20 @@ import { useAtom } from "jotai";
 import { Grid as GridData } from "../../common/src/interfaces";
 import Grid from "./components/Grid";
 import SearchBar from "./components/SearchBar";
-import { AnyGridDisplayData } from "./gridDisplayData";
-import GameLogic from "./logic/GameLogic";
+import {
+  AnyGridDisplayData,
+  getGuessesRemainingGridDatum,
+  getInitialGridDisplayData,
+  gridDisplayDataAtom,
+  insertGridDisplayDatumAtRowCol,
+  insertInnerGridDisplayData,
+} from "./gridDisplayData";
 import { getAllAnswerGridDisplayData } from "./logic/PostGameLogic";
 import { getGridDataFromS3, getS3ImageURLForType, preloadImageURL } from "./s3";
 import {
   finalGameGridDisplayDataAtom,
   gameOverAtom,
+  guessesRemainingAtom,
   selectedColAtom,
   selectedRowAtom,
 } from "./state/GameState";
@@ -18,22 +25,15 @@ import {
 function App() {
   const [activeTab, setActiveTab] = useState<string>("Your answers");
   const [gridData, setGridData]: [GridData, any] = useState({} as GridData);
-  const [gridDisplayData, setGridDisplayData] = useState<AnyGridDisplayData[][]>([[]]);
+  const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [isLoading, setIsLoading] = useState(true);
-  const selectedRow = useAtom(selectedRowAtom)[0];
-  const selectedCol = useAtom(selectedColAtom)[0];
-  const gameOver = useAtom(gameOverAtom)[0];
-  const finalGameGridDisplayData = useAtom(finalGameGridDisplayDataAtom)[0];
 
-  const {
-    // Functions
-    getInitialGameGridDisplayData,
-    addAnswerToGridDisplayData,
-    checkAnswer,
-    closeOverlay,
-    endGame,
-  } = GameLogic(gridDisplayData, setGridDisplayData);
+  const [selectedRow, setSelectedRow] = useAtom(selectedRowAtom);
+  const [selectedCol, setSelectedCol] = useAtom(selectedColAtom);
+  const guessesRemaining = useAtom(guessesRemainingAtom)[0];
+  const [gameOver, setGameOver] = useAtom(gameOverAtom);
+  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
 
   useEffect(() => {
     async function fetchData() {
@@ -74,6 +74,52 @@ function App() {
     }
   }, [isLoading]);
 
+  function getInitialGameGridDisplayData(gridData: GridData): AnyGridDisplayData[][] {
+    const newInnerGridData: AnyGridDisplayData[][] = [];
+
+    // Create squares for inner grid
+    for (let rowIndex = 0; rowIndex < gridData.actors.length / 2; rowIndex++) {
+      const innerGridRow: AnyGridDisplayData[] = [];
+      for (let colIndex = 0; colIndex < gridData.actors.length / 2; colIndex++) {
+        innerGridRow.push({
+          clickHandler: () => {
+            if (!gameOver) {
+              setSelectedRow(rowIndex + 1);
+              setSelectedCol(colIndex + 1);
+            }
+          },
+        });
+      }
+      newInnerGridData.push(innerGridRow);
+    }
+
+    // Get grid data with axes populated
+    const newGridData = getInitialGridDisplayData(gridData);
+
+    // Add guesses left
+    const newGridDataWithGuesses = insertGridDisplayDatumAtRowCol(
+      getGuessesRemainingGridDatum(guessesRemaining),
+      0,
+      0,
+      newGridData
+    );
+
+    // Insert inner grid into outer grid
+    return insertInnerGridDisplayData(newGridDataWithGuesses, newInnerGridData);
+  }
+
+  function closeOverlay() {
+    setSelectedRow(-1);
+    setSelectedCol(-1);
+  }
+
+  function endGame(gridDisplayData: AnyGridDisplayData[][]) {
+    setFinalGameGridDisplayData(gridDisplayData);
+    setGameOver(true);
+    setSelectedRow(-1);
+    setSelectedCol(-1);
+  }
+
   return (
     <div
       onClick={closeOverlay}
@@ -111,13 +157,7 @@ function App() {
           Give up
         </button>
       )}
-      {selectedRow !== -1 && selectedCol !== -1 ? (
-        <SearchBar
-          checkAnswerFunc={checkAnswer}
-          setTextAndImageFunc={addAnswerToGridDisplayData}
-          {...{ gridData, gridDisplayData, setGridDisplayData }}
-        />
-      ) : null}
+      {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar {...{ gridData }} /> : null}
 
       {selectedRow !== -1 && selectedCol !== -1 ? (
         <div className="absolute inset-0 bg-black opacity-50 z-20" />
