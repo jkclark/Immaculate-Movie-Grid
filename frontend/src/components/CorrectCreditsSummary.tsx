@@ -1,6 +1,7 @@
 import { useSetAtom } from "jotai";
 import React from "react";
 import { CreditExport } from "../../../common/src/interfaces";
+import CreditDetails from "./CreditDetails";
 import { overlayContentsAtom } from "./Overlay";
 
 interface CorrectCreditsSummaryProps {
@@ -21,12 +22,12 @@ const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }
       <CreditList title="Movies" credits={movies} />
       <CreditList title="TV Shows" credits={tvShows} />
       <svg
+        onClick={() => setOverlayContents(null)}
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
         className="h-6 w-6 absolute top-2 right-2 cursor-pointer hover:text-blue-500"
-        onClick={() => setOverlayContents(null)}
       >
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
       </svg>
@@ -40,6 +41,8 @@ interface CreditListProps {
 }
 
 const CreditList: React.FC<CreditListProps> = ({ title, credits }) => {
+  const setOverlayContents = useSetAtom(overlayContentsAtom);
+
   return (
     <div className="flex flex-col w-full md:w-1/2 mx-3 text-center overflow-auto max-h-[desiredHeight]">
       <h2 className="text-xl font-bold mb-4">{title}</h2>
@@ -47,6 +50,7 @@ const CreditList: React.FC<CreditListProps> = ({ title, credits }) => {
         {credits.map((credit) => (
           <li
             key={credit.id}
+            onClick={() => setOverlayContents(<CreditDetails credit={credit} />)}
             className="text-gray-700 dark:text-gray-300 flex items-center justify-between cursor-pointer mb-2"
           >
             <div className="flex-1 overflow-hidden">
