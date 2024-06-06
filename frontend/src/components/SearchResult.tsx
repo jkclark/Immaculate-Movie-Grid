@@ -1,4 +1,4 @@
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useState } from "react";
 import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
 import {
@@ -8,6 +8,7 @@ import {
 } from "../gridDisplayData";
 import { getS3ImageURLForType } from "../s3";
 import { guessesRemainingAtom, selectedColAtom, selectedRowAtom, usedAnswersAtom } from "../state/GameState";
+import { overlayContentsAtom } from "./Overlay";
 
 interface SearchResultProps extends SearchResultData {
   gridData: GridData;
@@ -30,12 +31,14 @@ const SearchResult: React.FC<SearchResultProps> = ({
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
+  const setOverlayContents = useSetAtom(overlayContentsAtom);
   const [isWrong, setIsWrong] = useState(false);
 
   function handleClick(event: React.MouseEvent) {
     event.preventDefault(); // For whatever reason the button refreshes the page without this
     if (checkAnswer(media_type, id, gridData)) {
       addAnswerToGridDisplayData(media_type, id, title);
+      setOverlayContents(null);
     } else {
       setIsWrong(true);
     }
@@ -67,7 +70,7 @@ const SearchResult: React.FC<SearchResultProps> = ({
       // Add this answer to used answers
       setUsedAnswers([...usedAnswers, { type, id }]);
 
-      // Hide search bar
+      // Reset selected row and column
       setSelectedRow(-1);
       setSelectedCol(-1);
       return true;

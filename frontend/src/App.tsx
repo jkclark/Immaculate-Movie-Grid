@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Grid as GridData } from "../../common/src/interfaces";
 import Grid from "./components/Grid";
+import Overlay, { overlayContentsAtom } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
 import {
   AnyGridDisplayData,
@@ -29,9 +30,10 @@ function App() {
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [isLoading, setIsLoading] = useState(true);
 
-  const [selectedRow, setSelectedRow] = useAtom(selectedRowAtom);
-  const [selectedCol, setSelectedCol] = useAtom(selectedColAtom);
-  const guessesRemaining = useAtom(guessesRemainingAtom)[0];
+  const setSelectedRow = useSetAtom(selectedRowAtom);
+  const setSelectedCol = useSetAtom(selectedColAtom);
+  const [overlayContents, setOverlayContents] = useAtom(overlayContentsAtom);
+  const guessesRemaining = useAtomValue(guessesRemainingAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
   const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
 
@@ -86,6 +88,7 @@ function App() {
             if (!gameOver) {
               setSelectedRow(rowIndex + 1);
               setSelectedCol(colIndex + 1);
+              setOverlayContents(<SearchBar gridData={gridData} />);
             }
           },
         });
@@ -108,11 +111,6 @@ function App() {
     return insertInnerGridDisplayData(newGridDataWithGuesses, newInnerGridData);
   }
 
-  function closeOverlay() {
-    setSelectedRow(-1);
-    setSelectedCol(-1);
-  }
-
   function endGame(gridDisplayData: AnyGridDisplayData[][]) {
     setFinalGameGridDisplayData(gridDisplayData);
     setGameOver(true);
@@ -121,10 +119,7 @@ function App() {
   }
 
   return (
-    <div
-      onClick={closeOverlay}
-      className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative"
-    >
+    <div className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
       {gameOver && (
         <div className="flex space-x-4">
           <button
@@ -157,11 +152,9 @@ function App() {
           Give up
         </button>
       )}
-      {selectedRow !== -1 && selectedCol !== -1 ? <SearchBar {...{ gridData }} /> : null}
 
-      {selectedRow !== -1 && selectedCol !== -1 ? (
-        <div className="absolute inset-0 bg-black opacity-50 z-20" />
-      ) : null}
+      <Overlay contents={overlayContents} />
+
       <Grid gridDisplayData={gridDisplayData} />
     </div>
   );
