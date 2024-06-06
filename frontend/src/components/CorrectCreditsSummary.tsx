@@ -18,8 +18,8 @@ const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }
       onClick={(e) => e.stopPropagation()}
       className="flex flex-col md:flex-row bg-white dark:bg-gray-800 w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-2 md:p-6 relative"
     >
-      {CreditList("Movies", movies)}
-      {CreditList("TV Shows", tvShows)}
+      <CreditList title="Movies" credits={movies} />
+      <CreditList title="TV Shows" credits={tvShows} />
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
@@ -34,7 +34,12 @@ const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }
   );
 };
 
-function CreditList(title: string, credits: CreditExport[]) {
+interface CreditListProps {
+  title: string;
+  credits: CreditExport[];
+}
+
+const CreditList: React.FC<CreditListProps> = ({ title, credits }) => {
   return (
     <div className="flex flex-col w-full md:w-1/2 mx-3 text-center overflow-auto max-h-[desiredHeight]">
       <h2 className="text-xl font-bold mb-4">{title}</h2>
@@ -66,6 +71,6 @@ function CreditList(title: string, credits: CreditExport[]) {
       </ul>
     </div>
   );
-}
+};
 
 export default CorrectCreditsSummary;
