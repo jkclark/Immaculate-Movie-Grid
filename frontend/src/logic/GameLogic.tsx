@@ -18,14 +18,14 @@ import {
 
 export function GameLogic(
   gridDisplayData: AnyGridDisplayData[][],
-  setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void,
+  setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void
 ) {
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [selectedRow, setSelectedRow] = useAtom(selectedRowAtom);
   const [selectedCol, setSelectedCol] = useAtom(selectedColAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
-  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
+  const setFinalGameGridDisplayData = useAtom(finalGameGridDisplayDataAtom)[1];
 
   function getGuessesRemainingGridDatum(newGuessesRemaining: number): AnyGridDisplayData {
     return {
@@ -61,7 +61,7 @@ export function GameLogic(
       getGuessesRemainingGridDatum(guessesRemaining),
       0,
       0,
-      newGridData,
+      newGridData
     );
 
     // Insert inner grid into outer grid
@@ -77,19 +77,14 @@ export function GameLogic(
         },
         selectedRow,
         selectedCol,
-        gridDisplayData,
-      ),
+        gridDisplayData
+      )
     );
   }
 
   function updateGuessesRemaining(newGuessesRemaining: number): void {
     setGridDisplayData(
-      insertGridDisplayDatumAtRowCol(
-        getGuessesRemainingGridDatum(newGuessesRemaining),
-        0,
-        0,
-        gridDisplayData,
-      ),
+      insertGridDisplayDatumAtRowCol(getGuessesRemainingGridDatum(newGuessesRemaining), 0, 0, gridDisplayData)
     );
     setGuessesRemaining(newGuessesRemaining);
   }
@@ -106,10 +101,10 @@ export function GameLogic(
     const acrossActorId = gridData.actors[dataCol].id;
     const downActorId = gridData.actors[3 + dataRow].id;
     const acrossCorrect = gridData.answers[acrossActorId].some(
-      (answer) => answer.type === type && answer.id === id,
+      (answer) => answer.type === type && answer.id === id
     );
     const downCorrect = gridData.answers[downActorId].some(
-      (answer) => answer.type === type && answer.id === id,
+      (answer) => answer.type === type && answer.id === id
     );
 
     // -1 guesses remaining

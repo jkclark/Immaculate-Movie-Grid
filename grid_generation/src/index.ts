@@ -15,7 +15,11 @@ dotenv.config();
 
 async function main(): Promise<void> {
   // Read arguments
-  const gridDate = processArgs();
+  const [gridDate, overwriteImages] = processArgs();
+  if (!gridDate) {
+    console.error("Usage: npm run generate-grid -- <grid-date> [--overwrite-images]\n\ngrid-date should be supplied in the format YYYY-MM-DD\n");
+    return;
+  }
 
   // Load the graph, or generate it if it doesn't exist
   const graph = await getGraph();
@@ -30,6 +34,11 @@ async function main(): Promise<void> {
   do {
     // Generate the across and down
     [across, down] = await pickRandomStartingActorAndGetValidAcrossAndDown(graph);
+    if (across.length === 0 || down.length === 0) {
+      console.log("No valid actor groups found");
+      return;
+    }
+
 
     // Ask the user if they want to continue    
     const answer = await new Promise<string>(resolve => rl.question('Continue? (y/n) ', resolve));
@@ -43,7 +52,7 @@ async function main(): Promise<void> {
   const grid = getGridFromGraphAndActors(graph, across, down);
 
   // Get images for actors and credits and save them to S3
-  await getAndSaveAllImagesForGrid(grid);
+  await getAndSaveAllImagesForGrid(grid, overwriteImages);
 
   // Convert to JSON
   const jsonGrid = convertGridToJSON(grid);
@@ -53,16 +62,24 @@ async function main(): Promise<void> {
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
 }
 
-function processArgs() {
-  // We invoke the script with `npm run generate-grid`, so we need to slice off the first two arguments
+function processArgs(): [string, boolean] {
   const args = process.argv.slice(2);
-  if (args.length < 1) {
-    console.error("Usage: npm run generate-grid <grid-date>\n\ngrid-date should be supplied in the format YYYY-MM-DD\n");
-    return;
-  }
-  const gridDate = args[0];
-  return gridDate;
+  let gridDate = '';
+  let overwriteImages = false;
 
+  if (args.length < 1) {
+    return [gridDate, overwriteImages];
+  }
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--overwrite-images') {
+      overwriteImages = true;
+    } else {
+      gridDate = args[i];
+    }
+  }
+
+  return [gridDate, overwriteImages];
 }
 
 /**
@@ -122,10 +139,6 @@ async function pickRandomStartingActorAndGetValidAcrossAndDown(graph: Graph): Pr
   const startingActor: ActorNode = graph.actors[randomActorId];
   console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`)
   const [across, down] = getValidAcrossAndDown(graph, startingActor, [], [isLegitCredit], true);
-  if (across.length === 0 || down.length === 0) {
-    console.log("No valid actor groups found");
-    return;
-  }
 
   console.log(`Across: ${across.map((actor) => actor.name).join(", ")}`);
   console.log(`Down: ${down.map((actor) => actor.name).join(", ")}`);
@@ -240,7 +253,6 @@ function getValidAcrossAndDown(
                 usedCredits.has(getCreditUniqueString(sharedCredit.type, sharedCredit.id)) ||
                 sharedCredit.id === credit.id
               ) {
-                console.log(`\n\n\nXXXXXXXXXXXXXXXXXX ${sharedCredit.name} XXXXXXXXXXXXXXXXXX\n\n\n`);
                 continue;
               }
 
@@ -364,7 +376,7 @@ function isLegitMovie(credit: CreditNode): boolean {
   const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(credit.id);
 
   // Still need to tweak this
-  const MINIMUM_POPULARITY = 10;
+  const MINIMUM_POPULARITY = 40;
   const popularEnough = credit.popularity > MINIMUM_POPULARITY;
 
   return !isInvalidGenre && !isInvalidMovie && popularEnough;
@@ -391,24 +403,26 @@ function isLegitTVShow(credit: CreditNode): boolean {
 
   // Invalid TV shows
   const INVALID_TV_SHOW_IDS: number[] = [
-    456, // The Simpsons
-    1667, // Saturday Night Live
-    2224, // The Daily Show
-    3739, // E! True Hollywood Story
-    13667, // MTV Movie & TV Awards
-    23521, // Kids' Choice Awards
-    27023, // The Oscars
-    30048, // Tony Awards
-    43117, // Teen Choice Awards
-    89293, // Bambi Awards
-    122843, // Honest Trailers
+    456,     // The Simpsons
+    1667,    // Saturday Night Live
+    2224,    // The Daily Show
+    3739,    // E! True Hollywood Story
+    4779,    // Hallmark Hall of Fame
+    13667,   // MTV Movie & TV Awards
+    23521,   // Kids' Choice Awards
+    27023,   // The Oscars
+    28464,   // The Emmy Awards
+    30048,   // Tony Awards
+    43117,   // Teen Choice Awards
+    89293,   // Bambi Awards
+    122843,  // Honest Trailers
     1111889, // Carol Burnett: 90 Years of Laughter + Love
   ]
   const isInvalidShow: boolean = INVALID_TV_SHOW_IDS.includes(credit.id);
 
   // Popularity
   // Still need to tweak this
-  const MINIMUM_POPULARITY = 100;
+  const MINIMUM_POPULARITY = 400;
   const popularEnough = credit.popularity > MINIMUM_POPULARITY;
 
   return !isInvalidGenre && !isInvalidShow;

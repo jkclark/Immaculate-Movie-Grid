@@ -33,6 +33,11 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
   const responseJson = await getFromTMDBAPIJson(url);
 
   const credits: Set<Credit> = new Set();
+  if (!responseJson["cast"]) {
+    console.error(`No credits found for actor ${actor.id}`);
+    return credits;
+  }
+
   for (const credit of responseJson["cast"]) {
     // Movies have a "title", TV shows have a "name"
     credits.add({
