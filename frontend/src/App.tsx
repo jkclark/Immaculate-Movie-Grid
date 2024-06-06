@@ -99,18 +99,6 @@ function App() {
           >
             All answers
           </button>
-          <button
-            onClick={() => setActiveTab("Popular answers")}
-            className={`${activeTab === "Popular answers" ? "bg-blue-700" : ""}`}
-          >
-            Popular answers
-          </button>
-          <button
-            onClick={() => setActiveTab("Answered %")}
-            className={`${activeTab === "Answered %" ? "bg-blue-700" : ""}`}
-          >
-            Answered %
-          </button>
         </div>
       )}
 
