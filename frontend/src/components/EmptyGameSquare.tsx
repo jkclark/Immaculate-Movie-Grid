@@ -1,6 +1,6 @@
-import { useAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import React from "react";
-import { gameOverAtom, selectedRowAtom } from "../state/GameState";
+import { gameOverAtom, selectedColAtom, selectedRowAtom } from "../state/GameState";
 
 interface EmptyGameSquare {
   row: number;
@@ -9,9 +9,9 @@ interface EmptyGameSquare {
 }
 
 const EmptyGameSquare: React.FC<EmptyGameSquare> = ({ row, col, clickHandler }) => {
-  const gameOver = useAtom(gameOverAtom)[0];
-  const selectedRow = useAtom(selectedRowAtom)[0];
-  const selectedCol = useAtom(selectedRowAtom)[0];
+  const gameOver = useAtomValue(gameOverAtom);
+  const selectedRow = useAtomValue(selectedRowAtom);
+  const selectedCol = useAtomValue(selectedColAtom);
 
   const handleClick = (event: React.MouseEvent) => {
     event.stopPropagation();

@@ -2,7 +2,7 @@ import debounce from "lodash.debounce";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PiFilmSlate } from "react-icons/pi";
 
-import { useAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
 import { usedAnswersAtom } from "../state/GameState";
 import SearchResult from "./SearchResult";
@@ -16,7 +16,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ gridData }) => {
   const [previousInputText, setPreviousInputText] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const usedAnswers = useAtom(usedAnswersAtom)[0];
+  const usedAnswers = useAtomValue(usedAnswersAtom);
 
   const fetchResults = useCallback(
     debounce((query) => {
