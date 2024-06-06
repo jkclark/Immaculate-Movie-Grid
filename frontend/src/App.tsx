@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { Grid as GridData } from "../../common/src/interfaces";
 import Grid from "./components/Grid";
 import Overlay, { overlayContentsAtom } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
@@ -18,14 +17,15 @@ import { getGridDataFromS3, getS3ImageURLForType, preloadImageURL } from "./s3";
 import {
   finalGameGridDisplayDataAtom,
   gameOverAtom,
+  gridDataAtom,
   guessesRemainingAtom,
   selectedColAtom,
   selectedRowAtom,
-} from "./state/GameState";
+} from "./state";
 
 function App() {
   const [activeTab, setActiveTab] = useState<string>("Your answers");
-  const [gridData, setGridData]: [GridData, any] = useState({} as GridData);
+  const [gridData, setGridData] = useAtom(gridDataAtom);
   const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [isLoading, setIsLoading] = useState(true);
@@ -37,6 +37,7 @@ function App() {
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
   const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
 
+  // On page load, load the grid data
   useEffect(() => {
     async function fetchData() {
       if (Object.keys(gridData).length > 0) {
@@ -55,11 +56,19 @@ function App() {
       console.log("Grid data:");
       console.log(jsonData);
       setGridData(jsonData);
-      setGridDisplayData(getInitialGameGridDisplayData(jsonData));
-      setIsLoading(false); // Show the "Give up" button
     }
     fetchData();
   }, []);
+
+  // Once we've loaded the grid data, populate the grid display data
+  useEffect(() => {
+    if (Object.keys(gridData).length === 0) {
+      return;
+    }
+
+    setGridDisplayData(getInitialGameGridDisplayData());
+    setIsLoading(false);
+  }, [gridData]);
 
   // Preload all other images once the page has loaded
   useEffect(() => {
@@ -76,7 +85,7 @@ function App() {
     }
   }, [isLoading]);
 
-  function getInitialGameGridDisplayData(gridData: GridData): AnyGridDisplayData[][] {
+  function getInitialGameGridDisplayData(): AnyGridDisplayData[][] {
     const newInnerGridData: AnyGridDisplayData[][] = [];
 
     // Create squares for inner grid
@@ -88,7 +97,7 @@ function App() {
             if (!gameOver) {
               setSelectedRow(rowIndex + 1);
               setSelectedCol(colIndex + 1);
-              setOverlayContents(<SearchBar gridData={gridData} />);
+              setOverlayContents(<SearchBar />);
             }
           },
         });

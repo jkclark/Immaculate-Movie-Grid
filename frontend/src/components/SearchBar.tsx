@@ -3,15 +3,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PiFilmSlate } from "react-icons/pi";
 
 import { useAtomValue } from "jotai";
-import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
-import { usedAnswersAtom } from "../state/GameState";
+import { SearchResult as SearchResultData } from "../../../common/src/interfaces";
+import { usedAnswersAtom } from "../state";
 import SearchResult from "./SearchResult";
 
-interface SearchBarProps {
-  gridData: GridData;
-}
-
-const SearchBar: React.FC<SearchBarProps> = ({ gridData }) => {
+const SearchBar: React.FC = () => {
   const [inputText, setInputText] = useState("");
   const [previousInputText, setPreviousInputText] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultData[]>([]);
@@ -122,12 +118,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ gridData }) => {
 
                 if (result.media_type === "movie") {
                   return (
-                    <SearchResult
-                      key={index}
-                      {...result}
-                      release_year={result.release_date?.split("-")[0]}
-                      {...{ gridData }}
-                    />
+                    <SearchResult key={index} {...result} release_year={result.release_date?.split("-")[0]} />
                   );
                 }
 
@@ -137,7 +128,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ gridData }) => {
                     {...result}
                     first_air_year={result.first_air_date?.split("-")[0]}
                     last_air_year={result.last_air_date?.split("-")[0]}
-                    {...{ gridData }}
                   />
                 );
               })}

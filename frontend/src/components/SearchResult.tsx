@@ -1,4 +1,4 @@
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useState } from "react";
 import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
 import {
@@ -7,11 +7,16 @@ import {
   insertGridDisplayDatumAtRowCol,
 } from "../gridDisplayData";
 import { getS3ImageURLForType } from "../s3";
-import { guessesRemainingAtom, selectedColAtom, selectedRowAtom, usedAnswersAtom } from "../state/GameState";
+import {
+  gridDataAtom,
+  guessesRemainingAtom,
+  selectedColAtom,
+  selectedRowAtom,
+  usedAnswersAtom,
+} from "../state";
 import { overlayContentsAtom } from "./Overlay";
 
 interface SearchResultProps extends SearchResultData {
-  gridData: GridData;
   release_year?: string;
   first_air_year?: string;
   last_air_year?: string;
@@ -24,8 +29,8 @@ const SearchResult: React.FC<SearchResultProps> = ({
   release_year,
   first_air_year,
   last_air_year,
-  gridData,
 }) => {
+  const gridData = useAtomValue(gridDataAtom);
   const [selectedRow, setSelectedRow] = useAtom(selectedRowAtom);
   const [selectedCol, setSelectedCol] = useAtom(selectedColAtom);
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);

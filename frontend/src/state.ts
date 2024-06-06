@@ -1,6 +1,8 @@
 import { atom } from "jotai";
-import { AnyGridDisplayData } from "../gridDisplayData";
+import { Grid as GridData } from "../../common/src/interfaces";
+import { AnyGridDisplayData } from "./gridDisplayData";
 
+export const gridDataAtom = atom<GridData>({} as GridData);
 export const guessesRemainingAtom = atom(9);
 export const gameOverAtom = atom(false);
 export const selectedRowAtom = atom(-1);

@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import React from "react";
-import { gameOverAtom, selectedColAtom, selectedRowAtom } from "../state/GameState";
+import { gameOverAtom, selectedColAtom, selectedRowAtom } from "../state";
 
 interface EmptyGameSquare {
   row: number;

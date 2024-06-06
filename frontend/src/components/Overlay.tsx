@@ -1,6 +1,6 @@
 import { atom, useSetAtom } from "jotai";
 import React from "react";
-import { selectedColAtom, selectedRowAtom } from "../state/GameState";
+import { selectedColAtom, selectedRowAtom } from "../state";
 
 interface OverlayProps {
   contents: JSX.Element | null;
