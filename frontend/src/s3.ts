@@ -4,6 +4,11 @@ import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-id
 import { Grid } from "../../common/src/interfaces";
 
 const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
+  const typesToS3Prefixes = {
+    actor: "actors",
+    movie: "movies",
+    tv: "tv-shows",
+  };
 
 const client = new S3Client({
   region: "us-east-1",
@@ -14,13 +19,11 @@ const client = new S3Client({
 });
 
 export function getS3ImageURLForType(type: "movie" | "tv" | "actor", id: number): string {
-  const typesToS3Prefixes = {
-    actor: "actors",
-    movie: "movies",
-    tv: "tv-shows",
-  };
-
   return `${BASE_S3_IMAGE_URL}/${typesToS3Prefixes[type]}/${id}.jpg`;
+}
+
+export function getS3BackupImageURLForType(type: "movie" | "tv" | "actor"): string {
+  return `${BASE_S3_IMAGE_URL}/${typesToS3Prefixes[type]}/default.png`;
 }
 
 export async function preloadImageURL(imageURL: string) {

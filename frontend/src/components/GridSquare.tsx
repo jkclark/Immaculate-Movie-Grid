@@ -6,6 +6,7 @@ import TextSquare from "./TextSquare";
 interface GridSquare {
   imageURL?: string;
   hoverText?: string;
+  backupImageURL?: string;
   mainText?: string;
   subText?: string;
   clickHandler?: () => void;
@@ -16,6 +17,7 @@ interface GridSquare {
 const GridSquare: React.FC<GridSquare> = ({
   imageURL,
   hoverText,
+  backupImageURL,
   mainText,
   subText,
   clickHandler,
@@ -36,7 +38,7 @@ const GridSquare: React.FC<GridSquare> = ({
   if (mainText) {
     inner = <TextSquare {...{ mainText, subText, clickHandler }} />;
   } else if (imageURL) {
-    inner = <ImageSquare {...{ imageURL }} hoverText={hoverText || ""} />;
+    inner = <ImageSquare {...{ imageURL, backupImageURL }} hoverText={hoverText || ""} />;
   } else {
     inner = <EmptyGameSquare clickHandler={stopPropClickHandler} {...{ row, col }} />;
   }

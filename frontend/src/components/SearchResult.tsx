@@ -6,7 +6,7 @@ import {
   gridDisplayDataAtom,
   insertGridDisplayDatumAtRowCol,
 } from "../gridDisplayData";
-import { getS3ImageURLForType } from "../s3";
+import { getS3BackupImageURLForType, getS3ImageURLForType } from "../s3";
 import {
   gridDataAtom,
   guessesRemainingAtom,
@@ -98,6 +98,7 @@ const SearchResult: React.FC<SearchResultProps> = ({
         {
           hoverText: text,
           imageURL: getS3ImageURLForType(type, id),
+          backupImageURL: getS3BackupImageURLForType(type),
         },
         selectedRow,
         selectedCol,

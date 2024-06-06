@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { Grid as GridData } from "../../common/src/interfaces";
-import { getS3ImageURLForType } from "./s3";
+import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 
 interface GridDisplayData {
   clickHandler?: () => void;
@@ -16,6 +16,7 @@ export interface TextGridDisplayData extends GridDisplayData {
 export interface ImageGridDisplayData extends GridDisplayData {
   imageURL: string;
   hoverText: string;
+  backupImageURL?: string;
 }
 
 export type AnyGridDisplayData = GridDisplayData | TextGridDisplayData | ImageGridDisplayData;
@@ -31,6 +32,7 @@ export function getInitialGridDisplayData(gridData: GridData): AnyGridDisplayDat
         displayData[rowIndex].push({
           hoverText: gridData.actors[actorIndex].name,
           imageURL: getS3ImageURLForType("actor", gridData.actors[actorIndex].id),
+          backupImageURL: getS3BackupImageURLForType("actor"),
         });
       } else if (colIndex === 0 && rowIndex !== 0) {
         const actorIndex = gridSize + rowIndex - 1;
