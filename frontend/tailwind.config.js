@@ -5,9 +5,8 @@ export default {
     extend: {
       spacing: {
         "2vh": "2vh",
-      }
+      },
     },
   },
   plugins: [],
-}
-
+};

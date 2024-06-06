@@ -28,7 +28,6 @@ const GridSquare: React.FC<GridSquare> = ({
   selectedCol,
   gameOver,
 }) => {
-
   function stopPropClickHandler(event: React.MouseEvent) {
     // Necessary to prevent the page's click handler from resetting this state
     event.stopPropagation();
@@ -42,25 +41,19 @@ const GridSquare: React.FC<GridSquare> = ({
 
   if (mainText) {
     inner = <TextSquare {...{ mainText, subText, clickHandler }} />;
-  }
-
-  else if (imageURL) {
+  } else if (imageURL) {
     inner = <ImageSquare {...{ imageURL }} hoverText={hoverText || ""} />;
+  } else {
+    inner = (
+      <EmptyGameSquare
+        clickHandler={stopPropClickHandler}
+        isHighlighted={row === selectedRow && col === selectedCol}
+        gameOver={gameOver}
+      />
+    );
   }
 
-  else {
-    inner = <EmptyGameSquare
-      clickHandler={stopPropClickHandler}
-      isHighlighted={row === selectedRow && col === selectedCol}
-      gameOver={gameOver}
-    />;
-  }
-
-  return (
-    <div className="border border-slate-900">
-      {inner}
-    </div>
-  );
+  return <div className="border border-slate-900">{inner}</div>;
 };
 
 export default GridSquare;

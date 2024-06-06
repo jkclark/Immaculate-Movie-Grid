@@ -9,9 +9,11 @@ import { getAllAnswerGridDisplayData } from "./logic/PostGameLogic";
 import { getGridDataFromS3, getS3ImageURLForType, preloadImageURL } from "./s3";
 
 function App() {
-  const [activeTab, setActiveTab] = useState<string>("Your answers")
+  const [activeTab, setActiveTab] = useState<string>("Your answers");
   const [gridData, setGridData]: [GridData, any] = useState({} as GridData);
-  const [gridDisplayData, setGridDisplayData] = useState<AnyGridDisplayData[][]>([[]]);
+  const [gridDisplayData, setGridDisplayData] = useState<
+    AnyGridDisplayData[][]
+  >([[]]);
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,7 +44,10 @@ function App() {
       const todayString = today.toISOString().split("T")[0];
 
       // Load the grid named with today's date
-      const jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", `${todayString}.json`);
+      const jsonData = await getGridDataFromS3(
+        "immaculate-movie-grid-daily-grids",
+        `${todayString}.json`,
+      );
 
       // TODO: What should we do if there is no grid for today?
 
@@ -59,33 +64,66 @@ function App() {
   useEffect(() => {
     if (!isLoading) {
       async function preloadImages() {
-        await Promise.all(gridData.credits.map(credit => {
-          const imageURL = getS3ImageURLForType(credit.type, credit.id);
-          return preloadImageURL(imageURL);
-        }));
+        await Promise.all(
+          gridData.credits.map((credit) => {
+            const imageURL = getS3ImageURLForType(credit.type, credit.id);
+            return preloadImageURL(imageURL);
+          }),
+        );
       }
       preloadImages();
     }
   }, [isLoading]);
 
   return (
-    <div onClick={closeOverlay} className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
+    <div
+      onClick={closeOverlay}
+      className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative"
+    >
       {gameOver && (
         <div className="flex space-x-4">
-          <button onClick={() => { setActiveTab("Your answers"); setGridDisplayData(finalGameGridDisplayData); }} className={`${activeTab === "Your answers" ? "bg-blue-700" : ""}`}>Your answers</button>
-          <button onClick={() => { setActiveTab("All answers"); setGridDisplayData(getAllAnswerGridDisplayData(gridData)); }} className={`${activeTab === "All answers" ? "bg-blue-700" : ""}`}>
+          <button
+            onClick={() => {
+              setActiveTab("Your answers");
+              setGridDisplayData(finalGameGridDisplayData);
+            }}
+            className={`${activeTab === "Your answers" ? "bg-blue-700" : ""}`}
+          >
+            Your answers
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("All answers");
+              setGridDisplayData(getAllAnswerGridDisplayData(gridData));
+            }}
+            className={`${activeTab === "All answers" ? "bg-blue-700" : ""}`}
+          >
             All answers
           </button>
-          <button onClick={() => setActiveTab("Popular answers")} className={`${activeTab === "Popular answers" ? "bg-blue-700" : ""}`}>
+          <button
+            onClick={() => setActiveTab("Popular answers")}
+            className={`${activeTab === "Popular answers" ? "bg-blue-700" : ""}`}
+          >
             Popular answers
           </button>
-          <button onClick={() => setActiveTab("Answered %")} className={`${activeTab === "Answered %" ? "bg-blue-700" : ""}`}>
+          <button
+            onClick={() => setActiveTab("Answered %")}
+            className={`${activeTab === "Answered %" ? "bg-blue-700" : ""}`}
+          >
             Answered %
           </button>
         </div>
       )}
 
-      {!isLoading && !gameOver && <button onClick={() => { endGame(gridDisplayData); }}>Give up</button>}
+      {!isLoading && !gameOver && (
+        <button
+          onClick={() => {
+            endGame(gridDisplayData);
+          }}
+        >
+          Give up
+        </button>
+      )}
       {selectedRow !== -1 && selectedCol !== -1 ? (
         <SearchBar
           checkAnswerFunc={checkAnswer}
@@ -93,12 +131,16 @@ function App() {
           {...{ gridData, gridDisplayData, setGridDisplayData }}
           usedAnswers={usedAnswers}
         />
-      ) : null
-      }
+      ) : null}
 
-      {selectedRow !== -1 && selectedCol !== -1 ? <div className="absolute inset-0 bg-black opacity-50 z-20" /> : null}
-      <Grid gridDisplayData={gridDisplayData} {...{ selectedRow, selectedCol, gameOver }} />
-    </div >
+      {selectedRow !== -1 && selectedCol !== -1 ? (
+        <div className="absolute inset-0 bg-black opacity-50 z-20" />
+      ) : null}
+      <Grid
+        gridDisplayData={gridDisplayData}
+        {...{ selectedRow, selectedCol, gameOver }}
+      />
+    </div>
   );
 }
 

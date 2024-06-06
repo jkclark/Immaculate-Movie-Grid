@@ -4,7 +4,7 @@ import {
   TextGridDisplayData,
   getInitialGridDisplayData,
   insertGridDisplayDatumAtRowCol,
-  insertInnerGridDisplayData
+  insertInnerGridDisplayData,
 } from "../gridDisplayData";
 
 export function getAllAnswerGridDisplayData(
@@ -22,24 +22,25 @@ export function getAllAnswerGridDisplayData(
         mainText: answerText,
         clickHandler: () => {
           console.log(`Clicked on ${acrossActor.name} and ${downActor.name}`);
-        }
+        },
       });
     }
     newInnerGridData.push(innerGridRow);
   }
 
   // Get grid data with axes populated
-  const newGridData: AnyGridDisplayData[][] = getInitialGridDisplayData(gridData);
+  const newGridData: AnyGridDisplayData[][] =
+    getInitialGridDisplayData(gridData);
 
   // Replace "guesses left" with total number of answers
   const newGridDataWithTotal = insertGridDisplayDatumAtRowCol(
     {
       mainText: `${gridData.credits.length}`,
-      subText: "total"
+      subText: "total",
     },
     0,
     0,
-    newGridData
+    newGridData,
   );
   return insertInnerGridDisplayData(newGridDataWithTotal, newInnerGridData);
 }
@@ -47,7 +48,7 @@ export function getAllAnswerGridDisplayData(
 function getAnswersForPair(
   actor1Id: number,
   actor2Id: number,
-  gridData: GridData
+  gridData: GridData,
 ): CreditExport[] {
   const usedTypesAndIds = new Set<string>();
   const answers: CreditExport[] = [];
@@ -56,14 +57,19 @@ function getAnswersForPair(
 
   for (const actor1Answer of actor1Answers) {
     for (const actor2Answer of actor2Answers) {
-      if (actor1Answer.type === actor2Answer.type && actor1Answer.id === actor2Answer.id) {
+      if (
+        actor1Answer.type === actor2Answer.type &&
+        actor1Answer.id === actor2Answer.id
+      ) {
         // Skip if we've already added this credit to the answers
         if (usedTypesAndIds.has(`${actor1Answer.type}-${actor1Answer.id}`)) {
           continue;
         }
 
         // Look up this credit's title in the credits array
-        const answer = gridData.credits.find((credit) => credit.id === actor1Answer.id);
+        const answer = gridData.credits.find(
+          (credit) => credit.id === actor1Answer.id,
+        );
         if (answer) {
           // Add to used set
           usedTypesAndIds.add(`${actor1Answer.type}-${actor1Answer.id}`);
@@ -77,4 +83,3 @@ function getAnswersForPair(
 
   return answers;
 }
-

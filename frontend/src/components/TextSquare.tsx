@@ -14,13 +14,16 @@ const TextSquare: React.FC<TextSquareProps> = ({
     if (clickHandler) {
       clickHandler(event);
     }
-  }
+  };
   return (
-    <div onClick={handleClick} className="w-full h-full cursor-default text-center flex flex-col item-center justify-center">
+    <div
+      onClick={handleClick}
+      className="w-full h-full cursor-default text-center flex flex-col item-center justify-center"
+    >
       <p className="text-7xl hover:cursor-default">{mainText}</p>
       {subText && <p className="text-xl">{subText}</p>}
-    </div >
+    </div>
   );
-}
+};
 
 export default TextSquare;
