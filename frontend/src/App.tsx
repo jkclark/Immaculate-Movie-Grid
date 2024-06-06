@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { CreditExport } from "../../common/src/interfaces";
+import CorrectCreditsSummary from "./components/CorrectCreditsSummary";
 import Grid from "./components/Grid";
 import Overlay, { overlayContentsAtom } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
@@ -141,6 +142,7 @@ function App() {
           mainText: answerText,
           clickHandler: () => {
             console.log(`Clicked on ${acrossActor.name} and ${downActor.name}`);
+            setOverlayContents(<CorrectCreditsSummary credits={answers} />);
           },
         });
       }
