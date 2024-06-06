@@ -1,5 +1,4 @@
 import { useAtom } from "jotai";
-import { useState } from "react";
 import { Grid as GridData } from "../../../common/src/interfaces";
 import {
   AnyGridDisplayData,
@@ -9,6 +8,7 @@ import {
 } from "../gridDisplayData";
 import { getS3ImageURLForType } from "../s3";
 import {
+  finalGameGridDisplayDataAtom,
   gameOverAtom,
   guessesRemainingAtom,
   selectedColAtom,
@@ -25,7 +25,7 @@ export function GameLogic(
   const [selectedCol, setSelectedCol] = useAtom(selectedColAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
-  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useState<AnyGridDisplayData[][]>([[]]);
+  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
 
   function getGuessesRemainingGridDatum(newGuessesRemaining: number): AnyGridDisplayData {
     return {
@@ -143,13 +143,6 @@ export function GameLogic(
   }
 
   return {
-    // State
-    selectedRow,
-    selectedCol,
-    usedAnswers,
-    gameOver,
-    finalGameGridDisplayData,
-
     // Functions
     getInitialGameGridDisplayData,
     addAnswerToGridDisplayData,

@@ -2,26 +2,23 @@ import debounce from "lodash.debounce";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PiFilmSlate } from "react-icons/pi";
 
+import { useAtom } from "jotai";
 import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
+import { usedAnswersAtom } from "../state/GameState";
 import SearchResult from "./SearchResult";
 
 interface SearchBarProps {
   checkAnswerFunc: (type: "movie" | "tv", id: number, gridData: GridData) => boolean;
   setTextAndImageFunc: (type: "movie" | "tv", id: number, text: string) => void;
   gridData: GridData;
-  usedAnswers: { type: "movie" | "tv"; id: number }[];
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({
-  checkAnswerFunc,
-  setTextAndImageFunc,
-  gridData,
-  usedAnswers,
-}) => {
+const SearchBar: React.FC<SearchBarProps> = ({ checkAnswerFunc, setTextAndImageFunc, gridData }) => {
   const [inputText, setInputText] = useState("");
   const [previousInputText, setPreviousInputText] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const usedAnswers = useAtom(usedAnswersAtom)[0];
 
   const fetchResults = useCallback(
     debounce((query) => {
@@ -43,7 +40,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         setSearchResults([]);
       }
     }, 500),
-    [],
+    []
   ); // dependencies array is empty because fetchResults doesn't depend on any props or state
 
   useEffect(() => {
@@ -119,7 +116,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 // Do not show results that have already been used
                 if (
                   usedAnswers.some(
-                    (usedAnswer) => usedAnswer.type === result.media_type && usedAnswer.id === result.id,
+                    (usedAnswer) => usedAnswer.type === result.media_type && usedAnswer.id === result.id
                   )
                 ) {
                   return null;

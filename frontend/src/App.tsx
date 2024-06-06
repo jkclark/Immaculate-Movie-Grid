@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { useAtom } from "jotai";
 import { Grid as GridData } from "../../common/src/interfaces";
 import Grid from "./components/Grid";
 import SearchBar from "./components/SearchBar";
@@ -7,6 +8,12 @@ import { AnyGridDisplayData } from "./gridDisplayData";
 import GameLogic from "./logic/GameLogic";
 import { getAllAnswerGridDisplayData } from "./logic/PostGameLogic";
 import { getGridDataFromS3, getS3ImageURLForType, preloadImageURL } from "./s3";
+import {
+  finalGameGridDisplayDataAtom,
+  gameOverAtom,
+  selectedColAtom,
+  selectedRowAtom,
+} from "./state/GameState";
 
 function App() {
   const [activeTab, setActiveTab] = useState<string>("Your answers");
@@ -14,15 +21,12 @@ function App() {
   const [gridDisplayData, setGridDisplayData] = useState<AnyGridDisplayData[][]>([[]]);
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [isLoading, setIsLoading] = useState(true);
+  const selectedRow = useAtom(selectedRowAtom)[0];
+  const selectedCol = useAtom(selectedColAtom)[0];
+  const gameOver = useAtom(gameOverAtom)[0];
+  const finalGameGridDisplayData = useAtom(finalGameGridDisplayDataAtom)[0];
 
   const {
-    // State
-    selectedRow,
-    selectedCol,
-    usedAnswers,
-    gameOver,
-    finalGameGridDisplayData,
-
     // Functions
     getInitialGameGridDisplayData,
     addAnswerToGridDisplayData,
@@ -63,7 +67,7 @@ function App() {
           gridData.credits.map((credit) => {
             const imageURL = getS3ImageURLForType(credit.type, credit.id);
             return preloadImageURL(imageURL);
-          }),
+          })
         );
       }
       preloadImages();
@@ -124,14 +128,13 @@ function App() {
           checkAnswerFunc={checkAnswer}
           setTextAndImageFunc={addAnswerToGridDisplayData}
           {...{ gridData, gridDisplayData, setGridDisplayData }}
-          usedAnswers={usedAnswers}
         />
       ) : null}
 
       {selectedRow !== -1 && selectedCol !== -1 ? (
         <div className="absolute inset-0 bg-black opacity-50 z-20" />
       ) : null}
-      <Grid gridDisplayData={gridDisplayData} {...{ selectedRow, selectedCol, gameOver }} />
+      <Grid gridDisplayData={gridDisplayData} />
     </div>
   );
 }

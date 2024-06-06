@@ -4,12 +4,9 @@ import GridSquare from "./GridSquare";
 
 interface GridProps {
   gridDisplayData: AnyGridDisplayData[][];
-  selectedRow: number;
-  selectedCol: number;
-  gameOver: boolean;
 }
 
-const Grid: React.FC<GridProps> = ({ gridDisplayData, selectedRow, selectedCol, gameOver }) => {
+const Grid: React.FC<GridProps> = ({ gridDisplayData }) => {
   // 4 x 4 grid
   const numPages = gridDisplayData.length / 4 ** 2;
   const [currentPage, setCurrentPage] = React.useState(0);
@@ -35,13 +32,7 @@ const Grid: React.FC<GridProps> = ({ gridDisplayData, selectedRow, selectedCol, 
       >
         {/* As a 2D array, this does not render properly */}
         {gridDisplayDataPage.flat().map((square, index) => (
-          <GridSquare
-            key={index}
-            {...square}
-            {...{ selectedRow, selectedCol, gameOver }}
-            row={Math.floor(index / 4)}
-            col={index % 4}
-          />
+          <GridSquare key={index} {...square} row={Math.floor(index / 4)} col={index % 4} />
         ))}
       </div>
     </div>
