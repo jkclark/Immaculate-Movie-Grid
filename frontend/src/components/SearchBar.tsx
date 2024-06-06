@@ -2,18 +2,11 @@ import debounce from "lodash.debounce";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PiFilmSlate } from "react-icons/pi";
 
-import {
-  Grid as GridData,
-  SearchResult as SearchResultData,
-} from "../../../common/src/interfaces";
+import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
 import SearchResult from "./SearchResult";
 
 interface SearchBarProps {
-  checkAnswerFunc: (
-    type: "movie" | "tv",
-    id: number,
-    gridData: GridData,
-  ) => boolean;
+  checkAnswerFunc: (type: "movie" | "tv", id: number, gridData: GridData) => boolean;
   setTextAndImageFunc: (type: "movie" | "tv", id: number, text: string) => void;
   gridData: GridData;
   usedAnswers: { type: "movie" | "tv"; id: number }[];
@@ -34,9 +27,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     debounce((query) => {
       if (query.length > 0) {
         setIsLoading(true);
-        fetch(
-          `https://api.immaculatemoviegrid.com/dev/search?query=${encodeURIComponent(query)}`,
-        )
+        fetch(`https://api.immaculatemoviegrid.com/dev/search?query=${encodeURIComponent(query)}`)
           .then((response) => response.json())
           .then((data) => {
             console.log("RESULTS:" + data.searchResults);
@@ -128,9 +119,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 // Do not show results that have already been used
                 if (
                   usedAnswers.some(
-                    (usedAnswer) =>
-                      usedAnswer.type === result.media_type &&
-                      usedAnswer.id === result.id,
+                    (usedAnswer) => usedAnswer.type === result.media_type && usedAnswer.id === result.id,
                   )
                 ) {
                   return null;

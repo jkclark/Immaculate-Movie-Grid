@@ -3,8 +3,7 @@ import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
 import { Grid } from "../../common/src/interfaces";
 
-const BASE_S3_IMAGE_URL =
-  "https://immaculate-movie-grid-images.s3.amazonaws.com";
+const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
 
 const client = new S3Client({
   region: "us-east-1",
@@ -14,10 +13,7 @@ const client = new S3Client({
   }),
 });
 
-export function getS3ImageURLForType(
-  type: "movie" | "tv" | "actor",
-  id: number,
-): string {
+export function getS3ImageURLForType(type: "movie" | "tv" | "actor", id: number): string {
   const typesToS3Prefixes = {
     actor: "actors",
     movie: "movies",
@@ -56,10 +52,7 @@ export async function getS3Object(bucket: string, key: string): Promise<any> {
   return JSON.parse(body);
 }
 
-export async function getGridDataFromS3(
-  bucket: string,
-  key: string,
-): Promise<Grid> {
+export async function getGridDataFromS3(bucket: string, key: string): Promise<Grid> {
   const jsonData = await getS3Object(bucket, key);
   return jsonData as Grid;
 }

@@ -11,9 +11,7 @@ import { getGridDataFromS3, getS3ImageURLForType, preloadImageURL } from "./s3";
 function App() {
   const [activeTab, setActiveTab] = useState<string>("Your answers");
   const [gridData, setGridData]: [GridData, any] = useState({} as GridData);
-  const [gridDisplayData, setGridDisplayData] = useState<
-    AnyGridDisplayData[][]
-  >([[]]);
+  const [gridDisplayData, setGridDisplayData] = useState<AnyGridDisplayData[][]>([[]]);
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,10 +42,7 @@ function App() {
       const todayString = today.toISOString().split("T")[0];
 
       // Load the grid named with today's date
-      const jsonData = await getGridDataFromS3(
-        "immaculate-movie-grid-daily-grids",
-        `${todayString}.json`,
-      );
+      const jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", `${todayString}.json`);
 
       // TODO: What should we do if there is no grid for today?
 
@@ -136,10 +131,7 @@ function App() {
       {selectedRow !== -1 && selectedCol !== -1 ? (
         <div className="absolute inset-0 bg-black opacity-50 z-20" />
       ) : null}
-      <Grid
-        gridDisplayData={gridDisplayData}
-        {...{ selectedRow, selectedCol, gameOver }}
-      />
+      <Grid gridDisplayData={gridDisplayData} {...{ selectedRow, selectedCol, gameOver }} />
     </div>
   );
 }

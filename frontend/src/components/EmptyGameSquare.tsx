@@ -6,11 +6,7 @@ interface EmptyGameSquare {
   gameOver: boolean;
 }
 
-const EmptyGameSquare: React.FC<EmptyGameSquare> = ({
-  clickHandler,
-  isHighlighted,
-  gameOver,
-}) => {
+const EmptyGameSquare: React.FC<EmptyGameSquare> = ({ clickHandler, isHighlighted, gameOver }) => {
   const handleClick = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (clickHandler) {

@@ -9,27 +9,16 @@ interface GridProps {
   gameOver: boolean;
 }
 
-const Grid: React.FC<GridProps> = ({
-  gridDisplayData,
-  selectedRow,
-  selectedCol,
-  gameOver,
-}) => {
+const Grid: React.FC<GridProps> = ({ gridDisplayData, selectedRow, selectedCol, gameOver }) => {
   // 4 x 4 grid
   const numPages = gridDisplayData.length / 4 ** 2;
   const [currentPage, setCurrentPage] = React.useState(0);
-  const gridDisplayDataPage = gridDisplayData.slice(
-    currentPage * 4 ** 2,
-    (currentPage + 1) * 4 ** 2,
-  );
+  const gridDisplayDataPage = gridDisplayData.slice(currentPage * 4 ** 2, (currentPage + 1) * 4 ** 2);
   return (
     <div>
       {numPages > 1 && (
         <div className="flex justify-between">
-          <button
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 0}
-          >
+          <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 0}>
             Previous
           </button>
           <button

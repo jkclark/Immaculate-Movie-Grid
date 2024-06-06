@@ -6,11 +6,7 @@ interface ImageSquareProps {
   clickHandler?: (event: React.MouseEvent) => void;
 }
 
-const ImageSquare: React.FC<ImageSquareProps> = ({
-  imageURL,
-  hoverText,
-  clickHandler,
-}) => {
+const ImageSquare: React.FC<ImageSquareProps> = ({ imageURL, hoverText, clickHandler }) => {
   const [isTextVisible, setIsTextVisible] = useState(false);
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);

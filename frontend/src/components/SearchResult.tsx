@@ -1,15 +1,8 @@
 import { useState } from "react";
-import {
-  Grid as GridData,
-  SearchResult as SearchResultData,
-} from "../../../common/src/interfaces";
+import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
 
 interface SearchResultProps extends SearchResultData {
-  checkAnswerFunc: (
-    type: "movie" | "tv",
-    id: number,
-    gridData: GridData,
-  ) => boolean;
+  checkAnswerFunc: (type: "movie" | "tv", id: number, gridData: GridData) => boolean;
   setTextAndImageFunc: (type: "movie" | "tv", id: number, text: string) => void;
   gridData: GridData;
   release_year?: string;
@@ -40,10 +33,7 @@ const SearchResult: React.FC<SearchResultProps> = ({
   }
 
   const emoji = media_type === "movie" ? "📽️" : "📺";
-  const dateString =
-    media_type === "movie"
-      ? release_year
-      : `${first_air_year} - ${last_air_year}`;
+  const dateString = media_type === "movie" ? release_year : `${first_air_year} - ${last_air_year}`;
 
   return (
     <div

@@ -4,11 +4,7 @@ interface TextSquareProps {
   clickHandler?: (event: React.MouseEvent) => void;
 }
 
-const TextSquare: React.FC<TextSquareProps> = ({
-  mainText,
-  subText,
-  clickHandler,
-}) => {
+const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, clickHandler }) => {
   const handleClick = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (clickHandler) {
