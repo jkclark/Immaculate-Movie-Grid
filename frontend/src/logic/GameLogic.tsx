@@ -1,3 +1,4 @@
+import { useAtom } from "jotai";
 import { useState } from "react";
 import { Grid as GridData } from "../../../common/src/interfaces";
 import {
@@ -7,44 +8,39 @@ import {
   insertInnerGridDisplayData,
 } from "../gridDisplayData";
 import { getS3ImageURLForType } from "../s3";
+import {
+  gameOverAtom,
+  guessesRemainingAtom,
+  selectedColAtom,
+  selectedRowAtom,
+  usedAnswersAtom,
+} from "../state/GameState";
 
 export function GameLogic(
   gridDisplayData: AnyGridDisplayData[][],
-  setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void,
+  setGridDisplayData: (gridDisplayData: AnyGridDisplayData[][]) => void
 ) {
-  const [guessesRemaining, setGuessesRemaining] = useState<number>(9);
-  const [selectedRow, setSelectedRow] = useState(-1);
-  const [selectedCol, setSelectedCol] = useState(-1);
-  const [usedAnswers, setUsedAnswers] = useState<
-    { type: "movie" | "tv"; id: number }[]
-  >([]);
-  const [gameOver, setGameOver] = useState(false);
-  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useState<
-    AnyGridDisplayData[][]
-  >([[]]);
+  const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
+  const [selectedRow, setSelectedRow] = useAtom(selectedRowAtom);
+  const [selectedCol, setSelectedCol] = useAtom(selectedColAtom);
+  const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
+  const [gameOver, setGameOver] = useAtom(gameOverAtom);
+  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useState<AnyGridDisplayData[][]>([[]]);
 
-  function getGuessesRemainingGridDatum(
-    newGuessesRemaining: number,
-  ): AnyGridDisplayData {
+  function getGuessesRemainingGridDatum(newGuessesRemaining: number): AnyGridDisplayData {
     return {
       mainText: `${newGuessesRemaining}`,
       subText: "guesses left",
     };
   }
 
-  function getInitialGameGridDisplayData(
-    gridData: GridData,
-  ): AnyGridDisplayData[][] {
+  function getInitialGameGridDisplayData(gridData: GridData): AnyGridDisplayData[][] {
     const newInnerGridData: AnyGridDisplayData[][] = [];
 
     // Create squares for inner grid
     for (let rowIndex = 0; rowIndex < gridData.actors.length / 2; rowIndex++) {
       const innerGridRow: AnyGridDisplayData[] = [];
-      for (
-        let colIndex = 0;
-        colIndex < gridData.actors.length / 2;
-        colIndex++
-      ) {
+      for (let colIndex = 0; colIndex < gridData.actors.length / 2; colIndex++) {
         innerGridRow.push({
           clickHandler: () => {
             if (!gameOver) {
@@ -65,18 +61,14 @@ export function GameLogic(
       getGuessesRemainingGridDatum(guessesRemaining),
       0,
       0,
-      newGridData,
+      newGridData
     );
 
     // Insert inner grid into outer grid
     return insertInnerGridDisplayData(newGridDataWithGuesses, newInnerGridData);
   }
 
-  function addAnswerToGridDisplayData(
-    type: "movie" | "tv" | "actor",
-    id: number,
-    text: string,
-  ): void {
+  function addAnswerToGridDisplayData(type: "movie" | "tv" | "actor", id: number, text: string): void {
     setGridDisplayData(
       insertGridDisplayDatumAtRowCol(
         {
@@ -85,28 +77,19 @@ export function GameLogic(
         },
         selectedRow,
         selectedCol,
-        gridDisplayData,
-      ),
+        gridDisplayData
+      )
     );
   }
 
   function updateGuessesRemaining(newGuessesRemaining: number): void {
     setGridDisplayData(
-      insertGridDisplayDatumAtRowCol(
-        getGuessesRemainingGridDatum(newGuessesRemaining),
-        0,
-        0,
-        gridDisplayData,
-      ),
+      insertGridDisplayDatumAtRowCol(getGuessesRemainingGridDatum(newGuessesRemaining), 0, 0, gridDisplayData)
     );
     setGuessesRemaining(newGuessesRemaining);
   }
 
-  function checkAnswer(
-    type: "movie" | "tv",
-    id: number,
-    gridData: GridData,
-  ): boolean {
+  function checkAnswer(type: "movie" | "tv", id: number, gridData: GridData): boolean {
     if (selectedRow === -1 || selectedCol === -1) {
       throw new Error("Selected row or column is -1");
     }
@@ -118,10 +101,10 @@ export function GameLogic(
     const acrossActorId = gridData.actors[dataCol].id;
     const downActorId = gridData.actors[3 + dataRow].id;
     const acrossCorrect = gridData.answers[acrossActorId].some(
-      (answer) => answer.type === type && answer.id === id,
+      (answer) => answer.type === type && answer.id === id
     );
     const downCorrect = gridData.answers[downActorId].some(
-      (answer) => answer.type === type && answer.id === id,
+      (answer) => answer.type === type && answer.id === id
     );
 
     // -1 guesses remaining
