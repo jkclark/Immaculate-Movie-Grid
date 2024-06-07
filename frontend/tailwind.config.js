@@ -5,6 +5,7 @@ export default {
     extend: {
       spacing: {
         "2vh": "2vh",
+        30: "7.5rem",
       },
     },
   },

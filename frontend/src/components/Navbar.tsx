@@ -23,7 +23,7 @@ const Navbar: React.FC = () => {
         </button>
       </div>
       <div
-        className={`${isOpen ? "block" : "hidden"} absolute w-full bg-gray-700 lg:relative lg:flex lg:items-center lg:w-auto mt-28 lg:mt-0 -ml-4`}
+        className={`${isOpen ? "block" : "hidden"} absolute w-full bg-gray-700 lg:relative lg:flex lg:items-center lg:w-auto mt-30 lg:mt-0 -ml-4`}
       >
         <div className="text-sm lg:flex-grow">
           <a
