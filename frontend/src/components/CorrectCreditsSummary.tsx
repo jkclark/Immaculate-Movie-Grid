@@ -1,15 +1,14 @@
-import { useSetAtom } from "jotai";
 import React from "react";
 import { CreditExport } from "../../../common/src/interfaces";
 import CreditDetails from "./CreditDetails";
-import { overlayContentsAtom } from "./Overlay";
+import { useOverlayStack } from "./Overlay";
 
 interface CorrectCreditsSummaryProps {
   credits: CreditExport[];
 }
 
 const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }) => {
-  const setOverlayContents = useSetAtom(overlayContentsAtom);
+  const { popOverlayContents } = useOverlayStack();
 
   const movies = credits.filter((credit) => credit.type === "movie");
   const tvShows = credits.filter((credit) => credit.type === "tv");
@@ -22,7 +21,7 @@ const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }
       <CreditList title="Movies" credits={movies} />
       <CreditList title="TV Shows" credits={tvShows} />
       <svg
-        onClick={() => setOverlayContents(null)}
+        onClick={() => popOverlayContents()}
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -41,7 +40,7 @@ interface CreditListProps {
 }
 
 const CreditList: React.FC<CreditListProps> = ({ title, credits }) => {
-  const setOverlayContents = useSetAtom(overlayContentsAtom);
+  const { addContentsToOverlay } = useOverlayStack();
 
   return (
     <div className="flex flex-col w-full md:w-1/2 mx-3 text-center overflow-auto max-h-[desiredHeight]">
@@ -50,7 +49,7 @@ const CreditList: React.FC<CreditListProps> = ({ title, credits }) => {
         {credits.map((credit) => (
           <li
             key={credit.id}
-            onClick={() => setOverlayContents(<CreditDetails credit={credit} />)}
+            onClick={() => addContentsToOverlay(<CreditDetails credit={credit} />)}
             className="text-gray-700 dark:text-gray-300 flex items-center justify-between cursor-pointer mb-2"
           >
             <div className="flex-1 overflow-hidden">

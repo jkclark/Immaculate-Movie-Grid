@@ -4,7 +4,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { CreditExport } from "../../common/src/interfaces";
 import CorrectCreditsSummary from "./components/CorrectCreditsSummary";
 import Grid from "./components/Grid";
-import Overlay, { overlayContentsAtom } from "./components/Overlay";
+import Overlay, { useOverlayStack } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
 import {
   AnyGridDisplayData,
@@ -34,7 +34,7 @@ function App() {
 
   const setSelectedRow = useSetAtom(selectedRowAtom);
   const setSelectedCol = useSetAtom(selectedColAtom);
-  const [overlayContents, setOverlayContents] = useAtom(overlayContentsAtom);
+  const { addContentsToOverlay } = useOverlayStack();
   const guessesRemaining = useAtomValue(guessesRemainingAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
   const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
@@ -99,7 +99,7 @@ function App() {
             if (!gameOver) {
               setSelectedRow(rowIndex + 1);
               setSelectedCol(colIndex + 1);
-              setOverlayContents(<SearchBar />);
+              addContentsToOverlay(<SearchBar />);
             }
           },
         });
@@ -142,7 +142,7 @@ function App() {
           mainText: answerText,
           clickHandler: () => {
             console.log(`Clicked on ${acrossActor.name} and ${downActor.name}`);
-            setOverlayContents(<CorrectCreditsSummary credits={answers} />);
+            addContentsToOverlay(<CorrectCreditsSummary credits={answers} />);
           },
         });
       }
@@ -230,7 +230,7 @@ function App() {
         </button>
       )}
 
-      <Overlay contents={overlayContents} />
+      <Overlay />
 
       <Grid gridDisplayData={gridDisplayData} />
     </div>

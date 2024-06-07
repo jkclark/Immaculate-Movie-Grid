@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
 import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
 import {
@@ -14,7 +14,7 @@ import {
   selectedRowAtom,
   usedAnswersAtom,
 } from "../state";
-import { overlayContentsAtom } from "./Overlay";
+import { useOverlayStack } from "./Overlay";
 
 interface SearchResultProps extends SearchResultData {
   release_year?: string;
@@ -36,14 +36,14 @@ const SearchResult: React.FC<SearchResultProps> = ({
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
-  const setOverlayContents = useSetAtom(overlayContentsAtom);
+  const { resetOverlayContents } = useOverlayStack();
   const [isWrong, setIsWrong] = useState(false);
 
   function handleClick(event: React.MouseEvent) {
     event.preventDefault(); // For whatever reason the button refreshes the page without this
     if (checkAnswer(media_type, id, gridData)) {
       addAnswerToGridDisplayData(media_type, id, title);
-      setOverlayContents(null);
+      resetOverlayContents();
     } else {
       setIsWrong(true);
     }
