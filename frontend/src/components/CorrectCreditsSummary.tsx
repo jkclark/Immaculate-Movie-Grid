@@ -16,7 +16,7 @@ const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="flex flex-col md:flex-row bg-white dark:bg-gray-800 w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-2 md:p-6 relative"
+      className="flex flex-col md:flex-row bg-white dark:bg-gray-800 w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-3 md:p-6 relative"
     >
       <CreditList title="Movies" credits={movies} />
       <CreditList title="TV Shows" credits={tvShows} />
@@ -43,7 +43,7 @@ const CreditList: React.FC<CreditListProps> = ({ title, credits }) => {
   const { addContentsToOverlay } = useOverlayStack();
 
   return (
-    <div className="flex flex-col w-full md:w-1/2 mx-3 text-center overflow-auto max-h-[desiredHeight]">
+    <div className="flex flex-col w-full md:w-1/2 text-center overflow-auto max-h-[desiredHeight]">
       <h2 className="text-xl font-bold mb-4">{title}</h2>
       <ul className="mb-8 flex flex-col">
         {credits.map((credit) => (
