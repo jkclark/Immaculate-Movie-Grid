@@ -2,17 +2,29 @@ import React from "react";
 import { CreditExport } from "../../../common/src/interfaces";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "../s3";
 import ImageWithBackup from "./ImageWithBackup";
+import { useOverlayStack } from "./Overlay";
 
 interface CreditDetailsProps {
   credit: CreditExport;
 }
 
 const CreditDetails: React.FC<CreditDetailsProps> = ({ credit }) => {
+  const { popOverlayContents } = useOverlayStack();
   return (
     <div
       onClick={(e) => e.stopPropagation()}
       className="flex items-start md:flex-row bg-white dark:bg-gray-800 w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-2 md:p-6 relative"
     >
+      <svg
+        onClick={() => popOverlayContents()}
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6 absolute top-2 right-2 cursor-pointer hover:text-blue-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+      </svg>
       <ImageWithBackup
         imageURL={getS3ImageURLForType(credit.type, credit.id)}
         altText={credit.name}
