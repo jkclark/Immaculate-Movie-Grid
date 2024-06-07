@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import AboutDisplay from "./AboutDisplay";
+import { useOverlayStack } from "./Overlay";
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { addContentsToOverlay } = useOverlayStack();
 
   return (
     <nav className="relative flex items-center justify-between flex-wrap dark:bg-gray-700 px-4 py-2 w-full">
@@ -32,6 +35,7 @@ const Navbar: React.FC = () => {
           <a
             href="#responsive-header"
             className="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-blue-500 pl-4 lg:pl-0 mb-3 lg:mb-0"
+            onClick={() => addContentsToOverlay(<AboutDisplay />)}
           >
             About
           </a>
