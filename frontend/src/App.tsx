@@ -4,6 +4,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { CreditExport } from "../../common/src/interfaces";
 import CorrectCreditsSummary from "./components/CorrectCreditsSummary";
 import Grid from "./components/Grid";
+import Navbar from "./components/Navbar";
 import Overlay, { useOverlayStack } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
 import {
@@ -194,43 +195,47 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen dark:bg-gray-800 dark:text-white relative">
-      {gameOver && (
-        <div className="flex space-x-4">
-          <button
-            onClick={() => {
-              setActiveTab("Your answers");
-              setGridDisplayData(finalGameGridDisplayData);
-            }}
-            className={`${activeTab === "Your answers" ? "bg-blue-700" : ""}`}
-          >
-            Your answers
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("All answers");
-              setGridDisplayData(getAllAnswerGridDisplayData());
-            }}
-            className={`${activeTab === "All answers" ? "bg-blue-700" : ""}`}
-          >
-            All answers
-          </button>
-        </div>
-      )}
-
-      {!isLoading && !gameOver && (
-        <button
-          onClick={() => {
-            endGame(gridDisplayData);
-          }}
-        >
-          Give up
-        </button>
-      )}
+    <div className="flex flex-col h-screen dark:bg-gray-800 dark:text-white relative">
+      <Navbar />
 
       <Overlay />
 
-      <Grid gridDisplayData={gridDisplayData} />
+      <div className="w-full flex flex-col flex-grow items-center justify-center">
+        {!isLoading && !gameOver && (
+          <button
+            onClick={() => {
+              endGame(gridDisplayData);
+            }}
+          >
+            Give up
+          </button>
+        )}
+
+        {gameOver && (
+          <div className="flex space-x-4">
+            <button
+              onClick={() => {
+                setActiveTab("Your answers");
+                setGridDisplayData(finalGameGridDisplayData);
+              }}
+              className={`${activeTab === "Your answers" ? "bg-blue-700" : ""}`}
+            >
+              Your answers
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("All answers");
+                setGridDisplayData(getAllAnswerGridDisplayData());
+              }}
+              className={`${activeTab === "All answers" ? "bg-blue-700" : ""}`}
+            >
+              All answers
+            </button>
+          </div>
+        )}
+
+        <Grid gridDisplayData={gridDisplayData} />
+      </div>
     </div>
   );
 }
