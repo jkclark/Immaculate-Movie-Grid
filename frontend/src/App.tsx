@@ -55,8 +55,6 @@ function App() {
 
       // TODO: What should we do if there is no grid for today?
 
-      console.log("Grid data:");
-      console.log(jsonData);
       setGridData(jsonData);
     }
     fetchData();
@@ -79,7 +77,8 @@ function App() {
         await Promise.all(
           gridData.credits.map((credit) => {
             const imageURL = getS3ImageURLForType(credit.type, credit.id);
-            return preloadImageURL(imageURL);
+            // Fail silently if we can't preload an image
+            return preloadImageURL(imageURL).catch(() => {});
           })
         );
       }
@@ -141,7 +140,6 @@ function App() {
         innerGridRow.push({
           mainText: answerText,
           clickHandler: () => {
-            console.log(`Clicked on ${acrossActor.name} and ${downActor.name}`);
             addContentsToOverlay(<CorrectCreditsSummary credits={answers} />);
           },
         });
