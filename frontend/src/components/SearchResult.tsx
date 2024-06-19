@@ -1,6 +1,6 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
-import { Grid as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
+import { GridExport as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
 import {
   getGuessesRemainingGridDatum,
   gridDisplayDataAtom,

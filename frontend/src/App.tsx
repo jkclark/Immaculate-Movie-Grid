@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { CreditExport } from "../../common/src/interfaces";
+import { CreditExport, GridExport } from "../../common/src/interfaces";
 import CorrectCreditsSummary from "./components/CorrectCreditsSummary";
 import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
@@ -47,14 +47,8 @@ function App() {
         return;
       }
 
-      // Get today's date in YYYY-MM-DD format
-      const today = new Date();
-      const todayString = today.toISOString().split("T")[0];
-
-      // Load the grid named with today's date
-      const jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", `${todayString}.json`);
-
-      // TODO: What should we do if there is no grid for today?
+      // Load the grid named with today's date, or the backup grid if today's grid isn't available
+      const jsonData = await getGridDataOrBackup();
 
       setGridData(jsonData);
     }
@@ -86,6 +80,28 @@ function App() {
       preloadImages();
     }
   }, [isLoading]);
+
+  async function getGridDataOrBackup(): Promise<GridExport> {
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date();
+    const todayString = today.toISOString().split("T")[0];
+
+    // Load the grid named with today's date
+    let jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", `${todayString}.json`);
+
+    if (Object.keys(jsonData).length === 0) {
+      console.error("No grid data found for today, attempting to load backup grid");
+
+      const BACKUP_GRID_FILENAME = "backup-grid.json";
+      jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", BACKUP_GRID_FILENAME);
+
+      if (Object.keys(jsonData).length === 0) {
+        console.error("No backup grid found");
+      }
+    }
+
+    return jsonData;
+  }
 
   function getInitialGameGridDisplayData(): AnyGridDisplayData[][] {
     const newInnerGridData: AnyGridDisplayData[][] = [];

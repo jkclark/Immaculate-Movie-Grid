@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { Grid as GridData } from "../../common/src/interfaces";
+import { GridExport } from "../../common/src/interfaces";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 
 interface GridDisplayData {
@@ -21,7 +21,7 @@ export interface ImageGridDisplayData extends GridDisplayData {
 
 export type AnyGridDisplayData = GridDisplayData | TextGridDisplayData | ImageGridDisplayData;
 
-export function getInitialGridDisplayData(gridData: GridData): AnyGridDisplayData[][] {
+export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayData[][] {
   const gridSize = gridData.actors.length / 2;
   const displayData: AnyGridDisplayData[][] = [];
   for (let rowIndex = 0; rowIndex < gridSize + 1; rowIndex++) {
@@ -54,7 +54,7 @@ export function insertGridDisplayDatumAtRowCol(
   newGridDisplayDatum: AnyGridDisplayData,
   rowIndex: number,
   colIndex: number,
-  gridDisplayData: AnyGridDisplayData[][],
+  gridDisplayData: AnyGridDisplayData[][]
 ): AnyGridDisplayData[][] {
   const newGridDisplayData = [...gridDisplayData];
   newGridDisplayData[rowIndex][colIndex] = newGridDisplayDatum;
@@ -63,7 +63,7 @@ export function insertGridDisplayDatumAtRowCol(
 
 export function insertInnerGridDisplayData(
   gridDisplayData: AnyGridDisplayData[][],
-  innerGridDisplayData: AnyGridDisplayData[][],
+  innerGridDisplayData: AnyGridDisplayData[][]
 ): AnyGridDisplayData[][] {
   let newGridDisplayData = [...gridDisplayData];
   for (let rowIndex = 0; rowIndex < innerGridDisplayData.length; rowIndex++) {
@@ -73,7 +73,7 @@ export function insertInnerGridDisplayData(
         innerGridDisplayData[rowIndex][colIndex],
         1 + rowIndex,
         1 + colIndex,
-        newGridDisplayData,
+        newGridDisplayData
       );
     }
   }

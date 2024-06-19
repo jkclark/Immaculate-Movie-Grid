@@ -10,7 +10,7 @@ export interface CreditExport {
   name: string;
 }
 
-export interface Grid {
+export interface GridExport {
   actors: ActorExport[];
   credits: CreditExport[];
   answers: { [key: number]: { type: "movie" | "tv"; id: number }[] }; // actor id -> [{type, id}, ...]
