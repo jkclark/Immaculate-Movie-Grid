@@ -161,13 +161,21 @@ async function pickRandomStartingActorAndGetValidAcrossAndDown(
 /**
  * Get a valid pair of across and down actors for a grid.
  *
- * This function is effectively a breadth-first search over the graph of actors and credits,
- * starting with the given actor. It recursively searches for valid pairs of actors that share
- * credits with each other, satisfying the given actor and credit conditions.
+ * This function is effectively a breadth-first search over the graph of actors
+ * and credits, starting with the given actor. It recursively searches for valid
+ * pairs of actors that share credits with each other, satisfying the given
+ * actor and credit conditions.
  *
- * The random flag determines whether to shuffle the lists of actors and credits used
- * while searching. If random is false, the function will iterate over actors and credits
- * in the same order every time. This is useful for debugging.
+ * At the moment, we are only considering movie credits while traversing the
+ * graph. There are too many TV shows that are BS answers, so by only
+ * considering movie credits while **creating** the graph, we guarantee that
+ * there's a movie answer for every actor pair. TV shows will still be valid
+ * answers while playing the game, though.
+ *
+ * The random flag determines whether to shuffle the lists of actors and credits
+ * used while searching. If random is false, the function will iterate over
+ * actors and credits in the same order every time. This is useful for
+ * debugging.
  *
  * @param graph The graph of actors and credits
  * @param startingActor The first actor in the grid
@@ -206,11 +214,17 @@ function getValidAcrossAndDown(
     const direction = acrossActors.length > downActors.length ? "down" : "across";
     const compareActors = direction === "down" ? acrossActors : downActors;
 
-    // Iterate over all credits of the current actor
-    const creditIds = random
-      ? Object.keys(current.edges).sort(() => Math.random() - 0.5)
-      : Object.keys(current.edges);
-    for (const creditId of creditIds) {
+    // Iterate over all movie credits of the current actor
+    let movieCreditIds = Object.keys(current.edges).filter((creditId) => {
+      return graph.credits[creditId].type === "movie";
+    });
+
+    // Randomize the order of movie credits
+    if (random) {
+      movieCreditIds = movieCreditIds.sort(() => Math.random() - 0.5);
+    }
+
+    for (const creditId of movieCreditIds) {
       const credit: CreditNode = graph.credits[creditId];
       // Skip credits that have already been used
       if (usedCredits.has(getCreditUniqueString(credit.type, credit.id))) {
@@ -262,8 +276,8 @@ function getValidAcrossAndDown(
         for (let i = 0; i < compareActors.length - 1; i++) {
           let chosenSharedCredit: CreditNode = null;
 
-          // Iterate over the shared credits between the current actor and the compare actor
-          const sharedCredits = getSharedCreditsForActors(actor, compareActors[i], usedCredits);
+          // Iterate over the shared movie credits between the current actor and the compare actor
+          const sharedCredits = getSharedCreditsForActors(actor, compareActors[i], usedCredits, "movie");
           if (sharedCredits.length > 0) {
             // If this credit satisfies all credit conditions, choose it
             for (const sharedCredit of sharedCredits) {

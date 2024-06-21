@@ -148,12 +148,18 @@ export function readGraphFromFile(path: string): Graph {
 export function getSharedCreditsForActors(
   actor1: ActorNode,
   actor2: ActorNode,
-  excludeCredits: Set<string>
+  excludeCredits: Set<string>,
+  type: "movie" | "tv" = null
 ): CreditNode[] {
   const sharedCredits: CreditNode[] = [];
   for (const credit1 of Object.values(actor1.edges)) {
     // If this credit is to be excluded, go to the next one
     if (excludeCredits.has(getCreditUniqueString(credit1.type, credit1.id))) {
+      continue;
+    }
+
+    // If a type is specified and this credit is not of that type, ignore this one
+    if (type && credit1.type !== type) {
       continue;
     }
 
