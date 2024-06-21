@@ -1,5 +1,5 @@
 import { getFromTMDBAPIJson } from "../../common/src/api";
-import { Grid } from "../../common/src/interfaces";
+import { GridExport } from "../../common/src/interfaces";
 import { listS3ObjectsWithPrefix, writeStreamToS3 } from "./s3";
 import { getImageByIdTypeAndSize } from "./tmdbAPI";
 
@@ -20,20 +20,20 @@ const TV_S3_PREFIX = "tv-shows";
  * @param grid the grid for which to get and save images
  * @param overwrite whether to overwrite images that already exist in S3
  */
-export async function getAndSaveAllImagesForGrid(grid: Grid, overwrite: boolean): Promise<void> {
+export async function getAndSaveAllImagesForGrid(grid: GridExport, overwrite: boolean): Promise<void> {
   // Convert actors and credits (movies and tv shows separately) in the grid into sets of IDs
-  let actorIds = new Set(grid.actors.map(actor => actor.id));
-  let movieIds = new Set(grid.credits.filter(credit => credit.type === "movie").map(credit => credit.id));
-  let tvIds = new Set(grid.credits.filter(credit => credit.type === "tv").map(credit => credit.id));
+  let actorIds = new Set(grid.actors.map((actor) => actor.id));
+  let movieIds = new Set(grid.credits.filter((credit) => credit.type === "movie").map((credit) => credit.id));
+  let tvIds = new Set(grid.credits.filter((credit) => credit.type === "tv").map((credit) => credit.id));
 
   // If we're not overwriting images, we need to know which ones we already have
   if (!overwrite) {
     const [actorsInS3, moviesInS3, tvInS3] = await getImagesAlreadyInS3();
 
     // Remove IDs for which we already have images
-    actorIds = new Set([...actorIds].filter(x => !actorsInS3.has(x)));
-    movieIds = new Set([...movieIds].filter(x => !moviesInS3.has(x)));
-    tvIds = new Set([...tvIds].filter(x => !tvInS3.has(x)));
+    actorIds = new Set([...actorIds].filter((x) => !actorsInS3.has(x)));
+    movieIds = new Set([...movieIds].filter((x) => !moviesInS3.has(x)));
+    tvIds = new Set([...tvIds].filter((x) => !tvInS3.has(x)));
   }
 
   const tmdbAPIConfigURL = "https://api.themoviedb.org/3/configuration";
@@ -62,11 +62,13 @@ export async function getAndSaveAllImagesForGrid(grid: Grid, overwrite: boolean)
 export async function getImagesAlreadyInS3(): Promise<[Set<number>, Set<number>, Set<number>]> {
   const bucket = "immaculate-movie-grid-images";
   const prefixes = ["actors", "movies", "tv-shows"];
-  const sets = await Promise.all(prefixes.map(async prefix => {
-    const objects = await listS3ObjectsWithPrefix(bucket, prefix);
-    const ids = new Set(objects.map(object => parseInt(object.Key.split('/')[1])));
-    return ids;
-  }));
+  const sets = await Promise.all(
+    prefixes.map(async (prefix) => {
+      const objects = await listS3ObjectsWithPrefix(bucket, prefix);
+      const ids = new Set(objects.map((object) => parseInt(object.Key.split("/")[1])));
+      return ids;
+    })
+  );
   return [sets[0], sets[1], sets[2]];
 }
 
@@ -83,7 +85,7 @@ async function getAndSaveImage(
   imagesBaseURL: string,
   id: number,
   type: "actor" | "movie" | "tv",
-  imageSize: string,
+  imageSize: string
 ) {
   const typesToPrefixes = {
     actor: ACTOR_S3_PREFIX,
