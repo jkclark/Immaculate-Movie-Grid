@@ -3,6 +3,7 @@ import { getFromTMDBAPI, getFromTMDBAPIJson } from "../../common/src/api";
 import { Actor, Credit } from "./interfaces";
 
 const BASE_URL = "https://api.themoviedb.org/3";
+const TMDB_404_STATUS_CODE = 34;
 
 export async function getActorWithCreditsById(id: number): Promise<Actor> {
   const actor = await getActorById(id);
@@ -77,6 +78,14 @@ export async function getImageByIdTypeAndSize(
   //       en-US like for some other requests.
   const path = `${BASE_URL}${basePath}/${id}/images?language=en`;
   const responseJson = await getFromTMDBAPIJson(path);
+
+  // Sometimes a movie with the given ID just doesn't exist, but is somehow in
+  // our graph or a request may fail for any other reason. If that happens,
+  // we'll just return null for the image and type.
+  if (responseJson.status_code === TMDB_404_STATUS_CODE) {
+    console.error(`No ${type} found for ID ${id}`);
+    return [null, null];
+  }
 
   // Some actors and credits may not have images
   if (responseJson[imageTypeFieldName].length === 0) {
