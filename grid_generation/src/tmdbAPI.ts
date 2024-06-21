@@ -24,7 +24,7 @@ export async function getActorById(id: number): Promise<Actor> {
 
 /**
  * Get a set of movie and TV show credits for an actor.
- * 
+ *
  * @param actor the actor for whom to get credits
  * @returns a set of credits for the actor
  */
@@ -52,8 +52,13 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
   return credits;
 }
 
-export async function getImageByIdTypeAndSize(imagesBaseURL: string, id: number, type: "actor" | "tv" | "movie", size: string): Promise<[Readable, string]> {
-  console.log("Doing image for", id, type, size)
+export async function getImageByIdTypeAndSize(
+  imagesBaseURL: string,
+  id: number,
+  type: "actor" | "tv" | "movie",
+  size: string
+): Promise<[Readable, string]> {
+  console.log("Doing image for", id, type, size);
   let basePath: string;
   let imageTypeFieldName: string;
   if (type === "actor") {

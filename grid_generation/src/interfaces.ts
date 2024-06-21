@@ -11,4 +11,3 @@ export interface Credit {
   genre_ids: number[];
   popularity: number;
 }
-
