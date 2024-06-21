@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from "fs";
 import { Actor, Credit } from "./interfaces";
 
 export interface ActorNode {
@@ -32,15 +32,22 @@ export function addActorToGraph(graph: Graph, id: number, name: string): void {
 export function addCreditToGraph(credit: Credit, graph: Graph): void {
   const creditUniqueString = getCreditUniqueString(credit.type, credit.id);
   if (graph.credits[creditUniqueString]) {
-    throw new RepeatError(`Credit with id ${creditUniqueString} already exists: ${graph.credits[creditUniqueString].name}`);
+    throw new RepeatError(
+      `Credit with id ${creditUniqueString} already exists: ${graph.credits[creditUniqueString].name}`
+    );
   }
   graph.credits[creditUniqueString] = {
     ...credit,
-    edges: {}
+    edges: {},
   };
 }
 
-export function addConnectionToGraph(graph: Graph, actorId: number, creditId: number, creditType: "movie" | "tv"): void {
+export function addConnectionToGraph(
+  graph: Graph,
+  actorId: number,
+  creditId: number,
+  creditType: "movie" | "tv"
+): void {
   const creditUniqueString = getCreditUniqueString(creditType, creditId);
   const actor: ActorNode = graph.actors[actorId];
   const credit: CreditNode = graph.credits[creditUniqueString];
@@ -73,11 +80,11 @@ export function generateGraph(actorsWithCredits: Actor[]): Graph {
 interface actorNodeExport {
   id: number;
   name: string;
-  edges: { type: "movie" | "tv", id: number }[];
+  edges: { type: "movie" | "tv"; id: number }[];
 }
 
 interface creditNodeExport {
-  type: "movie" | "tv"
+  type: "movie" | "tv";
   id: number;
   name: string;
   genre_ids: number[];
@@ -90,7 +97,9 @@ function convertGraphToJSON(graph: Graph): string {
   const actorExports: actorNodeExport[] = [];
   for (const actorId in graph.actors) {
     const actor = graph.actors[actorId];
-    const edges = Object.values(actor.edges).map((credit) => { return { type: credit.type, id: credit.id } });
+    const edges = Object.values(actor.edges).map((credit) => {
+      return { type: credit.type, id: credit.id };
+    });
     actorExports.push({ ...actor, edges });
   }
 
@@ -101,7 +110,7 @@ function convertGraphToJSON(graph: Graph): string {
     const edges = Object.keys(credit.edges).map((actorId) => parseInt(actorId));
     creditExports.push({
       ...credit,
-      edges
+      edges,
     });
   }
 
@@ -136,23 +145,20 @@ export function readGraphFromFile(path: string): Graph {
   return graph;
 }
 
-export function getSharedCreditsForActors(actor1: ActorNode, actor2: ActorNode, excludeCredits: Set<string>): CreditNode[] {
+export function getSharedCreditsForActors(
+  actor1: ActorNode,
+  actor2: ActorNode,
+  excludeCredits: Set<string>
+): CreditNode[] {
   const sharedCredits: CreditNode[] = [];
   for (const credit1 of Object.values(actor1.edges)) {
     // If this credit is to be excluded, go to the next one
     if (excludeCredits.has(getCreditUniqueString(credit1.type, credit1.id))) {
       continue;
     }
-    for (const credit2 of Object.values(actor2.edges)) {
-      // If this credit is to be excluded, go to the next one
-      if (excludeCredits.has(getCreditUniqueString(credit2.type, credit2.id))) {
-        continue;
-      }
 
-      // If these credits are the same, return true
-      if (credit1.id === credit2.id && credit1.type === credit2.type) {
-        sharedCredits.push(credit1);
-      }
+    if (actor2.edges[getCreditUniqueString(credit1.type, credit1.id)]) {
+      sharedCredits.push(credit1);
     }
   }
 
@@ -163,7 +169,7 @@ export function getCreditUniqueString(type: string, id: number): string {
   return `${type}-${id}`;
 }
 
-function getCreditTypeAndIdFromUniqueString(uniqueString: string): { type: string, id: number } {
+function getCreditTypeAndIdFromUniqueString(uniqueString: string): { type: string; id: number } {
   const [type, id] = uniqueString.split("-");
   return { type: type as "movie" | "tv", id: parseInt(id) };
 }
