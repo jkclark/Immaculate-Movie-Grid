@@ -59,7 +59,7 @@ async function main(): Promise<void> {
   } while (true);
 
   // Get grid from across and down actors
-  const grid = getGridFromGraphAndActors(graph, across, down);
+  const grid = getGridFromGraphAndActors(graph, across, down, gridDate);
 
   // Get images for actors and credits and save them to S3
   await getAndSaveAllImagesForGrid(grid, overwriteImages);
@@ -477,7 +477,12 @@ function isLegitTVShow(credit: CreditNode): boolean {
  * @param down The actors going down the grid
  * @returns A Grid object representing the grid
  */
-function getGridFromGraphAndActors(graph: Graph, across: ActorNode[], down: ActorNode[]): GridExport {
+function getGridFromGraphAndActors(
+  graph: Graph,
+  across: ActorNode[],
+  down: ActorNode[],
+  id: string
+): GridExport {
   const actors = across.concat(down).map((actorNode) => {
     return { id: actorNode.id, name: actorNode.name };
   });
@@ -513,6 +518,7 @@ function getGridFromGraphAndActors(graph: Graph, across: ActorNode[], down: Acto
   }
 
   return {
+    id,
     actors,
     credits,
     answers,

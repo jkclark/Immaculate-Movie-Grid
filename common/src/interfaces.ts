@@ -11,6 +11,7 @@ export interface CreditExport {
 }
 
 export interface GridExport {
+  id: string; // this is typically the grid's date
   actors: ActorExport[];
   credits: CreditExport[];
   answers: { [key: number]: { type: "movie" | "tv"; id: number }[] }; // actor id -> [{type, id}, ...]
