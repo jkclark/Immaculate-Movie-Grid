@@ -47,8 +47,8 @@ function App() {
         return;
       }
 
-      // Load the grid named with today's date, or the backup grid if today's grid isn't available
-      const jsonData = await getGridDataOrBackup();
+      // Load the grid named with today's date
+      const jsonData = await getGridData();
 
       setGridData(jsonData);
     }
@@ -81,7 +81,7 @@ function App() {
     }
   }, [isLoading]);
 
-  async function getGridDataOrBackup(): Promise<GridExport> {
+  async function getGridData(): Promise<GridExport> {
     // Get today's date in YYYY-MM-DD format
     const today = new Date();
     const todayString = today.toISOString().split("T")[0];
@@ -90,14 +90,7 @@ function App() {
     let jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", `${todayString}.json`);
 
     if (Object.keys(jsonData).length === 0) {
-      console.error("No grid data found for today, attempting to load backup grid");
-
-      const BACKUP_GRID_FILENAME = "backup-grid.json";
-      jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", BACKUP_GRID_FILENAME);
-
-      if (Object.keys(jsonData).length === 0) {
-        console.error("No backup grid found");
-      }
+      console.error("No grid data found for today...");
     }
 
     return jsonData;
