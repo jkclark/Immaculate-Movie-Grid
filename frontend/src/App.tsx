@@ -21,6 +21,7 @@ import {
   finalGameGridDisplayDataAtom,
   gameOverAtom,
   gridDataAtom,
+  gridIdAtom,
   guessesRemainingAtom,
   selectedColAtom,
   selectedRowAtom,
@@ -28,6 +29,7 @@ import {
 
 function App() {
   const [activeTab, setActiveTab] = useState<string>("Your answers");
+  const [gridId, setGridId] = useAtom(gridIdAtom);
   const [gridData, setGridData] = useAtom(gridDataAtom);
   const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
   // This could be a set, but I think it's clearer if it's a list of objects like this
@@ -43,17 +45,35 @@ function App() {
   // On page load, load the grid data
   useEffect(() => {
     async function fetchData() {
-      if (Object.keys(gridData).length > 0) {
-        return;
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date();
+      const todayString = today.toISOString().split("T")[0];
+
+      // If gridId is not set to today's date, there is (supposed to be)
+      // a different grid available
+      if (gridId !== todayString) {
+        console.log("Grid ID is not today's date, loading grid data");
+        // Load the grid named with today's date, or the backup grid if today's grid isn't available
+        const jsonData = await getGridDataOrBackup();
+
+        // Save the grid's ID (which is today's date) to localStorage
+        setGridId(jsonData.id);
+
+        setGridData(jsonData);
       }
 
-      // Load the grid named with today's date, or the backup grid if today's grid isn't available
-      const jsonData = await getGridDataOrBackup();
-
-      setGridData(jsonData);
+      // If gridId *is* the same as today's date, we've already been playing today's
+      // grid, so we don't need to do anything
+      else {
+        console.log("Setting game back to the way it was");
+      }
     }
     fetchData();
   }, []);
+
+  useEffect(() => {
+    console.log("Grid ID:", gridId);
+  }, [gridId]);
 
   // Once we've loaded the grid data, populate the grid display data
   useEffect(() => {
