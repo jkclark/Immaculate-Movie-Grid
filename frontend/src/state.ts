@@ -3,11 +3,22 @@ import { atomWithStorage } from "jotai/utils";
 import { GridExport } from "../../common/src/interfaces";
 import { AnyGridDisplayData } from "./gridDisplayData";
 
-export const gridIdAtom = atomWithStorage("gridId", "", undefined, { getOnInit: true });
-export const gridDataAtom = atom<GridExport>({} as GridExport);
-export const guessesRemainingAtom = atom(9);
-export const gameOverAtom = atom(false);
+function getAtomWithStorageInit<T>(key: string, initialValue: T) {
+  return atomWithStorage(key, initialValue, undefined, { getOnInit: true });
+}
+
+export const gridIdAtom = getAtomWithStorageInit("gridId", "");
+export const gridDataAtom = getAtomWithStorageInit<GridExport>("gridData", {} as GridExport);
+export const guessesRemainingAtom = getAtomWithStorageInit("guessesRemaining", 9);
+export const gameOverAtom = getAtomWithStorageInit("gameOver", false);
+export const activeTabAtom = getAtomWithStorageInit<string>("activeTab", "Your answers");
 export const selectedRowAtom = atom(-1);
 export const selectedColAtom = atom(-1);
-export const usedAnswersAtom = atom<{ type: "movie" | "tv"; id: number }[]>([]);
-export const finalGameGridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);
+export const usedAnswersAtom = getAtomWithStorageInit<{ type: "movie" | "tv"; id: number }[]>(
+  "usedAnswers",
+  []
+);
+export const finalGameGridDisplayDataAtom = getAtomWithStorageInit<AnyGridDisplayData[][]>(
+  "finalGameGridDisplayData",
+  [[]]
+);

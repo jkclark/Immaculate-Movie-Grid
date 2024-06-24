@@ -18,6 +18,7 @@ import {
 } from "./gridDisplayData";
 import { getGridDataFromS3, getS3ImageURLForType, preloadImageURL } from "./s3";
 import {
+  activeTabAtom,
   finalGameGridDisplayDataAtom,
   gameOverAtom,
   gridDataAtom,
@@ -28,8 +29,9 @@ import {
 } from "./state";
 
 function App() {
-  const [activeTab, setActiveTab] = useState<string>("Your answers");
+  const [activeTab, setActiveTab] = useAtom(activeTabAtom);
   const [gridId, setGridId] = useAtom(gridIdAtom);
+  const [isNewGrid, setIsNewGrid] = useState(false);
   const [gridData, setGridData] = useAtom(gridDataAtom);
   const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
   // This could be a set, but I think it's clearer if it's a list of objects like this
@@ -59,6 +61,9 @@ function App() {
         // Save the grid's ID (which is today's date) to localStorage
         setGridId(jsonData.id);
 
+        // Set isNewGrid to true so we know to set up the initial grid display data
+        setIsNewGrid(true);
+
         setGridData(jsonData);
       }
 
@@ -77,11 +82,16 @@ function App() {
 
   // Once we've loaded the grid data, populate the grid display data
   useEffect(() => {
+    console.log("Grid data", gridData);
     if (Object.keys(gridData).length === 0) {
       return;
     }
 
-    setGridDisplayData(getInitialGameGridDisplayData());
+    if (isNewGrid) {
+      console.log("Setting up initial grid ajsdopif");
+      setGridDisplayData(getInitialGameGridDisplayData());
+    }
+
     setIsLoading(false);
   }, [gridData]);
 

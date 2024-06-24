@@ -1,4 +1,4 @@
-import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import { GridExport } from "../../common/src/interfaces";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 
@@ -6,7 +6,7 @@ interface GridDisplayData {
   clickHandler?: () => void;
 }
 
-export const gridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);
+export const gridDisplayDataAtom = atomWithStorage("gridDisplayData", [[]] as AnyGridDisplayData[][]);
 
 export interface TextGridDisplayData extends GridDisplayData {
   mainText: string;
