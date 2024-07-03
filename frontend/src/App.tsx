@@ -39,6 +39,7 @@ function App() {
   const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [isLoading, setIsLoading] = useState(true);
+  const [gridLoadError, setGridLoadError] = useState(false);
 
   const setSelectedRow = useSetAtom(selectedRowAtom);
   const setSelectedCol = useSetAtom(selectedColAtom);
@@ -59,12 +60,16 @@ function App() {
       // a different grid available
       if (gridId !== todayString) {
         console.log("Grid ID is not today's date, loading grid data");
+
+        // Clear all of local storage
+        localStorage.clear();
+
         // Load the grid named with today's date
         const jsonData = await getGridDataForDate(todayString);
 
-        // TODO: We should render some component here to show the user that it's broken
         if (Object.keys(jsonData).length === 0) {
           console.error("No grid data found for today...");
+          setGridLoadError(true);
           return;
         }
 
@@ -259,7 +264,8 @@ function App() {
       <Overlay />
 
       <div className="w-full flex flex-col flex-grow items-center justify-center">
-        {!isLoading && !gameOver && (
+        {gridLoadError && <div>There was an error loading the grid data. Please try again later.</div>}
+        {!gridLoadError && !isLoading && !gameOver && (
           <button
             onClick={() => {
               endGame(gridDisplayData);
@@ -269,7 +275,7 @@ function App() {
           </button>
         )}
 
-        {gameOver && (
+        {!gridLoadError && !isLoading && gameOver && (
           <div className="flex space-x-4">
             <button
               onClick={() => {
@@ -292,7 +298,7 @@ function App() {
           </div>
         )}
 
-        <Grid gridDisplayData={gridDisplayData} />
+        {!gridLoadError && !isLoading && <Grid gridDisplayData={gridDisplayData} />}
       </div>
     </div>
   );
