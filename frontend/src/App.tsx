@@ -55,8 +55,14 @@ function App() {
       // a different grid available
       if (gridId !== todayString) {
         console.log("Grid ID is not today's date, loading grid data");
-        // Load the grid named with today's date, or the backup grid if today's grid isn't available
-        const jsonData = await getGridDataForDateOrBackup(todayString);
+        // Load the grid named with today's date
+        const jsonData = await getGridDataForDate(todayString);
+
+        // TODO: We should render some component here to show the user that it's broken
+        if (Object.keys(jsonData).length === 0) {
+          console.error("No grid data found for today...");
+          return;
+        }
 
         // Save the grid's ID (which is today's date) to localStorage
         setGridId(jsonData.id);
@@ -111,19 +117,12 @@ function App() {
     }
   }, [isLoading]);
 
-  async function getGridDataForDateOrBackup(dateString: string): Promise<GridExport> {
+  async function getGridDataForDate(dateString: string): Promise<GridExport> {
     // Load the grid named with today's date
     let jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", `${dateString}.json`);
 
     if (Object.keys(jsonData).length === 0) {
-      console.error("No grid data found for today, attempting to load backup grid");
-
-      const BACKUP_GRID_FILENAME = "backup-grid.json";
-      jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", BACKUP_GRID_FILENAME);
-
-      if (Object.keys(jsonData).length === 0) {
-        console.error("No backup grid found");
-      }
+      console.error("No grid data found for today...");
     }
 
     return jsonData;
