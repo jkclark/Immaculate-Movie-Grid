@@ -7,6 +7,7 @@ import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
 import Overlay, { useOverlayStack } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
+import { ALL_ANSWERS_TAB_TEXT, YOUR_ANSWERS_TAB_TEXT } from "./constants";
 import {
   AnyGridDisplayData,
   TextGridDisplayData,
@@ -256,21 +257,21 @@ function App() {
           <div className="flex space-x-4">
             <button
               onClick={() => {
-                setActiveTab("Your answers");
+                setActiveTab(YOUR_ANSWERS_TAB_TEXT);
                 setGridDisplayData(finalGameGridDisplayData);
               }}
-              className={`${activeTab === "Your answers" ? "bg-blue-700" : ""}`}
+              className={`${activeTab === YOUR_ANSWERS_TAB_TEXT ? "bg-blue-700" : ""}`}
             >
-              Your answers
+              {YOUR_ANSWERS_TAB_TEXT}
             </button>
             <button
               onClick={() => {
-                setActiveTab("All answers");
+                setActiveTab(ALL_ANSWERS_TAB_TEXT);
                 setGridDisplayData(getAllAnswerGridDisplayData());
               }}
-              className={`${activeTab === "All answers" ? "bg-blue-700" : ""}`}
+              className={`${activeTab === ALL_ANSWERS_TAB_TEXT ? "bg-blue-700" : ""}`}
             >
-              All answers
+              {ALL_ANSWERS_TAB_TEXT}
             </button>
           </div>
         )}
