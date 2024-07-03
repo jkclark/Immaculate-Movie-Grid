@@ -8,6 +8,7 @@ import {
 } from "../gridDisplayData";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "../s3";
 import {
+  getRowColKey,
   gridDataAtom,
   guessesRemainingAtom,
   selectedColAtom,
@@ -73,7 +74,7 @@ const SearchResult: React.FC<SearchResultProps> = ({
     if (acrossCorrect && downCorrect) {
       console.log("Correct!");
       // Add this answer to used answers
-      setUsedAnswers([...usedAnswers, { type, id }]);
+      setUsedAnswers({ ...usedAnswers, [getRowColKey(dataRow, dataCol)]: { type, id, name: title } });
 
       // Reset selected row and column
       setSelectedRow(-1);

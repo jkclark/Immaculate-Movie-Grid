@@ -1,4 +1,4 @@
-import { atomWithStorage } from "jotai/utils";
+import { atom } from "jotai";
 import { GridExport } from "../../common/src/interfaces";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 
@@ -6,7 +6,7 @@ interface GridDisplayData {
   clickHandler?: () => void;
 }
 
-export const gridDisplayDataAtom = atomWithStorage("gridDisplayData", [[]] as AnyGridDisplayData[][]);
+export const gridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);
 
 export interface TextGridDisplayData extends GridDisplayData {
   mainText: string;
@@ -24,8 +24,10 @@ export type AnyGridDisplayData = GridDisplayData | TextGridDisplayData | ImageGr
 export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayData[][] {
   const gridSize = gridData.actors.length / 2;
   const displayData: AnyGridDisplayData[][] = [];
+  // +1 because of the axis
   for (let rowIndex = 0; rowIndex < gridSize + 1; rowIndex++) {
     displayData.push([]);
+    // +1 because of the axis
     for (let colIndex = 0; colIndex < gridSize + 1; colIndex++) {
       if (rowIndex === 0 && colIndex !== 0) {
         const actorIndex = colIndex - 1;

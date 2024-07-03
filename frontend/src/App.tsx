@@ -17,16 +17,18 @@ import {
   insertGridDisplayDatumAtRowCol,
   insertInnerGridDisplayData,
 } from "./gridDisplayData";
-import { getGridDataFromS3, getS3ImageURLForType, preloadImageURL } from "./s3";
+import { getGridDataFromS3, getS3BackupImageURLForType, getS3ImageURLForType, preloadImageURL } from "./s3";
 import {
   activeTabAtom,
   finalGameGridDisplayDataAtom,
   gameOverAtom,
+  getRowColKey,
   gridDataAtom,
   gridIdAtom,
   guessesRemainingAtom,
   selectedColAtom,
   selectedRowAtom,
+  usedAnswersAtom,
 } from "./state";
 
 function App() {
@@ -42,6 +44,7 @@ function App() {
   const setSelectedCol = useSetAtom(selectedColAtom);
   const { addContentsToOverlay } = useOverlayStack();
   const guessesRemaining = useAtomValue(guessesRemainingAtom);
+  const usedAnswers = useAtomValue(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
   const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
 
@@ -83,10 +86,6 @@ function App() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    console.log("Grid ID:", gridId);
-  }, [gridId]);
-
   // Once we've loaded the grid data, populate the grid display data
   useEffect(() => {
     console.log("Grid data", gridData);
@@ -94,10 +93,7 @@ function App() {
       return;
     }
 
-    if (isNewGrid) {
-      console.log("Setting up initial grid ajsdopif");
-      setGridDisplayData(getInitialGameGridDisplayData());
-    }
+    setGridDisplayData(getInitialGameGridDisplayData(isNewGrid ? true : false));
 
     setIsLoading(false);
   }, [gridData]);
@@ -129,22 +125,42 @@ function App() {
     return jsonData;
   }
 
-  function getInitialGameGridDisplayData(): AnyGridDisplayData[][] {
+  /**
+   * Get the initial game grid display data, including used answers if there is a grid in progress.
+   *
+   * @param fresh whether or not to include usedAnswers from localstorage
+   * @returns a 2D array of AnyGridDisplayData representing the initial game grid
+   */
+  function getInitialGameGridDisplayData(fresh: boolean): AnyGridDisplayData[][] {
     const newInnerGridData: AnyGridDisplayData[][] = [];
 
     // Create squares for inner grid
     for (let rowIndex = 0; rowIndex < gridData.actors.length / 2; rowIndex++) {
       const innerGridRow: AnyGridDisplayData[] = [];
       for (let colIndex = 0; colIndex < gridData.actors.length / 2; colIndex++) {
-        innerGridRow.push({
-          clickHandler: () => {
-            if (!gameOver) {
-              setSelectedRow(rowIndex + 1);
-              setSelectedCol(colIndex + 1);
-              addContentsToOverlay(<SearchBar />);
-            }
-          },
-        });
+        // We're restoring usedAnswers from localstorage
+        if (!fresh && usedAnswers[getRowColKey(rowIndex, colIndex)]) {
+          console.log(`Restoring used answer for row ${rowIndex} and col ${colIndex}`);
+          const { type, id, name } = usedAnswers[getRowColKey(rowIndex, colIndex)];
+          innerGridRow.push({
+            hoverText: name,
+            imageURL: getS3ImageURLForType(type, id),
+            backupImageURL: getS3BackupImageURLForType(type),
+          });
+        }
+
+        // We're starting fresh
+        else {
+          innerGridRow.push({
+            clickHandler: () => {
+              if (!gameOver) {
+                setSelectedRow(rowIndex + 1);
+                setSelectedCol(colIndex + 1);
+                addContentsToOverlay(<SearchBar />);
+              }
+            },
+          });
+        }
       }
       newInnerGridData.push(innerGridRow);
     }

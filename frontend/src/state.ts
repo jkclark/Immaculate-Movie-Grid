@@ -15,11 +15,15 @@ export const gameOverAtom = getAtomWithStorageInit("gameOver", false);
 export const activeTabAtom = atom(YOUR_ANSWERS_TAB_TEXT);
 export const selectedRowAtom = atom(-1);
 export const selectedColAtom = atom(-1);
-export const usedAnswersAtom = getAtomWithStorageInit<{ type: "movie" | "tv"; id: number }[]>(
-  "usedAnswers",
-  []
-);
 export const finalGameGridDisplayDataAtom = getAtomWithStorageInit<AnyGridDisplayData[][]>(
   "finalGameGridDisplayData",
   [[]]
 );
+
+export const usedAnswersAtom = getAtomWithStorageInit<
+  Record<string, { type: "movie" | "tv"; id: number; name: string }>
+>("usedAnswers", {});
+
+export function getRowColKey(row: number, col: number) {
+  return `row:${row},col:${col}`;
+}

@@ -109,7 +109,7 @@ const SearchBar: React.FC = () => {
               searchResults.map((result, index) => {
                 // Do not show results that have already been used
                 if (
-                  usedAnswers.some(
+                  Object.values(usedAnswers).some(
                     (usedAnswer) => usedAnswer.type === result.media_type && usedAnswer.id === result.id
                   )
                 ) {
