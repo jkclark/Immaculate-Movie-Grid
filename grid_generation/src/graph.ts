@@ -18,7 +18,7 @@ export interface CreditNode {
 
 export interface Graph {
   actors: { [key: number]: ActorNode };
-  credits: { [key: number]: CreditNode };
+  credits: { [key: string]: CreditNode };
 }
 
 export function addActorToGraph(graph: Graph, id: number, name: string): void {
