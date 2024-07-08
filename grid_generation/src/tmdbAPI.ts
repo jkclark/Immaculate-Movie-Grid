@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
 import { getFromTMDBAPI, getFromTMDBAPIJson } from "../../common/src/api";
-import { Actor, Credit, CreditExtraInfo } from "./interfaces";
+import { Actor, Credit, CreditExtraInfo, CreditRating } from "./interfaces";
 
 const BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_404_STATUS_CODE = 34;
@@ -62,7 +62,15 @@ export async function getCreditExtraInfo(credit: Credit): Promise<CreditExtraInf
 }
 
 async function getMovieExtraInfo(id: number): Promise<CreditExtraInfo> {
-  /** Rating: Movie ratings are stored per release date, per country.
+  return {
+    type: "movie",
+    id: id,
+    rating: await getMovieRating(id),
+  };
+}
+
+async function getMovieRating(id: number): Promise<CreditRating> {
+  /** Movie ratings are stored per release date, per country.
    *  Here we query the release_dates endpoint, find the most recent release
    *  date for the US, and return the rating for that release.
    **/
@@ -80,17 +88,18 @@ async function getMovieExtraInfo(id: number): Promise<CreditExtraInfo> {
       });
     }
   });
+  return rating;
+}
 
+async function getTVExtraInfo(id: number): Promise<CreditExtraInfo> {
   return {
-    type: "movie",
+    type: "tv",
     id: id,
-    rating: rating,
+    rating: await getTvRating(id),
   };
 }
 
-// TODO: It should go no rating < "NR" < all other ratings
-//       If we see two non-"NR" ratings, we should throw an error
-async function getTVExtraInfo(id: number): Promise<CreditExtraInfo> {
+async function getTvRating(id: number): Promise<CreditRating> {
   // Get the rating for this TV show
   const url = `${BASE_URL}/tv/${id}/content_ratings`;
   const responseJson = await getFromTMDBAPIJson(url);
@@ -108,11 +117,7 @@ async function getTVExtraInfo(id: number): Promise<CreditExtraInfo> {
     }
   });
 
-  return {
-    type: "tv",
-    id: id,
-    rating: rating,
-  };
+  return rating;
 }
 
 export async function getImageByIdTypeAndSize(

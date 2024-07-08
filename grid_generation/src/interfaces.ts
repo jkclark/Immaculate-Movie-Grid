@@ -17,3 +17,16 @@ export interface CreditExtraInfo {
   id: number;
   rating: "G" | "PG" | "PG-13" | "R" | "TV-Y" | "TV-Y7" | "TV-G" | "TV-PG" | "TV-14" | "TV-MA" | "NR";
 }
+
+export type CreditRating =
+  | "G"
+  | "PG"
+  | "PG-13"
+  | "R"
+  | "TV-Y"
+  | "TV-Y7"
+  | "TV-G"
+  | "TV-PG"
+  | "TV-14"
+  | "TV-MA"
+  | "NR";
