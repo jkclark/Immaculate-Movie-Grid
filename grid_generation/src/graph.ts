@@ -30,7 +30,7 @@ export function addActorToGraph(graph: Graph, id: number, name: string): void {
 }
 
 export function addCreditToGraph(credit: Credit, graph: Graph): void {
-  const creditUniqueString = getCreditUniqueString(credit.type, credit.id);
+  const creditUniqueString = getCreditUniqueString(credit);
   if (graph.credits[creditUniqueString]) {
     throw new RepeatError(
       `Credit with id ${creditUniqueString} already exists: ${graph.credits[creditUniqueString].name}`
@@ -42,17 +42,12 @@ export function addCreditToGraph(credit: Credit, graph: Graph): void {
   };
 }
 
-export function addConnectionToGraph(
-  graph: Graph,
-  actorId: number,
-  creditId: number,
-  creditType: "movie" | "tv"
-): void {
-  const creditUniqueString = getCreditUniqueString(creditType, creditId);
+export function addConnectionToGraph(graph: Graph, actorId: number, credit: Credit): void {
+  const creditUniqueString = getCreditUniqueString(credit);
   const actor: ActorNode = graph.actors[actorId];
-  const credit: CreditNode = graph.credits[creditUniqueString];
-  actor.edges[creditUniqueString] = credit;
-  credit.edges[actorId] = actor;
+  const creditNode: CreditNode = graph.credits[creditUniqueString];
+  actor.edges[creditUniqueString] = creditNode;
+  creditNode.edges[actorId] = actor;
 }
 
 export function generateGraph(actorsWithCredits: Actor[]): Graph {
@@ -70,7 +65,7 @@ export function generateGraph(actorsWithCredits: Actor[]): Graph {
           throw e;
         }
       }
-      addConnectionToGraph(graph, actor.id, credit.id, credit.type);
+      addConnectionToGraph(graph, actor.id, credit);
     }
   }
 
@@ -138,7 +133,7 @@ export function readGraphFromFile(path: string): Graph {
 
   for (const actor of data.actors) {
     for (const credit of actor.edges) {
-      addConnectionToGraph(graph, actor.id, credit.id, credit.type);
+      addConnectionToGraph(graph, actor.id, credit);
     }
   }
 
@@ -154,7 +149,7 @@ export function getSharedCreditsForActors(
   const sharedCredits: CreditNode[] = [];
   for (const credit1 of Object.values(actor1.edges)) {
     // If this credit is to be excluded, go to the next one
-    if (excludeCredits.has(getCreditUniqueString(credit1.type, credit1.id))) {
+    if (excludeCredits.has(getCreditUniqueString(credit1))) {
       continue;
     }
 
@@ -163,7 +158,7 @@ export function getSharedCreditsForActors(
       continue;
     }
 
-    if (actor2.edges[getCreditUniqueString(credit1.type, credit1.id)]) {
+    if (actor2.edges[getCreditUniqueString(credit1)]) {
       sharedCredits.push(credit1);
     }
   }
@@ -171,8 +166,8 @@ export function getSharedCreditsForActors(
   return sharedCredits;
 }
 
-export function getCreditUniqueString(type: string, id: number): string {
-  return `${type}-${id}`;
+export function getCreditUniqueString(credit: Credit): string {
+  return `${credit.type}-${credit.id}`;
 }
 
 function getCreditTypeAndIdFromUniqueString(uniqueString: string): { type: string; id: number } {

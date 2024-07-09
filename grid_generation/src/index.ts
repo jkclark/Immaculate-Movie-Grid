@@ -227,7 +227,7 @@ function getValidAcrossAndDown(
     for (const creditId of movieCreditIds) {
       const credit: CreditNode = graph.credits[creditId];
       // Skip credits that have already been used
-      if (usedCredits.has(getCreditUniqueString(credit.type, credit.id))) {
+      if (usedCredits.has(getCreditUniqueString(credit))) {
         // console.log(`Skipping credit ${credit.name} because it's already been used`)
         continue;
       }
@@ -283,10 +283,7 @@ function getValidAcrossAndDown(
             for (const sharedCredit of sharedCredits) {
               // Don't consider credits that have already been used
               // or the current credit, which we're already considering
-              if (
-                usedCredits.has(getCreditUniqueString(sharedCredit.type, sharedCredit.id)) ||
-                sharedCredit.id === credit.id
-              ) {
+              if (usedCredits.has(getCreditUniqueString(sharedCredit)) || sharedCredit.id === credit.id) {
                 continue;
               }
 
@@ -298,10 +295,7 @@ function getValidAcrossAndDown(
 
             // If we found a valid shared credit, add it to the used credits set
             if (chosenSharedCredit) {
-              const uniqueCreditString = getCreditUniqueString(
-                chosenSharedCredit.type,
-                chosenSharedCredit.id
-              );
+              const uniqueCreditString = getCreditUniqueString(chosenSharedCredit);
               usedCredits.add(uniqueCreditString);
               addedCredits.push(uniqueCreditString);
               continue;
@@ -327,7 +321,7 @@ function getValidAcrossAndDown(
           }
 
           // Add the credit to the used credits set
-          const uniqueCreditString = getCreditUniqueString(credit.type, credit.id);
+          const uniqueCreditString = getCreditUniqueString(credit);
           // console.log(`Adding credit ${uniqueCreditString} (${credit.name}) to used credits`);
           usedCredits.add(uniqueCreditString);
           addedCredits.push(uniqueCreditString);
