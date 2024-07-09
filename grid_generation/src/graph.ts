@@ -1,5 +1,5 @@
 import fs from "fs";
-import { Actor, Credit } from "./interfaces";
+import { Actor, Credit, getCreditUniqueString } from "./interfaces";
 
 export interface ActorNode {
   id: number;
@@ -7,12 +7,7 @@ export interface ActorNode {
   edges: { [key: string]: CreditNode };
 }
 
-export interface CreditNode {
-  type: "movie" | "tv";
-  id: number;
-  name: string;
-  genre_ids: number[];
-  popularity: number;
+export interface CreditNode extends Credit {
   edges: { [key: number]: ActorNode };
 }
 
@@ -164,10 +159,6 @@ export function getSharedCreditsForActors(
   }
 
   return sharedCredits;
-}
-
-export function getCreditUniqueString(credit: Credit): string {
-  return `${credit.type}-${credit.id}`;
 }
 
 function getCreditTypeAndIdFromUniqueString(uniqueString: string): { type: string; id: number } {

@@ -1,31 +1,29 @@
-import { getCreditUniqueString, Graph } from "./graph";
-import { Credit } from "./interfaces";
+import fs from "fs";
+import { Credit, CreditRating, getCreditUniqueString } from "./interfaces";
 import { getMovieRating, getTVRating } from "./tmdbAPI";
 
 export interface CreditExtraInfo {
   type: "movie" | "tv";
   id: number;
-  rating: "G" | "PG" | "PG-13" | "R" | "TV-Y" | "TV-Y7" | "TV-G" | "TV-PG" | "TV-14" | "TV-MA" | "NR";
+  rating: CreditRating;
 }
 
-export type CreditRating =
-  | "G"
-  | "PG"
-  | "PG-13"
-  | "R"
-  | "TV-Y"
-  | "TV-Y7"
-  | "TV-G"
-  | "TV-PG"
-  | "TV-14"
-  | "TV-MA"
-  | "NR";
-
-export async function getAllCreditExtraInfo(graph: Graph): Promise<{ [key: string]: CreditExtraInfo }> {
+export async function getAllCreditExtraInfo(credits: Credit[]): Promise<{ [key: string]: CreditExtraInfo }> {
   const creditExtraInfo: { [key: string]: CreditExtraInfo } = {};
 
-  for (const credit of Object.values(graph.credits)) {
+  const totalCredits = Object.values(credits).length;
+  let currentCount = 0;
+  const tenPercentIncrement = totalCredits / 10;
+  let nextTenPercentMilestone = tenPercentIncrement;
+
+  for (const credit of Object.values(credits)) {
+    currentCount++;
     creditExtraInfo[getCreditUniqueString(credit)] = await getCreditExtraInfo(credit);
+
+    if (currentCount >= nextTenPercentMilestone) {
+      console.log(`Progress: ${((currentCount / totalCredits) * 100).toFixed(2)}%`);
+      nextTenPercentMilestone += tenPercentIncrement;
+    }
   }
 
   return creditExtraInfo;
@@ -53,4 +51,16 @@ async function getTVExtraInfo(id: number): Promise<CreditExtraInfo> {
     id: id,
     rating: await getTVRating(id),
   };
+}
+
+export function writeAllCreditExtraInfoToFile(
+  allCreditExtraInfo: { [key: string]: CreditExtraInfo },
+  path: string
+): void {
+  fs.writeFileSync(path, JSON.stringify(allCreditExtraInfo));
+}
+
+export function readAllCreditExtraInfoFromFile(path: string): { [key: string]: CreditExtraInfo } {
+  const json = fs.readFileSync(path, "utf8");
+  return JSON.parse(json);
 }

@@ -1,7 +1,6 @@
 import { Readable } from "node:stream";
 import { getFromTMDBAPI, getFromTMDBAPIJson } from "../../common/src/api";
-import { CreditRating } from "./creditExtraInfo";
-import { Actor, Credit } from "./interfaces";
+import { Actor, Credit, CreditRating } from "./interfaces";
 
 const BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_404_STATUS_CODE = 34;
@@ -111,6 +110,13 @@ export async function getMovieRating(id: number): Promise<CreditRating> {
    **/
   const url = `${BASE_URL}/movie/${id}/release_dates`;
   const responseJson = await getFromTMDBAPIJson(url);
+
+  // Sometimes there are no release dates for a movie
+  if (!responseJson.results) {
+    console.error(`No release dates found for movie ${id}`);
+    return undefined;
+  }
+
   let rating = undefined;
   let maxDate = undefined;
   responseJson.results.forEach((result) => {
@@ -131,11 +137,17 @@ export async function getTVRating(id: number): Promise<CreditRating> {
   const url = `${BASE_URL}/tv/${id}/content_ratings`;
   const responseJson = await getFromTMDBAPIJson(url);
 
+  // Sometimes there are no ratings for a TV show
+  if (!responseJson.results) {
+    console.error(`No ratings found for TV show ${id}`);
+    return undefined;
+  }
+
   let rating = undefined;
   responseJson.results.forEach((result) => {
     if (result.iso_3166_1 === "US") {
       if (rating && rating != "NR" && result.rating != "NR") {
-        throw Error(`Multiple ratings found for TV show: ${id}`);
+        console.log(`Multiple ratings found for TV show: ${id}`);
       }
 
       if (!rating || rating == "NR") {

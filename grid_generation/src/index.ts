@@ -4,19 +4,24 @@ import "node-fetch";
 import * as readline from "readline";
 
 import { CreditExport, GridExport } from "../../common/src/interfaces";
+import {
+  CreditExtraInfo,
+  getAllCreditExtraInfo,
+  readAllCreditExtraInfoFromFile,
+  writeAllCreditExtraInfoToFile,
+} from "./creditExtraInfo";
 import { famousActorIds } from "./famousActorIds";
 import {
   ActorNode,
   CreditNode,
   Graph,
   generateGraph,
-  getCreditUniqueString,
   getSharedCreditsForActors,
   readGraphFromFile,
   writeGraphToFile,
 } from "./graph";
 import { getAndSaveAllImagesForGrid } from "./images";
-import { Actor } from "./interfaces";
+import { Actor, getCreditUniqueString } from "./interfaces";
 import { writeTextToS3 } from "./s3";
 import { getActorWithCreditsById } from "./tmdbAPI";
 
@@ -34,6 +39,12 @@ async function main(): Promise<void> {
 
   // Load the graph, or generate it if it doesn't exist
   const graph = await getGraph();
+
+  // Load the extra info for all credits from file, or generate it if it doesn't exist
+  const allCreditExtraInfo = await loadOrGenerateAllCreditExtraInfo(graph);
+
+  // Merge the extra info into the graph in place
+  mergeGraphAndExtraInfo(graph, allCreditExtraInfo);
 
   // Generate across/down until the user approves
   let across: ActorNode[], down: ActorNode[];
@@ -106,20 +117,48 @@ async function getGraph(): Promise<Graph> {
   }
 
   // Otherwise, scrape the data, generate the graph, and write it to file
-  else {
-    // Get all actor information
-    const actorsWithCredits = await getAllActorInformation(famousActorIds);
-    console.log("Actors with credits:", actorsWithCredits.length);
+  // Get all actor information
+  const actorsWithCredits = await getAllActorInformation(famousActorIds);
+  console.log("Actors with credits:", actorsWithCredits.length);
 
-    // Generate graph
-    const graph = generateGraph(actorsWithCredits);
+  // Generate graph
+  const graph = generateGraph(actorsWithCredits);
 
-    // Write graph to file
-    // NOTE: This file cannot be called graph.json because it somehow conflicts with
-    //       the graph.ts file in the same directory.
-    writeGraphToFile(graph, GRAPH_PATH);
+  // Write graph to file
+  // NOTE: This file cannot be called graph.json because it somehow conflicts with
+  //       the graph.ts file in the same directory.
+  writeGraphToFile(graph, GRAPH_PATH);
 
-    return graph;
+  return graph;
+}
+
+async function loadOrGenerateAllCreditExtraInfo(graph: Graph): Promise<{ [key: string]: CreditExtraInfo }> {
+  // If the file exists, read it and return
+  const CREDIT_EXTRA_INFO_PATH = "./src/credit_extra_info.json";
+  if (fs.existsSync(CREDIT_EXTRA_INFO_PATH)) {
+    console.log("Credit extra info exists, reading from file");
+    return readAllCreditExtraInfoFromFile(CREDIT_EXTRA_INFO_PATH);
+  }
+
+  // Otherwise, scrape the data and write it to file
+  const allCreditExtraInfo = await getAllCreditExtraInfo(Object.values(graph.credits));
+  writeAllCreditExtraInfoToFile(allCreditExtraInfo, CREDIT_EXTRA_INFO_PATH);
+  return allCreditExtraInfo;
+}
+
+/**
+ * Add extra info for graph credits into the graph.
+ *
+ * Note: This function modifies the graph in place.
+ *
+ * @param graph the graph to update with extra info
+ * @param allCreditExtraInfo the extra info to merge into the graph
+ */
+function mergeGraphAndExtraInfo(graph: Graph, allCreditExtraInfo: { [key: string]: CreditExtraInfo }): void {
+  // Iterate over extra info and add them to the graph
+  for (const [creditUniqueString, extraInfo] of Object.entries(allCreditExtraInfo)) {
+    const credit = graph.credits[creditUniqueString];
+    credit.rating = extraInfo.rating;
   }
 }
 
