@@ -1,6 +1,7 @@
 import { Readable } from "node:stream";
 import { getFromTMDBAPI, getFromTMDBAPIJson } from "../../common/src/api";
-import { Actor, Credit, CreditExtraInfo, CreditRating } from "./interfaces";
+import { CreditRating } from "./creditExtraInfo";
+import { Actor, Credit } from "./interfaces";
 
 const BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_404_STATUS_CODE = 34;
@@ -53,73 +54,6 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
   return credits;
 }
 
-export async function getCreditExtraInfo(credit: Credit): Promise<CreditExtraInfo> {
-  if (credit.type === "movie") {
-    return getMovieExtraInfo(credit.id);
-  }
-
-  return getTVExtraInfo(credit.id);
-}
-
-async function getMovieExtraInfo(id: number): Promise<CreditExtraInfo> {
-  return {
-    type: "movie",
-    id: id,
-    rating: await getMovieRating(id),
-  };
-}
-
-async function getMovieRating(id: number): Promise<CreditRating> {
-  /** Movie ratings are stored per release date, per country.
-   *  Here we query the release_dates endpoint, find the most recent release
-   *  date for the US, and return the rating for that release.
-   **/
-  const url = `${BASE_URL}/movie/${id}/release_dates`;
-  const responseJson = await getFromTMDBAPIJson(url);
-  let rating = undefined;
-  let maxDate = undefined;
-  responseJson.results.forEach((result) => {
-    if (result.iso_3166_1 === "US") {
-      result.release_dates.forEach((release) => {
-        if (release.certification && (!maxDate || release.release_date > maxDate)) {
-          maxDate = release.release_date;
-          rating = release.certification;
-        }
-      });
-    }
-  });
-  return rating;
-}
-
-async function getTVExtraInfo(id: number): Promise<CreditExtraInfo> {
-  return {
-    type: "tv",
-    id: id,
-    rating: await getTvRating(id),
-  };
-}
-
-async function getTvRating(id: number): Promise<CreditRating> {
-  // Get the rating for this TV show
-  const url = `${BASE_URL}/tv/${id}/content_ratings`;
-  const responseJson = await getFromTMDBAPIJson(url);
-
-  let rating = undefined;
-  responseJson.results.forEach((result) => {
-    if (result.iso_3166_1 === "US") {
-      if (rating && rating != "NR" && result.rating != "NR") {
-        throw Error(`Multiple ratings found for TV show: ${id}`);
-      }
-
-      if (!rating || rating == "NR") {
-        rating = result.rating;
-      }
-    }
-  });
-
-  return rating;
-}
-
 export async function getImageByIdTypeAndSize(
   imagesBaseURL: string,
   id: number,
@@ -168,4 +102,47 @@ export async function getImageByIdTypeAndSize(
   const imageResponse = await getFromTMDBAPI(imageUrl);
 
   return [imageResponse.body, imageType];
+}
+
+export async function getMovieRating(id: number): Promise<CreditRating> {
+  /** Movie ratings are stored per release date, per country.
+   *  Here we query the release_dates endpoint, find the most recent release
+   *  date for the US, and return the rating for that release.
+   **/
+  const url = `${BASE_URL}/movie/${id}/release_dates`;
+  const responseJson = await getFromTMDBAPIJson(url);
+  let rating = undefined;
+  let maxDate = undefined;
+  responseJson.results.forEach((result) => {
+    if (result.iso_3166_1 === "US") {
+      result.release_dates.forEach((release) => {
+        if (release.certification && (!maxDate || release.release_date > maxDate)) {
+          maxDate = release.release_date;
+          rating = release.certification;
+        }
+      });
+    }
+  });
+  return rating;
+}
+
+export async function getTVRating(id: number): Promise<CreditRating> {
+  // Get the rating for this TV show
+  const url = `${BASE_URL}/tv/${id}/content_ratings`;
+  const responseJson = await getFromTMDBAPIJson(url);
+
+  let rating = undefined;
+  responseJson.results.forEach((result) => {
+    if (result.iso_3166_1 === "US") {
+      if (rating && rating != "NR" && result.rating != "NR") {
+        throw Error(`Multiple ratings found for TV show: ${id}`);
+      }
+
+      if (!rating || rating == "NR") {
+        rating = result.rating;
+      }
+    }
+  });
+
+  return rating;
 }
