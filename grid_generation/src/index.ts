@@ -38,12 +38,12 @@ async function main(): Promise<void> {
   }
 
   // Load the graph, or generate it if it doesn't exist
-  const graph = await getGraph();
+  const graph = await loadOrFetchGraph();
 
   // Load the extra info for all credits from file, or generate it if it doesn't exist
-  const allCreditExtraInfo = await loadOrGenerateAllCreditExtraInfo(graph);
+  const allCreditExtraInfo = await loadOrFetchAllCreditExtraInfo(graph);
 
-  // Merge the extra info into the graph in place
+  // Merge the extra info into the graph, in place
   mergeGraphAndExtraInfo(graph, allCreditExtraInfo);
 
   // Generate across/down until the user approves
@@ -108,7 +108,7 @@ function processArgs(): [string, boolean] {
  *
  * @returns A promise that resolves to a Graph object
  */
-async function getGraph(): Promise<Graph> {
+async function loadOrFetchGraph(): Promise<Graph> {
   // If graph exists, read it and return
   const GRAPH_PATH = "./src/complete_graph.json";
   if (fs.existsSync(GRAPH_PATH)) {
@@ -132,7 +132,7 @@ async function getGraph(): Promise<Graph> {
   return graph;
 }
 
-async function loadOrGenerateAllCreditExtraInfo(graph: Graph): Promise<{ [key: string]: CreditExtraInfo }> {
+async function loadOrFetchAllCreditExtraInfo(graph: Graph): Promise<{ [key: string]: CreditExtraInfo }> {
   // If the file exists, read it and return
   const CREDIT_EXTRA_INFO_PATH = "./src/credit_extra_info.json";
   if (fs.existsSync(CREDIT_EXTRA_INFO_PATH)) {
