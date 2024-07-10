@@ -4,6 +4,7 @@ import "node-fetch";
 import * as readline from "readline";
 
 import { CreditExport, GridExport } from "../../common/src/interfaces";
+import { allCategories, Category } from "./categories";
 import {
   CreditExtraInfo,
   getAllCreditExtraInfo,
@@ -14,9 +15,9 @@ import { famousActorIds } from "./famousActorIds";
 import {
   ActorNode,
   CreditNode,
-  Graph,
   generateGraph,
   getSharedCreditsForActors,
+  Graph,
   readGraphFromFile,
   writeGraphToFile,
 } from "./graph";
@@ -54,6 +55,15 @@ async function main(): Promise<void> {
   });
 
   do {
+    // Get random categories for this grid
+    const [acrossCategories, downCategories] = pickRandomAcrossAndDownCategories();
+
+    // TODO: Make sure across and down categories are compatible
+    // For now, we only have the one category, so I'm not implementing this yet
+
+    // Josh, next task is to update the "get valid across and down" function to take
+    // the chosen categories as arguments and use them while validating the chosen actors.
+
     // Generate the across and down
     [across, down] = await pickRandomStartingActorAndGetValidAcrossAndDown(graph);
     if (across.length === 0 || down.length === 0) {
@@ -177,6 +187,46 @@ async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   }
 
   return actorsWithCredits;
+}
+
+function pickRandomAcrossAndDownCategories(): [Category[], Category[]] {
+  // Determine a number of categories for this grid
+  // 7 = number of slots across both across (3) and down (3) + 1
+  // const numCategories = Math.floor(Math.random() * 7);
+  // For debugging
+  const numCategories = 1;
+
+  // Split the categories between across and down
+  const numAcrossCategories = Math.floor(Math.random() * (numCategories + 1));
+  const numDownCategories = numCategories - numAcrossCategories;
+
+  const allCategoriesCopy = [...allCategories];
+
+  const acrossCategories = [];
+  for (let i = 0; i < numAcrossCategories; i++) {
+    // Pick a random category from all categories
+    const randomIndex = Math.floor(Math.random() * allCategoriesCopy.length);
+
+    // Add it to the list of across categories
+    acrossCategories.push(allCategoriesCopy[randomIndex]);
+
+    // Remove the chosen category from the list of all categories
+    allCategoriesCopy.splice(randomIndex, 1);
+  }
+
+  const downCategories = [];
+  for (let i = 0; i < numDownCategories; i++) {
+    // Pick a random category from all categories
+    const randomIndex = Math.floor(Math.random() * allCategoriesCopy.length);
+
+    // Add it to the list of down categories
+    downCategories.push(allCategoriesCopy[randomIndex]);
+
+    // Remove the chosen category from the list of all categories
+    allCategoriesCopy.splice(randomIndex, 1);
+  }
+
+  return [acrossCategories, downCategories];
 }
 
 async function pickRandomStartingActorAndGetValidAcrossAndDown(
