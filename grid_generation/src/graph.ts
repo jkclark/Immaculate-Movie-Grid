@@ -161,11 +161,6 @@ export function getSharedCreditsForActors(
   return sharedCredits;
 }
 
-function getCreditTypeAndIdFromUniqueString(uniqueString: string): { type: string; id: number } {
-  const [type, id] = uniqueString.split("-");
-  return { type: type as "movie" | "tv", id: parseInt(id) };
-}
-
 class RepeatError extends Error {
   constructor(message: string) {
     super(message);
