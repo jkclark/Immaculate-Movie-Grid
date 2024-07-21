@@ -19,7 +19,7 @@ export async function getActorWithCreditsById(id: number): Promise<Actor> {
 export async function getActorById(id: number): Promise<Actor> {
   const url = `${BASE_URL}/person/${id}?language=en-US`;
   const responseJson = await getFromTMDBAPIJson(url);
-  const actor: Actor = { id: responseJson.id, name: responseJson.name, credits: new Set() };
+  const actor: Actor = { id: responseJson.id.toString(), name: responseJson.name, credits: new Set() };
   return actor;
 }
 
@@ -43,7 +43,7 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
     // Movies have a "title", TV shows have a "name"
     credits.add({
       type: credit.media_type,
-      id: credit.id,
+      id: credit.id.toString(),
       name: credit.title || credit.name,
       genre_ids: credit.genre_ids,
       popularity: credit.popularity,
@@ -55,7 +55,7 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
 
 export async function getImageByIdTypeAndSize(
   imagesBaseURL: string,
-  id: number,
+  id: string,
   type: "actor" | "tv" | "movie",
   size: string
 ): Promise<[Readable, string]> {
@@ -103,7 +103,7 @@ export async function getImageByIdTypeAndSize(
   return [imageResponse.body, imageType];
 }
 
-export async function getMovieRating(id: number): Promise<CreditRating> {
+export async function getMovieRating(id: string): Promise<CreditRating> {
   /** Movie ratings are stored per release date, per country.
    *  Here we query the release_dates endpoint, find the most recent release
    *  date for the US, and return the rating for that release.
@@ -132,7 +132,7 @@ export async function getMovieRating(id: number): Promise<CreditRating> {
   return rating;
 }
 
-export async function getTVRating(id: number): Promise<CreditRating> {
+export async function getTVRating(id: string): Promise<CreditRating> {
   // Get the rating for this TV show
   const url = `${BASE_URL}/tv/${id}/content_ratings`;
   const responseJson = await getFromTMDBAPIJson(url);

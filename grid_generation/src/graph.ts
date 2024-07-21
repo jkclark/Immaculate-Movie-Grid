@@ -2,21 +2,21 @@ import fs from "fs";
 import { Actor, Credit, getCreditUniqueString } from "./interfaces";
 
 export interface ActorNode {
-  id: number;
+  id: string;
   name: string;
   edges: { [key: string]: CreditNode };
 }
 
 export interface CreditNode extends Credit {
-  edges: { [key: number]: ActorNode };
+  edges: { [key: string]: ActorNode };
 }
 
 export interface Graph {
-  actors: { [key: number]: ActorNode };
+  actors: { [key: string]: ActorNode };
   credits: { [key: string]: CreditNode };
 }
 
-export function addActorToGraph(graph: Graph, id: number, name: string): void {
+export function addActorToGraph(graph: Graph, id: string, name: string): void {
   if (graph.actors[id]) {
     throw new Error(`Actor with id ${id} already exists: ${graph.actors[id].name}`);
   }
@@ -37,7 +37,7 @@ export function addCreditToGraph(credit: Credit, graph: Graph): void {
   };
 }
 
-export function addConnectionToGraph(graph: Graph, actorId: number, credit: Credit): void {
+export function addConnectionToGraph(graph: Graph, actorId: string, credit: Credit): void {
   const creditUniqueString = getCreditUniqueString(credit);
   const actor: ActorNode = graph.actors[actorId];
   const creditNode: CreditNode = graph.credits[creditUniqueString];
@@ -68,14 +68,14 @@ export function generateGraph(actorsWithCredits: Actor[]): Graph {
 }
 
 interface actorNodeExport {
-  id: number;
+  id: string;
   name: string;
-  edges: { type: "movie" | "tv"; id: number }[];
+  edges: { type: "movie" | "tv"; id: string }[];
 }
 
 interface creditNodeExport {
   type: "movie" | "tv";
-  id: number;
+  id: string;
   name: string;
   genre_ids: number[];
   popularity: number;

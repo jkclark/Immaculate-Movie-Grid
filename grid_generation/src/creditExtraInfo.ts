@@ -4,7 +4,7 @@ import { getMovieRating, getTVRating } from "./tmdbAPI";
 
 export interface CreditExtraInfo {
   type: "movie" | "tv";
-  id: number;
+  id: string;
   rating: CreditRating;
 }
 
@@ -37,7 +37,7 @@ export async function getCreditExtraInfo(credit: Credit): Promise<CreditExtraInf
   return getTVExtraInfo(credit.id);
 }
 
-async function getMovieExtraInfo(id: number): Promise<CreditExtraInfo> {
+async function getMovieExtraInfo(id: string): Promise<CreditExtraInfo> {
   return {
     type: "movie",
     id: id,
@@ -45,7 +45,7 @@ async function getMovieExtraInfo(id: number): Promise<CreditExtraInfo> {
   };
 }
 
-async function getTVExtraInfo(id: number): Promise<CreditExtraInfo> {
+async function getTVExtraInfo(id: string): Promise<CreditExtraInfo> {
   return {
     type: "tv",
     id: id,

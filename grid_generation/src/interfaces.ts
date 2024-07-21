@@ -1,12 +1,12 @@
 export interface Actor {
-  id: number;
+  id: string;
   name: string;
   credits: Set<Credit>;
 }
 
 export interface Credit {
   type: "movie" | "tv";
-  id: number;
+  id: string;
   name: string;
   genre_ids: number[];
   popularity: number;
