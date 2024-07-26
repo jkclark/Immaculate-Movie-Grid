@@ -21,7 +21,7 @@ export function addActorToGraph(graph: ActorCreditGraph, id: string, name: strin
     throw new Error(`Actor with id ${id} already exists: ${graph.actors[id].name}`);
   }
 
-  graph.actors[id] = { id, name, connections: {} };
+  graph.actors[id] = { id, name, connections: {}, entityType: "actor" };
 }
 
 export function addCreditToGraph(credit: Credit, graph: ActorCreditGraph): void {
@@ -34,6 +34,7 @@ export function addCreditToGraph(credit: Credit, graph: ActorCreditGraph): void 
   graph.credits[creditUniqueString] = {
     ...credit,
     connections: {},
+    entityType: "credit",
   };
 }
 

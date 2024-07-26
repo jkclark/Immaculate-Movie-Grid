@@ -4,6 +4,7 @@ import "node-fetch";
 import * as readline from "readline";
 
 import { CreditExport, GridExport } from "../../common/src/interfaces";
+import { allCategories, Category } from "./categories";
 import {
   CreditExtraInfo,
   getAllCreditExtraInfo,
@@ -11,7 +12,7 @@ import {
   writeAllCreditExtraInfoToFile,
 } from "./creditExtraInfo";
 import { famousActorIds } from "./famousActorIds";
-import { getGridFromGraph, Graph, Grid } from "./getGridFromGraph";
+import { getGridFromGraph, Graph, GraphEntity, Grid } from "./getGridFromGraph";
 import {
   ActorCreditGraph,
   ActorNode,
@@ -49,6 +50,12 @@ async function main(): Promise<void> {
   // Get a generic graph from the actor credit graph
   const genericGraph = getGenericGraphFromActorCreditGraph(graph);
 
+  // Get category GraphEntities
+  const categories = getCategoryGraphEntities(allCategories, graph);
+
+  // Add categories to generic graph
+  addCategoriesToGenericGraph(categories, genericGraph);
+
   // Generate across/down until the user approves
   let grid: Grid;
   const rl = readline.createInterface({
@@ -58,7 +65,7 @@ async function main(): Promise<void> {
 
   do {
     // Get a valid grid from the generic graph
-    grid = getGridFromGraph(genericGraph, 3);
+    grid = getGridFromGraph(genericGraph, 3, { actor: 0, category: 1 });
 
     // If no valid grid was found, exit
     if (grid.across.length === 0 || grid.down.length === 0) {
@@ -195,15 +202,59 @@ function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {
   return genericGraph;
 }
 
+function getCategoryGraphEntities(categories: Category[], graph: ActorCreditGraph): GraphEntity[] {
+  const categoryGraphEntities = [];
+  for (const category of categories) {
+    // Create the base object
+    const categoryGraphEntity = {
+      id: category.name,
+      connections: {},
+      entityType: "category",
+    };
+
+    // Iterate over all credits, adding to the connections object if they match the category
+    for (const [creditUniqueString, credit] of Object.entries(graph.credits)) {
+      if (category.creditFilter(credit)) {
+        categoryGraphEntity.connections[creditUniqueString] = graph.credits[creditUniqueString];
+      }
+    }
+
+    // Append to the output list
+    categoryGraphEntities.push(categoryGraphEntity);
+  }
+
+  return categoryGraphEntities;
+}
+
+function addCategoriesToGenericGraph(categories: GraphEntity[], genericGraph: Graph): void {
+  for (const category of categories) {
+    // Add the category to the axisEntities object
+    genericGraph.axisEntities[category.id] = category;
+
+    // Add the category to all connections that match it
+    for (const creditUniqueString in category.connections) {
+      genericGraph.connections[creditUniqueString].connections[category.id] = category;
+    }
+  }
+}
+
 function printGrid(grid: Grid, graph: ActorCreditGraph): void {
   const [across, down] = [grid.across, grid.down];
   console.log("Across:");
-  for (const actor of across) {
-    console.log(graph.actors[actor.id].name);
+  for (const axisEntity of across) {
+    if (axisEntity.entityType === "category") {
+      console.log(`Category: ${axisEntity.id}`);
+      continue;
+    }
+    console.log(`Actor: ${graph.actors[axisEntity.id].name}`);
   }
   console.log("Down:");
-  for (const actor of down) {
-    console.log(graph.actors[actor.id].name);
+  for (const axisEntity of down) {
+    if (axisEntity.entityType === "category") {
+      console.log(`Category: ${axisEntity.id}`);
+      continue;
+    }
+    console.log(`Actor: ${graph.actors[axisEntity.id].name}`);
   }
 }
 

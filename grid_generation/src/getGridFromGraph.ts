@@ -1,6 +1,7 @@
 export interface GraphEntity {
   id: string;
   connections: { [key: string]: Connection };
+  entityType: string;
 }
 
 export type AxisEntity = GraphEntity;
@@ -16,12 +17,20 @@ export interface Grid {
   down: GraphEntity[];
 }
 
-export function getGridFromGraph(graph: Graph, size: number): Grid {
+export function getGridFromGraph(
+  graph: Graph,
+  size: number,
+  connectionTypeWeights: { [key: string]: number }
+): Grid {
   const across: GraphEntity[] = [];
   const down: GraphEntity[] = [];
 
   // Pick random starting axis entity
-  const startingAxisEntity = getRandomFromObject(graph.axisEntities);
+  const startingAxisEntityType = getRandomKeyByWeight(connectionTypeWeights);
+  const axisEntitiesOfType = Object.values(graph.axisEntities).filter(
+    (entity) => entity.entityType === startingAxisEntityType
+  );
+  const startingAxisEntity = axisEntitiesOfType[Math.floor(Math.random() * axisEntitiesOfType.length)];
 
   // Add starting axis entity to across
   across.push(startingAxisEntity);
@@ -50,8 +59,19 @@ export function getGridFromGraph(graph: Graph, size: number): Grid {
       // Add this connection to the used connections
       usedConnections.add(connection.id);
 
+      // Determine what kind of axis entity we want to use next
+      // (e.g., actor, category)
+      const nextAxisEntityType = getRandomKeyByWeight(connectionTypeWeights);
+
+      // Sort this connection's connections by whether or not their entity type matches nextAxisEntityType
+      const sortedConnectedAxisEntities = sortByFieldMatch(
+        Object.values(connection.connections),
+        "entityType",
+        nextAxisEntityType
+      );
+
       // Iterate over the axis entities in this connection
-      for (const axisEntity of Object.values(connection.connections)) {
+      for (const axisEntity of sortedConnectedAxisEntities) {
         // If this axis entity is already present in either axis, skip it
         if (across.includes(axisEntity) || down.includes(axisEntity)) {
           continue;
@@ -102,10 +122,39 @@ export function getGridFromGraph(graph: Graph, size: number): Grid {
   return { across: [], down: [] };
 }
 
-function getRandomFromObject<T>(obj: { [key: string]: T }): T {
-  const keys = Object.keys(obj);
-  const randomKey = keys[Math.floor(Math.random() * keys.length)];
-  return obj[randomKey];
+function getRandomKeyByWeight(weights: { [key: string]: number }): string {
+  // Calculate the total weight
+  const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+
+  // Generate a random number between 0 and totalWeight
+  const random = Math.random() * totalWeight;
+
+  // Iterate through the weights and find the corresponding key
+  let cumulativeWeight = 0;
+  for (const key in weights) {
+    cumulativeWeight += weights[key];
+    if (random < cumulativeWeight) {
+      return key;
+    }
+  }
+
+  // Fallback in case of rounding errors
+  console.log("!!! THIS SHOULD BE RARE !!! Falling back to first key");
+  return Object.keys(weights)[0];
+}
+
+function sortByFieldMatch<T>(objects: T[], field: keyof T, value: any): T[] {
+  return objects.slice().sort((a, b) => {
+    const aMatches = a[field] === value;
+    const bMatches = b[field] === value;
+    if (aMatches && !bMatches) {
+      return -1;
+    } else if (!aMatches && bMatches) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
 }
 
 /**
