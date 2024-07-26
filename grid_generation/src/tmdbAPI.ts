@@ -55,7 +55,7 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
 
 export async function getImageByIdTypeAndSize(
   imagesBaseURL: string,
-  id: string,
+  id: number,
   type: "actor" | "tv" | "movie",
   size: string
 ): Promise<[Readable, string]> {

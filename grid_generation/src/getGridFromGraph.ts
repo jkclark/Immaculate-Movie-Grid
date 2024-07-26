@@ -1,26 +1,24 @@
-interface AxisEntity {
+export interface GraphEntity {
   id: string;
   connections: { [key: string]: Connection };
 }
 
-interface Connection {
-  id: string;
-  axisEntities: { [key: string]: AxisEntity };
-}
+export type AxisEntity = GraphEntity;
+export type Connection = GraphEntity;
 
-interface Graph {
+export interface Graph {
   axisEntities: { [key: string]: AxisEntity };
   connections: { [key: string]: Connection };
 }
 
-interface Grid {
-  across: AxisEntity[];
-  down: AxisEntity[];
+export interface Grid {
+  across: GraphEntity[];
+  down: GraphEntity[];
 }
 
 export function getGridFromGraph(graph: Graph, size: number): Grid {
-  const across: AxisEntity[] = [];
-  const down: AxisEntity[] = [];
+  const across: GraphEntity[] = [];
+  const down: GraphEntity[] = [];
 
   // Pick random starting axis entity
   const startingAxisEntity = getRandomFromObject(graph.axisEntities);
@@ -49,8 +47,11 @@ export function getGridFromGraph(graph: Graph, size: number): Grid {
         continue;
       }
 
-      // Iterate over the axis entities in the connection
-      for (const axisEntity of Object.values(connection.axisEntities)) {
+      // Add this connection to the used connections
+      usedConnections.add(connection.id);
+
+      // Iterate over the axis entities in this connection
+      for (const axisEntity of Object.values(connection.connections)) {
         // If this axis entity is already present in either axis, skip it
         if (across.includes(axisEntity) || down.includes(axisEntity)) {
           continue;
@@ -58,20 +59,18 @@ export function getGridFromGraph(graph: Graph, size: number): Grid {
 
         // Compare this axis entity to the other axis's entities,
         // except for the most recent axis entity, because we're already connected to it
-        const newConnections: Connection[] = axisEntityWorksWithAxis(
+        const newConnections: Set<string> = axisEntityWorksWithAxis(
           axisEntity,
-          compareAxis.slice(0, compareAxis.length - 1)
+          compareAxis.slice(0, compareAxis.length - 1),
+          usedConnections
         );
         if (newConnections) {
           // Add the axis entity to the grid
           fillAxis.push(axisEntity);
 
-          // Add this connection to the used connections
-          usedConnections.add(connection.id);
-
           // Add the connections to the other entities in the compare axis to the used connections
           for (const newConnection of newConnections) {
-            usedConnections.add(newConnection.id);
+            usedConnections.add(newConnection);
           }
 
           // Recurse
@@ -79,14 +78,17 @@ export function getGridFromGraph(graph: Graph, size: number): Grid {
             return true;
           }
 
-          // Recursion failed, remove the axis entity and connections from the grid
-          compareAxis.pop();
-          usedConnections.delete(connection.id);
+          // Recursion failed, remove the axis entity and
+          // connections used for this axis entity
+          fillAxis.pop();
           for (const newConnection of newConnections) {
-            usedConnections.delete(newConnection.id);
+            usedConnections.delete(newConnection);
           }
         }
       }
+
+      // Remove this connection from the used connections
+      usedConnections.delete(connection.id);
     }
 
     // No connections worked, so we need to backtrack
@@ -106,25 +108,58 @@ function getRandomFromObject<T>(obj: { [key: string]: T }): T {
   return obj[randomKey];
 }
 
-function axisEntityWorksWithAxis(axisEntity: AxisEntity, axis: AxisEntity[]): Connection[] {
-  const connections: Connection[] = [];
+/**
+ * Compare an axis entity to a list of other axis entities to see if they can be connected,
+ * ignoring given connections
+ *
+ * @param axisEntity The axis entity to check
+ * @param axis The axis against which to check the axis entity
+ * @param excludeConnections The IDs of the connections to ignore
+ * @returns The IDs of the connections that work, or null if nothing works
+ */
+function axisEntityWorksWithAxis(
+  axisEntity: GraphEntity,
+  axis: GraphEntity[],
+  excludeConnections: Set<string>
+): Set<string> {
+  const connections: Set<string> = new Set();
   for (const otherAxisEntity of axis) {
-    const sharedConnection: Connection = axisEntitiesShareConnection(axisEntity, otherAxisEntity);
+    const sharedConnection: string = axisEntitiesShareConnection(
+      axisEntity,
+      otherAxisEntity,
+      new Set([...excludeConnections, ...connections])
+    );
 
     if (!sharedConnection) {
       return null;
     }
 
-    connections.push(sharedConnection);
+    // connections.add(sharedConnection);
   }
 
   return connections;
 }
 
-function axisEntitiesShareConnection(axisEntity1: AxisEntity, axisEntity2: AxisEntity): Connection {
+/**
+ * Find a common connection between two axis entities, ignoring given connections
+ *
+ * @param axisEntity1 One of the axis entities
+ * @param axisEntity2 The other axis entity
+ * @param excludeConnections Connections to be ignored
+ * @returns The ID of a connection shared by both axis entities, or null if none exists
+ */
+function axisEntitiesShareConnection(
+  axisEntity1: GraphEntity,
+  axisEntity2: GraphEntity,
+  excludeConnections: Set<string>
+): string {
   for (const connection of Object.values(axisEntity1.connections)) {
+    if (excludeConnections.has(connection.id)) {
+      continue;
+    }
+
     if (axisEntity2.connections[connection.id]) {
-      return connection;
+      return connection.id;
     }
   }
 

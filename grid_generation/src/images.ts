@@ -59,13 +59,21 @@ export async function getAndSaveAllImagesForGrid(grid: GridExport, overwrite: bo
  *
  * @returns a tuple of three sets of IDs: actors, movies, and TV shows that already have images in S3
  */
-export async function getImagesAlreadyInS3(): Promise<[Set<string>, Set<string>, Set<string>]> {
+export async function getImagesAlreadyInS3(): Promise<[Set<number>, Set<number>, Set<number>]> {
   const bucket = "immaculate-movie-grid-images";
   const prefixes = ["actors", "movies", "tv-shows"];
   const sets = await Promise.all(
     prefixes.map(async (prefix) => {
       const objects = await listS3ObjectsWithPrefix(bucket, prefix);
-      const ids = new Set(objects.map((object) => object.Key.split("/")[1]));
+      const ids = new Set(
+        objects.map((object) => {
+          const keyParts = object.Key.split("/");
+          // We could parseInt the whole last part of the key, because
+          // parseInt will stop at the first non-numeric character, but
+          // this is more explicit.
+          return parseInt(keyParts[keyParts.length - 1].split(".")[0]);
+        })
+      );
       return ids;
     })
   );
@@ -83,7 +91,7 @@ export async function getImagesAlreadyInS3(): Promise<[Set<string>, Set<string>,
  */
 async function getAndSaveImage(
   imagesBaseURL: string,
-  id: string,
+  id: number,
   type: "actor" | "movie" | "tv",
   imageSize: string
 ) {

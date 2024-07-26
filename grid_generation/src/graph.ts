@@ -1,30 +1,30 @@
 import fs from "fs";
+import { GraphEntity } from "./getGridFromGraph";
 import { Actor, Credit, getCreditUniqueString } from "./interfaces";
 
-export interface ActorNode {
-  id: string;
+export interface ActorNode extends GraphEntity {
   name: string;
-  edges: { [key: string]: CreditNode };
+  connections: { [key: string]: CreditNode };
 }
 
-export interface CreditNode extends Credit {
-  edges: { [key: string]: ActorNode };
+export interface CreditNode extends Credit, GraphEntity {
+  connections: { [key: string]: ActorNode };
 }
 
-export interface Graph {
+export interface ActorCreditGraph {
   actors: { [key: string]: ActorNode };
   credits: { [key: string]: CreditNode };
 }
 
-export function addActorToGraph(graph: Graph, id: string, name: string): void {
+export function addActorToGraph(graph: ActorCreditGraph, id: string, name: string): void {
   if (graph.actors[id]) {
     throw new Error(`Actor with id ${id} already exists: ${graph.actors[id].name}`);
   }
 
-  graph.actors[id] = { id, name, edges: {} };
+  graph.actors[id] = { id, name, connections: {} };
 }
 
-export function addCreditToGraph(credit: Credit, graph: Graph): void {
+export function addCreditToGraph(credit: Credit, graph: ActorCreditGraph): void {
   const creditUniqueString = getCreditUniqueString(credit);
   if (graph.credits[creditUniqueString]) {
     throw new RepeatError(
@@ -33,20 +33,20 @@ export function addCreditToGraph(credit: Credit, graph: Graph): void {
   }
   graph.credits[creditUniqueString] = {
     ...credit,
-    edges: {},
+    connections: {},
   };
 }
 
-export function addConnectionToGraph(graph: Graph, actorId: string, credit: Credit): void {
+export function addLinkToGraph(graph: ActorCreditGraph, actorId: string, credit: Credit): void {
   const creditUniqueString = getCreditUniqueString(credit);
-  const actor: ActorNode = graph.actors[actorId];
+  const actorNode: ActorNode = graph.actors[actorId];
   const creditNode: CreditNode = graph.credits[creditUniqueString];
-  actor.edges[creditUniqueString] = creditNode;
-  creditNode.edges[actorId] = actor;
+  actorNode.connections[creditUniqueString] = creditNode;
+  creditNode.connections[actorId] = actorNode;
 }
 
-export function generateGraph(actorsWithCredits: Actor[]): Graph {
-  const graph: Graph = { actors: {}, credits: {} };
+export function generateGraph(actorsWithCredits: Actor[]): ActorCreditGraph {
+  const graph: ActorCreditGraph = { actors: {}, credits: {} };
 
   for (const actor of actorsWithCredits) {
     addActorToGraph(graph, actor.id, actor.name);
@@ -60,7 +60,7 @@ export function generateGraph(actorsWithCredits: Actor[]): Graph {
           throw e;
         }
       }
-      addConnectionToGraph(graph, actor.id, credit);
+      addLinkToGraph(graph, actor.id, credit);
     }
   }
 
@@ -70,7 +70,7 @@ export function generateGraph(actorsWithCredits: Actor[]): Graph {
 interface actorNodeExport {
   id: string;
   name: string;
-  edges: { type: "movie" | "tv"; id: string }[];
+  connections: { type: "movie" | "tv"; id: string }[];
 }
 
 interface creditNodeExport {
@@ -79,44 +79,44 @@ interface creditNodeExport {
   name: string;
   genre_ids: number[];
   popularity: number;
-  edges: number[];
+  connections: number[];
 }
 
-function convertGraphToJSON(graph: Graph): string {
-  // Convert actorNodes to actorNodeExports (remove the references to edges, just keep the IDs)
+function convertGraphToJSON(graph: ActorCreditGraph): string {
+  // Convert actorNodes to actorNodeExports (remove the references to connections, just keep the IDs)
   const actorExports: actorNodeExport[] = [];
   for (const actorId in graph.actors) {
     const actor = graph.actors[actorId];
-    const edges = Object.values(actor.edges).map((credit) => {
+    const connections = Object.values(actor.connections).map((credit) => {
       return { type: credit.type, id: credit.id };
     });
-    actorExports.push({ ...actor, edges });
+    actorExports.push({ ...actor, connections });
   }
 
-  // Convert creditNodes to creditNodeExports (remove the references to edges, just keep the IDs)
+  // Convert creditNodes to creditNodeExports (remove the references to connections, just keep the IDs)
   const creditExports: creditNodeExport[] = [];
   for (const creditId in graph.credits) {
     const credit = graph.credits[creditId];
-    const edges = Object.keys(credit.edges).map((actorId) => parseInt(actorId));
+    const connections = Object.keys(credit.connections).map((actorId) => parseInt(actorId));
     creditExports.push({
       ...credit,
-      edges,
+      connections,
     });
   }
 
   return JSON.stringify({ actors: actorExports, credits: creditExports });
 }
 
-export function writeGraphToFile(graph: Graph, path: string): void {
+export function writeGraphToFile(graph: ActorCreditGraph, path: string): void {
   const json = convertGraphToJSON(graph);
   fs.writeFileSync(path, json);
 }
 
-export function readGraphFromFile(path: string): Graph {
+export function readGraphFromFile(path: string): ActorCreditGraph {
   const json = fs.readFileSync(path, "utf8");
-  const data = JSON.parse(json);
+  const data: { actors: actorNodeExport[]; credits: creditNodeExport[] } = JSON.parse(json);
 
-  const graph: Graph = { actors: {}, credits: {} };
+  const graph: ActorCreditGraph = { actors: {}, credits: {} };
 
   for (const actor of data.actors) {
     addActorToGraph(graph, actor.id, actor.name);
@@ -127,38 +127,12 @@ export function readGraphFromFile(path: string): Graph {
   }
 
   for (const actor of data.actors) {
-    for (const credit of actor.edges) {
-      addConnectionToGraph(graph, actor.id, credit);
+    for (const credit of actor.connections) {
+      addLinkToGraph(graph, actor.id, graph.credits[getCreditUniqueString(credit)]);
     }
   }
 
   return graph;
-}
-
-export function getSharedCreditsForActors(
-  actor1: ActorNode,
-  actor2: ActorNode,
-  excludeCredits: Set<string>,
-  type: "movie" | "tv" = null
-): CreditNode[] {
-  const sharedCredits: CreditNode[] = [];
-  for (const credit1 of Object.values(actor1.edges)) {
-    // If this credit is to be excluded, go to the next one
-    if (excludeCredits.has(getCreditUniqueString(credit1))) {
-      continue;
-    }
-
-    // If a type is specified and this credit is not of that type, ignore this one
-    if (type && credit1.type !== type) {
-      continue;
-    }
-
-    if (actor2.edges[getCreditUniqueString(credit1)]) {
-      sharedCredits.push(credit1);
-    }
-  }
-
-  return sharedCredits;
 }
 
 class RepeatError extends Error {

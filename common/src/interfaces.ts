@@ -4,7 +4,6 @@ export interface ActorExport {
 }
 
 export interface CreditExport {
-  // For now this is the same as Credit
   type: "movie" | "tv";
   id: number;
   name: string;

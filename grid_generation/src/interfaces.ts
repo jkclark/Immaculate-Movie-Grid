@@ -26,6 +26,11 @@ export type CreditRating =
   | "TV-MA"
   | "NR";
 
-export function getCreditUniqueString(credit: Credit): string {
+interface CreditOnlyIdAndType {
+  type: "movie" | "tv";
+  id: string;
+}
+
+export function getCreditUniqueString(credit: CreditOnlyIdAndType): string {
   return `${credit.type}-${credit.id}`;
 }
