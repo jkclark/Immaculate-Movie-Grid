@@ -3,7 +3,7 @@ import fs from "fs";
 import "node-fetch";
 import * as readline from "readline";
 
-import { CreditExport, GridExport } from "../../common/src/interfaces";
+import { ActorExport, CategoryExport, CreditExport, GridExport } from "../../common/src/interfaces";
 import { allCategories, Category } from "./categories";
 import {
   CreditExtraInfo,
@@ -13,14 +13,7 @@ import {
 } from "./creditExtraInfo";
 import { famousActorIds } from "./famousActorIds";
 import { getGridFromGraph, Graph, GraphEntity, Grid } from "./getGridFromGraph";
-import {
-  ActorCreditGraph,
-  ActorNode,
-  CreditNode,
-  generateGraph,
-  readGraphFromFile,
-  writeGraphToFile,
-} from "./graph";
+import { ActorCreditGraph, CreditNode, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
 import { getAndSaveAllImagesForGrid } from "./images";
 import { Actor, getCreditUniqueString } from "./interfaces";
 import { writeTextToS3 } from "./s3";
@@ -73,7 +66,7 @@ async function main(): Promise<void> {
       return;
     }
 
-    printGrid(grid, graph);
+    printGrid(grid, graph, allCategories);
 
     // Ask the user if they want to continue
     const answer = await new Promise<string>((resolve) => rl.question("Continue? (y/n) ", resolve));
@@ -83,12 +76,8 @@ async function main(): Promise<void> {
     }
   } while (true);
 
-  // Get ActorNode versions of across and down
-  const acrossActors = grid.across.map((axisEntity) => graph.actors[axisEntity.id]);
-  const downActors = grid.down.map((axisEntity) => graph.actors[axisEntity.id]);
-
-  // Get grid export from across and down actors
-  const gridExport = getGridExportFromGraphAndActors(graph, acrossActors, downActors, gridDate);
+  // Get GridExport from grid, graph, and categories
+  const gridExport = getGridExportFromGridGraphAndCategories(grid, graph, allCategories, gridDate);
 
   // Get images for actors and credits and save them to S3
   await getAndSaveAllImagesForGrid(gridExport, overwriteImages);
@@ -202,12 +191,15 @@ function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {
   return genericGraph;
 }
 
-function getCategoryGraphEntities(categories: Category[], graph: ActorCreditGraph): GraphEntity[] {
+function getCategoryGraphEntities(
+  categories: { [key: number]: Category },
+  graph: ActorCreditGraph
+): GraphEntity[] {
   const categoryGraphEntities = [];
-  for (const category of categories) {
+  for (const category of Object.values(categories)) {
     // Create the base object
     const categoryGraphEntity = {
-      id: category.name,
+      id: category.id,
       connections: {},
       entityType: "category",
     };
@@ -238,20 +230,22 @@ function addCategoriesToGenericGraph(categories: GraphEntity[], genericGraph: Gr
   }
 }
 
-function printGrid(grid: Grid, graph: ActorCreditGraph): void {
+function printGrid(grid: Grid, graph: ActorCreditGraph, categories: { [key: number]: Category }): void {
   const [across, down] = [grid.across, grid.down];
+
   console.log("Across:");
   for (const axisEntity of across) {
     if (axisEntity.entityType === "category") {
-      console.log(`Category: ${axisEntity.id}`);
+      console.log(`Category: ${categories[axisEntity.id].name}`);
       continue;
     }
     console.log(`Actor: ${graph.actors[axisEntity.id].name}`);
   }
+
   console.log("Down:");
   for (const axisEntity of down) {
     if (axisEntity.entityType === "category") {
-      console.log(`Category: ${axisEntity.id}`);
+      console.log(`Category: ${categories[axisEntity.id].name}`);
       continue;
     }
     console.log(`Actor: ${graph.actors[axisEntity.id].name}`);
@@ -370,53 +364,69 @@ function isLegitTVShow(credit: CreditNode): boolean {
   return !isInvalidGenre && !isInvalidShow;
 }
 
-/**
- * Get a Grid object from a graph and two lists of actors.
- *
- * The Grid object will contain the actors, credits, and answers for the grid.
- * The Grid will contain all of an actor's credits, whether or not they were
- * "legit" for the purposes of generating the two lists of actors.
- *
- * @param graph A graph of all actors and credits
- * @param across The actors going across the grid
- * @param down The actors going down the grid
- * @returns A Grid object representing the grid
- */
-function getGridExportFromGraphAndActors(
+function getGridExportFromGridGraphAndCategories(
+  grid: Grid,
   graph: ActorCreditGraph,
-  across: ActorNode[],
-  down: ActorNode[],
+  allCategories: { [key: number]: Category },
   id: string
 ): GridExport {
-  const actors = across.concat(down).map((actorNode) => {
-    return { id: parseInt(actorNode.id), name: actorNode.name };
-  });
-  const credits: CreditExport[] = [];
-  const answers: { [key: number]: { type: "movie" | "tv"; id: number }[] } = {};
-
-  // Create empty answers lists for each actor
-  for (const actor of actors) {
-    answers[actor.id] = [];
+  // Get the axes, actors, and categories
+  const axes: string[] = [];
+  const actors: ActorExport[] = [];
+  const categories: CategoryExport[] = [];
+  for (const axisEntity of grid.across.concat(grid.down)) {
+    if (axisEntity.entityType === "category") {
+      const category = allCategories[axisEntity.id];
+      // Categories have negative IDs, so make it positive to
+      // avoid having two dashes in the string.
+      axes.push(`category-${-1 * category.id}`);
+      categories.push({ id: category.id, name: category.name });
+    } else {
+      const actor = graph.actors[axisEntity.id];
+      axes.push(`actor-${actor.id}`);
+      actors.push({ id: parseInt(actor.id), name: actor.name });
+    }
   }
 
-  // Get all credits that the across and down actors share
-  for (const actor of across) {
-    for (const otherActor of down) {
-      for (const creditUniqueString of Object.keys(actor.connections)) {
-        if (otherActor.connections[creditUniqueString]) {
+  // Create empty answer lists for each axis entity
+  const answers: { [key: number]: { type: "movie" | "tv"; id: number }[] } = {};
+  for (const axisEntity of grid.across.concat(grid.down)) {
+    answers[axisEntity.id] = [];
+  }
+
+  // Create empty credits list
+  const credits: CreditExport[] = [];
+
+  // Add all credits that are shared by across and down pairs
+  for (const acrossAxisEntity of grid.across) {
+    for (const downAxisEntity of grid.down) {
+      // Only iterate over the axis entity with fewer connections
+      const [axisEntityWithFewerConnections, axisEntityWithMoreConnections] =
+        acrossAxisEntity.connections.size < downAxisEntity.connections.size
+          ? [acrossAxisEntity, downAxisEntity]
+          : [downAxisEntity, acrossAxisEntity];
+      for (const creditUniqueString of Object.keys(axisEntityWithFewerConnections.connections)) {
+        if (axisEntityWithMoreConnections.connections[creditUniqueString]) {
           const creditIdNum = parseInt(creditUniqueString.split("-")[1]);
+          const credit = graph.credits[creditUniqueString];
           // Create the credit if it doesn't already exist
-          if (!credits.map((credit) => credit.id).includes(creditIdNum)) {
-            credits.push({
-              type: graph.credits[creditUniqueString].type,
-              id: creditIdNum,
-              name: graph.credits[creditUniqueString].name,
-            });
+          const creditExport = {
+            type: credit.type,
+            id: creditIdNum,
+            name: credit.name,
+          };
+          if (
+            !credits.find(
+              (existingCredit) => existingCredit.id === creditIdNum && existingCredit.type === credit.type
+            )
+          ) {
+            credits.push(creditExport);
           }
 
-          const answer = { type: graph.credits[creditUniqueString].type, id: creditIdNum };
-          answers[actor.id].push(answer);
-          answers[otherActor.id].push(answer);
+          // Add this credit to both axis entities' answers
+          const answer = { type: creditExport.type, id: creditExport.id };
+          answers[acrossAxisEntity.id].push(answer);
+          answers[downAxisEntity.id].push(answer);
         }
       }
     }
@@ -424,7 +434,9 @@ function getGridExportFromGraphAndActors(
 
   return {
     id,
+    axes,
     actors,
+    categories,
     credits,
     answers,
   };
