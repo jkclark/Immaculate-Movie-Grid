@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { GridExport } from "../../common/src/interfaces";
+import { ActorExport, CategoryExport, GridExport } from "../../common/src/interfaces";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 
 interface GridDisplayData {
@@ -22,7 +22,7 @@ export interface ImageGridDisplayData extends GridDisplayData {
 export type AnyGridDisplayData = GridDisplayData | TextGridDisplayData | ImageGridDisplayData;
 
 export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayData[][] {
-  const gridSize = gridData.actors.length / 2;
+  const gridSize = gridData.axes.length / 2;
   const displayData: AnyGridDisplayData[][] = [];
   // +1 because of the axis
   for (let rowIndex = 0; rowIndex < gridSize + 1; rowIndex++) {
@@ -30,17 +30,31 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
     // +1 because of the axis
     for (let colIndex = 0; colIndex < gridSize + 1; colIndex++) {
       if (rowIndex === 0 && colIndex !== 0) {
-        const actorIndex = colIndex - 1;
+        const axisEntityIndex = colIndex - 1;
+        const [axisEntityType, axisEntityId] = gridData.axes[axisEntityIndex].split("-");
+        const axisEntity =
+          axisEntityType === "actor"
+            ? getAxisEntityFromListById(gridData.actors, parseInt(axisEntityId))
+            : // Remember, categories have negative IDs
+              getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
         displayData[rowIndex].push({
-          hoverText: gridData.actors[actorIndex].name,
-          imageURL: getS3ImageURLForType("actor", gridData.actors[actorIndex].id),
+          hoverText: axisEntity.name,
+          // The below line will break for categories at this point, but that's ok
+          imageURL: getS3ImageURLForType("actor", axisEntity.id),
           backupImageURL: getS3BackupImageURLForType("actor"),
         });
       } else if (colIndex === 0 && rowIndex !== 0) {
-        const actorIndex = gridSize + rowIndex - 1;
+        const axisEntityIndex = gridSize + rowIndex - 1;
+        const [axisEntityType, axisEntityId] = gridData.axes[axisEntityIndex].split("-");
+        const axisEntity =
+          axisEntityType === "actor"
+            ? getAxisEntityFromListById(gridData.actors, parseInt(axisEntityId))
+            : // Remember, categories have negative IDs
+              getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
         displayData[rowIndex].push({
-          hoverText: gridData.actors[actorIndex].name,
-          imageURL: getS3ImageURLForType("actor", gridData.actors[actorIndex].id),
+          hoverText: axisEntity.name,
+          // The below line will break for categories at this point, but that's ok
+          imageURL: getS3ImageURLForType("actor", axisEntity.id),
           backupImageURL: getS3BackupImageURLForType("actor"),
         });
       } else {
@@ -50,6 +64,17 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
   }
 
   return displayData;
+}
+
+function getAxisEntityFromListById(
+  axisEntities: (ActorExport | CategoryExport)[],
+  axisEntityId: number
+): ActorExport | CategoryExport {
+  const foundAxisEntity = axisEntities.find((axisEntity) => axisEntity.id === axisEntityId);
+  if (!foundAxisEntity) {
+    throw new Error(`Could not find axis entity with ID ${axisEntityId}`);
+  }
+  return foundAxisEntity;
 }
 
 export function insertGridDisplayDatumAtRowCol(
