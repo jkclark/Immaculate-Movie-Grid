@@ -32,31 +32,38 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
       if (rowIndex === 0 && colIndex !== 0) {
         const axisEntityIndex = colIndex - 1;
         const [axisEntityType, axisEntityId] = gridData.axes[axisEntityIndex].split("-");
-        const axisEntity =
-          axisEntityType === "actor"
-            ? getAxisEntityFromListById(gridData.actors, parseInt(axisEntityId))
-            : // Remember, categories have negative IDs
-              getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
-        displayData[rowIndex].push({
-          hoverText: axisEntity.name,
-          // The below line will break for categories at this point, but that's ok
-          imageURL: getS3ImageURLForType("actor", axisEntity.id),
-          backupImageURL: getS3BackupImageURLForType("actor"),
-        });
+        if (axisEntityType === "actor") {
+          const axisEntity = getAxisEntityFromListById(gridData.actors, parseInt(axisEntityId));
+          displayData[rowIndex].push({
+            hoverText: axisEntity.name,
+            imageURL: getS3ImageURLForType("actor", axisEntity.id),
+            backupImageURL: getS3BackupImageURLForType("actor"),
+          });
+        } else {
+          // Remember, categories have negative IDs
+          const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
+          displayData[rowIndex].push({
+            mainText: axisEntity.name,
+          });
+        }
       } else if (colIndex === 0 && rowIndex !== 0) {
         const axisEntityIndex = gridSize + rowIndex - 1;
         const [axisEntityType, axisEntityId] = gridData.axes[axisEntityIndex].split("-");
-        const axisEntity =
-          axisEntityType === "actor"
-            ? getAxisEntityFromListById(gridData.actors, parseInt(axisEntityId))
-            : // Remember, categories have negative IDs
-              getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
-        displayData[rowIndex].push({
-          hoverText: axisEntity.name,
-          // The below line will break for categories at this point, but that's ok
-          imageURL: getS3ImageURLForType("actor", axisEntity.id),
-          backupImageURL: getS3BackupImageURLForType("actor"),
-        });
+        if (axisEntityType === "actor") {
+          const axisEntity = getAxisEntityFromListById(gridData.actors, parseInt(axisEntityId));
+          displayData[rowIndex].push({
+            hoverText: axisEntity.name,
+            // The below line will break for categories at this point, but that's ok
+            imageURL: getS3ImageURLForType("actor", axisEntity.id),
+            backupImageURL: getS3BackupImageURLForType("actor"),
+          });
+        } else {
+          // Remember, categories have negative IDs
+          const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
+          displayData[rowIndex].push({
+            mainText: axisEntity.name,
+          });
+        }
       } else {
         displayData[rowIndex].push({});
       }
