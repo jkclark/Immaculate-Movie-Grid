@@ -211,23 +211,32 @@ function addCategoriesToGenericGraph(categories: GraphEntity[], genericGraph: Gr
 
 function printGrid(grid: Grid, graph: ActorCreditGraph, categories: { [key: number]: Category }): void {
   const [across, down] = [grid.across, grid.down];
+  const fixedLength = 25;
 
-  console.log("Across:");
+  // Collect across entities into a single string
+  let acrossLine = "".padEnd(fixedLength + 5);
   for (const axisEntity of across) {
+    let entityString = "";
     if (axisEntity.entityType === "category") {
-      console.log(`Category: ${categories[axisEntity.id].name}`);
-      continue;
+      entityString = categories[axisEntity.id].name;
+    } else {
+      entityString = graph.actors[axisEntity.id].name;
     }
-    console.log(`Actor: ${graph.actors[axisEntity.id].name}`);
+    acrossLine += entityString.padEnd(fixedLength);
   }
 
-  console.log("Down:");
+  console.log(acrossLine);
+  console.log("-".repeat((across.length + 1) * fixedLength));
+
+  // Print down entities vertically
   for (const axisEntity of down) {
+    let entityString = "";
     if (axisEntity.entityType === "category") {
-      console.log(`Category: ${categories[axisEntity.id].name}`);
-      continue;
+      entityString = categories[axisEntity.id].name;
+    } else {
+      entityString = graph.actors[axisEntity.id].name;
     }
-    console.log(`Actor: ${graph.actors[axisEntity.id].name}`);
+    console.log(entityString.padEnd(fixedLength - 2) + " |");
   }
 }
 
