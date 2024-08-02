@@ -53,7 +53,17 @@ async function main(): Promise<void> {
 
   do {
     // Get a valid grid from the generic graph
-    grid = getGridFromGraph(genericGraph, 3, { actor: 0, category: 1 }, true);
+    grid = getGridFromGraph(
+      genericGraph,
+      3,
+      { actor: 0, category: 1 },
+      // This function serves to eliminate all TV shows from consideration during
+      // grid generation, as well as filtering out "invalid" movies.
+      // Even though `Connection`s are passed into this function, we know that all connections
+      // in the graph are also `CreditNode`s, so we can safely cast them.
+      isLegitMovie,
+      true
+    );
 
     // If no valid grid was found, exit
     if (grid.across.length === 0 || grid.down.length === 0) {

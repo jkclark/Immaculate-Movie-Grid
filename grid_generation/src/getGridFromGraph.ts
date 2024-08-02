@@ -21,6 +21,7 @@ export function getGridFromGraph(
   graph: Graph,
   size: number,
   axisEntityTypeWeights: { [key: string]: number },
+  connectionFilter: (connection: Connection) => boolean,
   random: boolean
 ): Grid {
   const across: GraphEntity[] = [];
@@ -58,8 +59,8 @@ export function getGridFromGraph(
 
     // Iterate over most recent axis entity's connections
     for (const connection of mostRecentAxisEntityConnections) {
-      // If we've already used this connection, skip it
-      if (usedConnections.has(connection.id)) {
+      // If we've already used this connection, or if it's invalid as per the condition, skip it
+      if (usedConnections.has(connection.id) || !connectionFilter(connection)) {
         continue;
       }
 
@@ -99,7 +100,8 @@ export function getGridFromGraph(
         const newConnections: Set<string> = axisEntityWorksWithAxis(
           axisEntity,
           compareAxis.slice(0, compareAxis.length - 1),
-          usedConnections
+          usedConnections,
+          connectionFilter
         );
         if (newConnections) {
           // Add the axis entity to the grid
@@ -191,21 +193,23 @@ function splitByFieldMatch<T>(objects: T[], key: keyof T, value: any): [T[], T[]
 function axisEntityWorksWithAxis(
   axisEntity: GraphEntity,
   axis: GraphEntity[],
-  excludeConnections: Set<string>
+  excludeConnections: Set<string>,
+  connectionFilter: (connection: Connection) => boolean
 ): Set<string> {
   const connections: Set<string> = new Set();
   for (const otherAxisEntity of axis) {
     const sharedConnection: string = axisEntitiesShareConnection(
       axisEntity,
       otherAxisEntity,
-      new Set([...excludeConnections, ...connections])
+      new Set([...excludeConnections, ...connections]),
+      connectionFilter
     );
 
     if (!sharedConnection) {
       return null;
     }
 
-    // connections.add(sharedConnection);
+    connections.add(sharedConnection);
   }
 
   return connections;
@@ -222,10 +226,11 @@ function axisEntityWorksWithAxis(
 function axisEntitiesShareConnection(
   axisEntity1: GraphEntity,
   axisEntity2: GraphEntity,
-  excludeConnections: Set<string>
+  excludeConnections: Set<string>,
+  connectionFilter: (connection: Connection) => boolean
 ): string {
   for (const connection of Object.values(axisEntity1.connections)) {
-    if (excludeConnections.has(connection.id)) {
+    if (excludeConnections.has(connection.id) || !connectionFilter(connection)) {
       continue;
     }
 
