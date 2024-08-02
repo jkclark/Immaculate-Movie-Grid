@@ -388,6 +388,17 @@ function getGridExportFromGridGraphAndCategories(
     }
   }
 
+  // Sort axes to have all categories appear after all actors
+  axes.sort((a, b) => {
+    if (a.startsWith("actor") && b.startsWith("category")) {
+      return -1;
+    }
+    if (a.startsWith("category") && b.startsWith("actor")) {
+      return 1;
+    }
+    return;
+  });
+
   // Create empty answer lists for each axis entity
   const answers: { [key: number]: { type: "movie" | "tv"; id: number }[] } = {};
   for (const axisEntity of grid.across.concat(grid.down)) {
@@ -401,7 +412,7 @@ function getGridExportFromGridGraphAndCategories(
   for (const acrossAxisEntity of grid.across) {
     for (const downAxisEntity of grid.down) {
       // Only iterate over the axis entity with fewer connections
-      // This is particularly useful when a category is present with a lot of connections
+      // This is particularly useful when a category with a lot of connections is present
       const [axisEntityWithFewerConnections, axisEntityWithMoreConnections] =
         acrossAxisEntity.connections.size < downAxisEntity.connections.size
           ? [acrossAxisEntity, downAxisEntity]

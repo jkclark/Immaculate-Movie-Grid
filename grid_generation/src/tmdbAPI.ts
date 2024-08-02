@@ -59,7 +59,6 @@ export async function getImageByIdTypeAndSize(
   type: "actor" | "tv" | "movie",
   size: string
 ): Promise<[Readable, string]> {
-  console.log("Doing image for", id, type, size);
   let basePath: string;
   let imageTypeFieldName: string;
   if (type === "actor") {
@@ -89,7 +88,6 @@ export async function getImageByIdTypeAndSize(
 
   // Some actors and credits may not have images
   if (responseJson[imageTypeFieldName].length === 0) {
-    console.error(`No images found for ${type} ${id}`);
     return [null, null];
   }
 
