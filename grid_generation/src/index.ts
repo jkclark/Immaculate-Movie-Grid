@@ -323,16 +323,12 @@ function getGridExportFromGridGraphAndCategories(
     }
   }
 
-  // Sort axes to have all categories appear after all actors
-  axes.sort((a, b) => {
-    if (a.startsWith("actor") && b.startsWith("category")) {
-      return -1;
-    }
-    if (a.startsWith("category") && b.startsWith("actor")) {
-      return 1;
-    }
-    return;
-  });
+  // Sort each half of axes to have all categories appear after all actors
+  const across = axes.slice(0, grid.across.length);
+  const down = axes.slice(grid.across.length);
+  const sortedAcross = sortAxisActorsFirst(across);
+  const sortedDown = sortAxisActorsFirst(down);
+  const axesActorsFirst = sortedAcross.concat(sortedDown);
 
   // Create empty answer lists for each axis entity
   const answers: { [key: number]: { type: "movie" | "tv"; id: number }[] } = {};
@@ -381,12 +377,18 @@ function getGridExportFromGridGraphAndCategories(
 
   return {
     id,
-    axes,
+    axes: axesActorsFirst,
     actors,
     categories,
     credits,
     answers,
   };
+}
+
+function sortAxisActorsFirst(axis: string[]): string[] {
+  const actors = axis.filter((entity) => entity.startsWith("actor"));
+  const categories = axis.filter((entity) => entity.startsWith("category"));
+  return actors.concat(categories);
 }
 
 /**
