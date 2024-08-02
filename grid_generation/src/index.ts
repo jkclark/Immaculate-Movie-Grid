@@ -5,12 +5,7 @@ import * as readline from "readline";
 
 import { ActorExport, CategoryExport, CreditExport, GridExport } from "../../common/src/interfaces";
 import { allCategories, Category } from "./categories";
-import {
-  CreditExtraInfo,
-  getAllCreditExtraInfo,
-  readAllCreditExtraInfoFromFile,
-  writeAllCreditExtraInfoToFile,
-} from "./creditExtraInfo";
+import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
 import { famousActorIds } from "./famousActorIds";
 import { getGridFromGraph, Graph, GraphEntity, Grid } from "./getGridFromGraph";
 import { ActorCreditGraph, CreditNode, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
@@ -35,7 +30,7 @@ async function main(): Promise<void> {
   const graph = await loadOrFetchGraph();
 
   // Load the extra info for all credits from file, or generate it if it doesn't exist
-  const allCreditExtraInfo = await loadOrFetchAllCreditExtraInfo(graph);
+  const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits);
 
   // Merge the extra info into the graph, in place
   mergeGraphAndExtraInfo(graph, allCreditExtraInfo);
@@ -137,22 +132,6 @@ async function loadOrFetchGraph(): Promise<ActorCreditGraph> {
   writeGraphToFile(graph, GRAPH_PATH);
 
   return graph;
-}
-
-async function loadOrFetchAllCreditExtraInfo(
-  graph: ActorCreditGraph
-): Promise<{ [key: string]: CreditExtraInfo }> {
-  // If the file exists, read it and return
-  const CREDIT_EXTRA_INFO_PATH = "./src/complete_credit_extra_info.json";
-  if (fs.existsSync(CREDIT_EXTRA_INFO_PATH)) {
-    console.log("Credit extra info exists, reading from file");
-    return readAllCreditExtraInfoFromFile(CREDIT_EXTRA_INFO_PATH);
-  }
-
-  // Otherwise, scrape the data and write it to file
-  const allCreditExtraInfo = await getAllCreditExtraInfo(Object.values(graph.credits));
-  writeAllCreditExtraInfoToFile(allCreditExtraInfo, CREDIT_EXTRA_INFO_PATH);
-  return allCreditExtraInfo;
 }
 
 /**
@@ -269,24 +248,6 @@ async function getAllActorInformation(): Promise<Actor[]> {
 }
 
 /**
- * Determine if a credit is "legit" based on certain criteria.
- *
- * @param credit The credit to check
- * @returns true if the credit is "legit", false otherwise
- */
-function isLegitCredit(credit: CreditNode): boolean {
-  if (credit.type === "movie") {
-    return isLegitMovie(credit);
-  }
-
-  if (credit.type === "tv") {
-    return isLegitTVShow(credit);
-  }
-
-  return false;
-}
-
-/**
  * Determine if a movie credit is "legit" based on certain criteria.
  *
  * Currently, we check that:
@@ -298,7 +259,8 @@ function isLegitCredit(credit: CreditNode): boolean {
  */
 function isLegitMovie(credit: CreditNode): boolean {
   if (!(credit.type === "movie")) {
-    console.log(`${credit.name} is not a movie`);
+    // console.log(`${credit.name} is not a movie`);
+    return false;
   }
 
   const INVALID_MOVIE_GENRE_IDS: number[] = [
@@ -316,52 +278,6 @@ function isLegitMovie(credit: CreditNode): boolean {
   const popularEnough = credit.popularity > MINIMUM_POPULARITY;
 
   return !isInvalidGenre && !isInvalidMovie && popularEnough;
-}
-
-/**
- * Determine if a TV show credit is "legit" based on certain criteria.
- *
- * @param credit The credit to check
- * @returns true if the credit is "legit", false otherwise
- */
-function isLegitTVShow(credit: CreditNode): boolean {
-  if (!(credit.type === "tv")) {
-    console.log(`${credit.name} is not a TV show`);
-  }
-
-  // Genre
-  const INVALID_TV_GENRE_IDS: number[] = [
-    99, // Documentary
-    10763, // News
-    10767, // Talk shows
-  ];
-  const isInvalidGenre: boolean = credit.genre_ids.some((id) => INVALID_TV_GENRE_IDS.includes(id));
-
-  // Invalid TV shows
-  const INVALID_TV_SHOW_IDS: number[] = [
-    456, // The Simpsons
-    1667, // Saturday Night Live
-    2224, // The Daily Show
-    3739, // E! True Hollywood Story
-    4779, // Hallmark Hall of Fame
-    13667, // MTV Movie & TV Awards
-    23521, // Kids' Choice Awards
-    27023, // The Oscars
-    28464, // The Emmy Awards
-    30048, // Tony Awards
-    43117, // Teen Choice Awards
-    89293, // Bambi Awards
-    122843, // Honest Trailers
-    1111889, // Carol Burnett: 90 Years of Laughter + Love
-  ];
-  const isInvalidShow: boolean = INVALID_TV_SHOW_IDS.includes(parseInt(credit.id));
-
-  // Popularity
-  // Still need to tweak this
-  const MINIMUM_POPULARITY = 400;
-  const popularEnough = credit.popularity > MINIMUM_POPULARITY;
-
-  return !isInvalidGenre && !isInvalidShow;
 }
 
 function getGridExportFromGridGraphAndCategories(

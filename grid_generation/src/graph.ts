@@ -55,9 +55,7 @@ export function generateGraph(actorsWithCredits: Actor[]): ActorCreditGraph {
       try {
         addCreditToGraph(credit, graph);
       } catch (e) {
-        if (e instanceof RepeatError) {
-          console.error(e.message);
-        } else {
+        if (!(e instanceof RepeatError)) {
           throw e;
         }
       }
