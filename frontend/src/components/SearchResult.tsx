@@ -1,6 +1,11 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
-import { GridExport as GridData, SearchResult as SearchResultData } from "../../../common/src/interfaces";
+import {
+  ActorExport,
+  CategoryExport,
+  GridExport as GridData,
+  SearchResult as SearchResultData,
+} from "../../../common/src/interfaces";
 import {
   getGuessesRemainingGridDatum,
   gridDisplayDataAtom,
@@ -59,12 +64,23 @@ const SearchResult: React.FC<SearchResultProps> = ({
     const dataRow = selectedRow - 1;
     const dataCol = selectedCol - 1;
 
-    const acrossActorId = gridData.actors[dataCol].id;
-    const downActorId = gridData.actors[3 + dataRow].id;
-    const acrossCorrect = gridData.answers[acrossActorId].some(
+    const acrossAxisEntityType = gridData.axes[dataCol].split("-")[0];
+    const acrossAxisEntityId = parseInt(gridData.axes[dataCol].split("-")[1]);
+    const acrossAxisEntity =
+      acrossAxisEntityType === "actor"
+        ? getAxisEntityFromListById(gridData.actors, acrossAxisEntityId)
+        : getAxisEntityFromListById(gridData.categories, -1 * acrossAxisEntityId);
+    const acrossCorrect = gridData.answers[acrossAxisEntity.id].some(
       (answer) => answer.type === type && answer.id === id
     );
-    const downCorrect = gridData.answers[downActorId].some(
+
+    const downAxisEntityType = gridData.axes[3 + dataRow].split("-")[0];
+    const downAxisEntityId = parseInt(gridData.axes[3 + dataRow].split("-")[1]);
+    const downAxisEntity =
+      downAxisEntityType === "actor"
+        ? getAxisEntityFromListById(gridData.actors, downAxisEntityId)
+        : getAxisEntityFromListById(gridData.categories, -1 * downAxisEntityId);
+    const downCorrect = gridData.answers[downAxisEntity.id].some(
       (answer) => answer.type === type && answer.id === id
     );
 
@@ -84,6 +100,19 @@ const SearchResult: React.FC<SearchResultProps> = ({
       console.log("Wrong!");
       return false;
     }
+  }
+
+  // TODO: This is copy-pasted from another file. Also we should just refactor the gridExport to be
+  // objects not lists
+  function getAxisEntityFromListById(
+    axisEntities: (ActorExport | CategoryExport)[],
+    axisEntityId: number
+  ): ActorExport | CategoryExport {
+    const foundAxisEntity = axisEntities.find((axisEntity) => axisEntity.id === axisEntityId);
+    if (!foundAxisEntity) {
+      throw new Error(`Could not find axis entity with ID ${axisEntityId}`);
+    }
+    return foundAxisEntity;
   }
 
   function updateGuessesRemaining(newGuessesRemaining: number): void {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { CreditExport, GridExport } from "../../common/src/interfaces";
+import { ActorExport, CategoryExport, CreditExport, GridExport } from "../../common/src/interfaces";
 import CorrectCreditsSummary from "./components/CorrectCreditsSummary";
 import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
@@ -140,9 +140,9 @@ function App() {
     const newInnerGridData: AnyGridDisplayData[][] = [];
 
     // Create squares for inner grid
-    for (let rowIndex = 0; rowIndex < gridData.actors.length / 2; rowIndex++) {
+    for (let rowIndex = 0; rowIndex < gridData.axes.length / 2; rowIndex++) {
       const innerGridRow: AnyGridDisplayData[] = [];
-      for (let colIndex = 0; colIndex < gridData.actors.length / 2; colIndex++) {
+      for (let colIndex = 0; colIndex < gridData.axes.length / 2; colIndex++) {
         // We're restoring usedAnswers from localstorage
         if (!fresh && usedAnswers[getRowColKey(rowIndex, colIndex)]) {
           console.log(`Restoring used answer for row ${rowIndex} and col ${colIndex}`);
@@ -194,12 +194,24 @@ function App() {
 
   function getAllAnswerGridDisplayData(): AnyGridDisplayData[][] {
     const newInnerGridData: TextGridDisplayData[][] = [];
-    const acrossActors = gridData.actors.slice(0, gridData.actors.length / 2);
-    const downActors = gridData.actors.slice(gridData.actors.length / 2);
-    for (const downActor of downActors) {
+    const acrossAxisEntities = gridData.axes.slice(0, gridData.axes.length / 2);
+    const downAxisEntities = gridData.axes.slice(gridData.axes.length / 2);
+    for (const downAxisEntityString of downAxisEntities) {
       const innerGridRow: TextGridDisplayData[] = [];
-      for (const acrossActor of acrossActors) {
-        const answers = getAnswersForPair(acrossActor.id, downActor.id);
+      for (const acrossAxisEntityString of acrossAxisEntities) {
+        const [acrossAxisEntityType, acrossAxisEntityId] = acrossAxisEntityString.split("-");
+        const acrossAxisEntity =
+          acrossAxisEntityType === "actor"
+            ? getAxisEntityFromListById(gridData.actors, parseInt(acrossAxisEntityId))
+            : getAxisEntityFromListById(gridData.categories, -1 * parseInt(acrossAxisEntityId));
+
+        const [downAxisEntityType, downAxisEntityId] = downAxisEntityString.split("-");
+        const downAxisEntity =
+          downAxisEntityType === "actor"
+            ? getAxisEntityFromListById(gridData.actors, parseInt(downAxisEntityId))
+            : getAxisEntityFromListById(gridData.categories, -1 * parseInt(downAxisEntityId));
+
+        const answers = getAnswersForPair(acrossAxisEntity.id, downAxisEntity.id);
         const answerText = `${answers.length}`;
         innerGridRow.push({
           mainText: answerText,
@@ -227,11 +239,24 @@ function App() {
     return insertInnerGridDisplayData(newGridDataWithTotal, newInnerGridData);
   }
 
-  function getAnswersForPair(actor1Id: number, actor2Id: number): CreditExport[] {
+  // TODO: This is copy-pasted from another file. Also we should just refactor the gridExport to be
+  // objects not lists
+  function getAxisEntityFromListById(
+    axisEntities: (ActorExport | CategoryExport)[],
+    axisEntityId: number
+  ): ActorExport | CategoryExport {
+    const foundAxisEntity = axisEntities.find((axisEntity) => axisEntity.id === axisEntityId);
+    if (!foundAxisEntity) {
+      throw new Error(`Could not find axis entity with ID ${axisEntityId}`);
+    }
+    return foundAxisEntity;
+  }
+
+  function getAnswersForPair(axisEntity1Id: number, axisEntity2Id: number): CreditExport[] {
     const usedTypesAndIds = new Set<string>();
     const answers: CreditExport[] = [];
-    const actor1Answers = gridData.answers[actor1Id];
-    const actor2Answers = gridData.answers[actor2Id];
+    const actor1Answers = gridData.answers[axisEntity1Id];
+    const actor2Answers = gridData.answers[axisEntity2Id];
 
     for (const actor1Answer of actor1Answers) {
       for (const actor2Answer of actor2Answers) {

@@ -3,20 +3,14 @@ import fs from "fs";
 import "node-fetch";
 import * as readline from "readline";
 
-import { CreditExport, GridExport } from "../../common/src/interfaces";
+import { ActorExport, CategoryExport, CreditExport, GridExport } from "../../common/src/interfaces";
+import { allCategories, Category } from "./categories";
+import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
 import { famousActorIds } from "./famousActorIds";
-import {
-  ActorNode,
-  CreditNode,
-  Graph,
-  generateGraph,
-  getCreditUniqueString,
-  getSharedCreditsForActors,
-  readGraphFromFile,
-  writeGraphToFile,
-} from "./graph";
+import { getGridFromGraph, Graph, GraphEntity, Grid } from "./getGridFromGraph";
+import { ActorCreditGraph, CreditNode, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
 import { getAndSaveAllImagesForGrid } from "./images";
-import { Actor } from "./interfaces";
+import { Actor, getCreditUniqueString } from "./interfaces";
 import { writeTextToS3 } from "./s3";
 import { getActorWithCreditsById } from "./tmdbAPI";
 
@@ -33,22 +27,51 @@ async function main(): Promise<void> {
   }
 
   // Load the graph, or generate it if it doesn't exist
-  const graph = await getGraph();
+  const graph = await loadOrFetchGraph();
+
+  // Load the extra info for all credits from file, or generate it if it doesn't exist
+  const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits);
+
+  // Merge the extra info into the graph, in place
+  mergeGraphAndExtraInfo(graph, allCreditExtraInfo);
+
+  // Get a generic graph from the actor credit graph
+  const genericGraph = getGenericGraphFromActorCreditGraph(graph);
+
+  // Get category GraphEntities
+  const categories = getCategoryGraphEntities(allCategories, graph);
+
+  // Add categories to generic graph
+  addCategoriesToGenericGraph(categories, genericGraph);
 
   // Generate across/down until the user approves
-  let across: ActorNode[], down: ActorNode[];
+  let grid: Grid;
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
   do {
-    // Generate the across and down
-    [across, down] = await pickRandomStartingActorAndGetValidAcrossAndDown(graph);
-    if (across.length === 0 || down.length === 0) {
+    // Get a valid grid from the generic graph
+    grid = getGridFromGraph(
+      genericGraph,
+      3,
+      { actor: 0, category: 1 },
+      // This function serves to eliminate all TV shows from consideration during
+      // grid generation, as well as filtering out "invalid" movies.
+      // Even though `Connection`s are passed into this function, we know that all connections
+      // in the graph are also `CreditNode`s, so we can safely cast them.
+      isLegitMovie,
+      true
+    );
+
+    // If no valid grid was found, exit
+    if (grid.across.length === 0 || grid.down.length === 0) {
       console.log("No valid actor groups found");
       return;
     }
+
+    printGrid(grid, graph, allCategories);
 
     // Ask the user if they want to continue
     const answer = await new Promise<string>((resolve) => rl.question("Continue? (y/n) ", resolve));
@@ -58,14 +81,14 @@ async function main(): Promise<void> {
     }
   } while (true);
 
-  // Get grid from across and down actors
-  const grid = getGridFromGraphAndActors(graph, across, down, gridDate);
+  // Get GridExport from grid, graph, and categories
+  const gridExport = getGridExportFromGridGraphAndCategories(grid, graph, allCategories, gridDate);
 
   // Get images for actors and credits and save them to S3
-  await getAndSaveAllImagesForGrid(grid, overwriteImages);
+  await getAndSaveAllImagesForGrid(gridExport, overwriteImages);
 
   // Convert to JSON
-  const jsonGrid = convertGridToJSON(grid);
+  const jsonGrid = convertGridToJSON(gridExport);
   console.log(jsonGrid);
 
   // Write grid to S3
@@ -97,7 +120,7 @@ function processArgs(): [string, boolean] {
  *
  * @returns A promise that resolves to a Graph object
  */
-async function getGraph(): Promise<Graph> {
+async function loadOrFetchGraph(): Promise<ActorCreditGraph> {
   // If graph exists, read it and return
   const GRAPH_PATH = "./src/complete_graph.json";
   if (fs.existsSync(GRAPH_PATH)) {
@@ -106,20 +129,124 @@ async function getGraph(): Promise<Graph> {
   }
 
   // Otherwise, scrape the data, generate the graph, and write it to file
-  else {
-    // Get all actor information
-    const actorsWithCredits = await getAllActorInformation(famousActorIds);
-    console.log("Actors with credits:", actorsWithCredits.length);
+  // Get all actor information
+  const actorsWithCredits = await getAllActorInformation();
+  console.log("Actors with credits:", actorsWithCredits.length);
 
-    // Generate graph
-    const graph = generateGraph(actorsWithCredits);
+  // Generate graph
+  const graph = generateGraph(actorsWithCredits);
 
-    // Write graph to file
-    // NOTE: This file cannot be called graph.json because it somehow conflicts with
-    //       the graph.ts file in the same directory.
-    writeGraphToFile(graph, GRAPH_PATH);
+  // Write graph to file
+  // NOTE: This file cannot be called graph.json because it somehow conflicts with
+  //       the graph.ts file in the same directory.
+  writeGraphToFile(graph, GRAPH_PATH);
 
-    return graph;
+  return graph;
+}
+
+/**
+ * Add extra info for graph credits into the graph.
+ *
+ * Note: This function modifies the graph in place.
+ *
+ * @param graph the graph to update with extra info
+ * @param allCreditExtraInfo the extra info to merge into the graph
+ */
+function mergeGraphAndExtraInfo(
+  graph: ActorCreditGraph,
+  allCreditExtraInfo: { [key: string]: CreditExtraInfo }
+): void {
+  // Iterate over extra info and add them to the graph
+  for (const [creditUniqueString, extraInfo] of Object.entries(allCreditExtraInfo)) {
+    const credit = graph.credits[creditUniqueString];
+    credit.rating = extraInfo.rating;
+  }
+}
+
+function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {
+  const genericGraph: Graph = {
+    axisEntities: graph.actors,
+    connections: graph.credits,
+  };
+
+  // For the generic algorithm, connections' IDs must be the same as their keys
+  // in the connections object. This was a problem because we use keys like 'movie-123'
+  // everywhere, but the IDs in the connections object are just '123'.
+  for (const credit of Object.values(graph.credits)) {
+    const uniqueString = getCreditUniqueString(credit);
+    genericGraph.connections[uniqueString].id = uniqueString;
+  }
+
+  return genericGraph;
+}
+
+function getCategoryGraphEntities(
+  categories: { [key: number]: Category },
+  graph: ActorCreditGraph
+): GraphEntity[] {
+  const categoryGraphEntities = [];
+  for (const category of Object.values(categories)) {
+    // Create the base object
+    const categoryGraphEntity = {
+      id: category.id,
+      connections: {},
+      entityType: "category",
+    };
+
+    // Iterate over all credits, adding to the connections object if they match the category
+    for (const [creditUniqueString, credit] of Object.entries(graph.credits)) {
+      if (category.creditFilter(credit)) {
+        categoryGraphEntity.connections[creditUniqueString] = graph.credits[creditUniqueString];
+      }
+    }
+
+    // Append to the output list
+    categoryGraphEntities.push(categoryGraphEntity);
+  }
+
+  return categoryGraphEntities;
+}
+
+function addCategoriesToGenericGraph(categories: GraphEntity[], genericGraph: Graph): void {
+  for (const category of categories) {
+    // Add the category to the axisEntities object
+    genericGraph.axisEntities[category.id] = category;
+
+    // Add the category to all connections that match it
+    for (const creditUniqueString in category.connections) {
+      genericGraph.connections[creditUniqueString].connections[category.id] = category;
+    }
+  }
+}
+
+function printGrid(grid: Grid, graph: ActorCreditGraph, categories: { [key: number]: Category }): void {
+  const [across, down] = [grid.across, grid.down];
+  const fixedLength = 25;
+
+  // Collect across entities into a single string
+  let acrossLine = "".padEnd(fixedLength + 5);
+  for (const axisEntity of across) {
+    let entityString = "";
+    if (axisEntity.entityType === "category") {
+      entityString = categories[axisEntity.id].name;
+    } else {
+      entityString = graph.actors[axisEntity.id].name;
+    }
+    acrossLine += entityString.padEnd(fixedLength);
+  }
+
+  console.log(acrossLine);
+  console.log("-".repeat((across.length + 1) * fixedLength));
+
+  // Print down entities vertically
+  for (const axisEntity of down) {
+    let entityString = "";
+    if (axisEntity.entityType === "category") {
+      entityString = categories[axisEntity.id].name;
+    } else {
+      entityString = graph.actors[axisEntity.id].name;
+    }
+    console.log(entityString.padEnd(fixedLength - 2) + " |");
   }
 }
 
@@ -128,9 +255,8 @@ async function getGraph(): Promise<Graph> {
  * @param actorIds the list of actor IDs to get information for
  * @returns A promise that resolves to a list of actors with their credits
  */
-async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
+async function getAllActorInformation(): Promise<Actor[]> {
   const actorsWithCredits: Actor[] = [];
-  // for (const id of famousActorIds) {
   for (const id of famousActorIds) {
     const actor = await getActorWithCreditsById(id);
     actorsWithCredits.push(actor);
@@ -138,253 +264,6 @@ async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   }
 
   return actorsWithCredits;
-}
-
-async function pickRandomStartingActorAndGetValidAcrossAndDown(
-  graph: Graph
-): Promise<[ActorNode[], ActorNode[]]> {
-  // Pick random starting actor
-  const actorIds = Object.keys(graph.actors);
-  const randomActorId = actorIds[Math.floor(Math.random() * actorIds.length)];
-
-  // Get valid across and down groups of actors
-  const startingActor: ActorNode = graph.actors[randomActorId];
-  console.log(`Starting actor: ${startingActor.name} with ID = ${startingActor.id}`);
-  const [across, down] = getValidAcrossAndDown(graph, startingActor, [], [isLegitCredit], true);
-
-  console.log(`Across: ${across.map((actor) => actor.name).join(", ")}`);
-  console.log(`Down: ${down.map((actor) => actor.name).join(", ")}`);
-
-  return [across, down];
-}
-
-/**
- * Get a valid pair of across and down actors for a grid.
- *
- * This function is effectively a breadth-first search over the graph of actors
- * and credits, starting with the given actor. It recursively searches for valid
- * pairs of actors that share credits with each other, satisfying the given
- * actor and credit conditions.
- *
- * At the moment, we are only considering movie credits while traversing the
- * graph. There are too many TV shows that are BS answers, so by only
- * considering movie credits while **creating** the graph, we guarantee that
- * there's a movie answer for every actor pair. TV shows will still be valid
- * answers while playing the game, though.
- *
- * The random flag determines whether to shuffle the lists of actors and credits
- * used while searching. If random is false, the function will iterate over
- * actors and credits in the same order every time. This is useful for
- * debugging.
- *
- * @param graph The graph of actors and credits
- * @param startingActor The first actor in the grid
- * @param actorConditions A list of functions that take an actor and return true if the actor satisfies some condition
- * @param creditConditions A list of functions that take a credit and return true if the credit satisfies some condition
- * @param random Whether to randomize the order of actors and credits while searching
- * @returns A tuple of two lists of actors, representing the across and down groups of actors in the grid
- */
-function getValidAcrossAndDown(
-  graph: Graph,
-  startingActor: ActorNode,
-  actorConditions: ((actor: ActorNode) => boolean)[],
-  creditConditions: ((credit: CreditNode) => boolean)[],
-  random = false
-): [ActorNode[], ActorNode[]] {
-  console.log(
-    `Graph: ${Object.keys(graph.actors).length} actors, ${Object.keys(graph.credits).length} credits`
-  );
-
-  // Make sure starting actor satisfies all actor conditions
-  if (!actorConditions.every((condition) => condition(startingActor))) {
-    // console.error("Starting actor does not satisfy actor conditions");
-    return [[], []];
-  }
-
-  const acrossActors: ActorNode[] = [startingActor];
-  const downActors: ActorNode[] = [];
-  const usedCredits: Set<string> = new Set(); // Used to make sure that every pair of actors shares a unique credit
-  function getAcrossAndDownRecursive(current: ActorNode): boolean {
-    // Base case: if we have a valid grid, return
-    if (acrossActors.length === 3 && downActors.length === 3) {
-      return true;
-    }
-
-    // If there are more across actors than down actors, we need to add a down actor
-    const direction = acrossActors.length > downActors.length ? "down" : "across";
-    const compareActors = direction === "down" ? acrossActors : downActors;
-
-    // Iterate over all movie credits of the current actor
-    let movieCreditIds = Object.keys(current.edges).filter((creditId) => {
-      return graph.credits[creditId].type === "movie";
-    });
-
-    // Randomize the order of movie credits
-    if (random) {
-      movieCreditIds = movieCreditIds.sort(() => Math.random() - 0.5);
-    }
-
-    for (const creditId of movieCreditIds) {
-      const credit: CreditNode = graph.credits[creditId];
-      // Skip credits that have already been used
-      if (usedCredits.has(getCreditUniqueString(credit.type, credit.id))) {
-        // console.log(`Skipping credit ${credit.name} because it's already been used`)
-        continue;
-      }
-
-      // Skip credits that don't satisfy all credit conditions
-      if (!creditConditions.every((condition) => condition(credit))) {
-        // console.log(`Skipping credit ${credit.name} does not satisfy credit conditions`);
-        continue;
-      }
-
-      // Iterate over this credit's actors
-      const actors = random
-        ? Object.keys(credit.edges).sort(() => Math.random() - 0.5)
-        : Object.keys(credit.edges);
-      for (const actorId of actors) {
-        const actor = graph.actors[actorId];
-
-        // Skip the current actor, who is inevitably in this credit's actors map
-        // NOTE: In theory, the condition below this one should always be true
-        //       if this one is, but I think it's clearer to leave this one in.
-        if (parseInt(actor.id) === current.id) {
-          continue;
-        }
-
-        // Skip actors that are already in the across or down lists
-        if (
-          acrossActors.map((actor) => actor.id).includes(parseInt(actorId)) ||
-          downActors.map((actor) => actor.id).includes(parseInt(actorId))
-        ) {
-          continue;
-        }
-
-        // Skip actors that don't satisfy all actor conditions
-        if (!actorConditions.every((condition) => condition(actor))) {
-          // console.log(`Skipping actor ${actor.name} does not satisfy actor conditions`);
-          continue;
-        }
-
-        // Here we're keeping track of credits we've used for this actor
-        // If we end up not using this actor, we remove these credits from the used set
-        const addedCredits: string[] = [];
-
-        // Go back and check that this actor shares credit with all previous actors
-        // on the other side of the grid
-        let valid = true;
-        for (let i = 0; i < compareActors.length - 1; i++) {
-          let chosenSharedCredit: CreditNode = null;
-
-          // Iterate over the shared movie credits between the current actor and the compare actor
-          const sharedCredits = getSharedCreditsForActors(actor, compareActors[i], usedCredits, "movie");
-          if (sharedCredits.length > 0) {
-            // If this credit satisfies all credit conditions, choose it
-            for (const sharedCredit of sharedCredits) {
-              // Don't consider credits that have already been used
-              // or the current credit, which we're already considering
-              if (
-                usedCredits.has(getCreditUniqueString(sharedCredit.type, sharedCredit.id)) ||
-                sharedCredit.id === credit.id
-              ) {
-                continue;
-              }
-
-              if (creditConditions.every((condition) => condition(sharedCredit))) {
-                chosenSharedCredit = sharedCredit;
-                break;
-              }
-            }
-
-            // If we found a valid shared credit, add it to the used credits set
-            if (chosenSharedCredit) {
-              const uniqueCreditString = getCreditUniqueString(
-                chosenSharedCredit.type,
-                chosenSharedCredit.id
-              );
-              usedCredits.add(uniqueCreditString);
-              addedCredits.push(uniqueCreditString);
-              continue;
-            }
-          }
-
-          // We could not find a valid shared credit for all previous actors
-          // Remove the credits that were added to the used credits set
-          valid = false;
-          for (const addedCredit of addedCredits) {
-            usedCredits.delete(addedCredit);
-          }
-          break;
-        }
-
-        // If the actor is valid, add it to the appropriate list and recurse
-        if (valid) {
-          // Add this actor to the appropriate list
-          if (direction === "across") {
-            acrossActors.push(actor);
-          } else {
-            downActors.push(actor);
-          }
-
-          // Add the credit to the used credits set
-          const uniqueCreditString = getCreditUniqueString(credit.type, credit.id);
-          // console.log(`Adding credit ${uniqueCreditString} (${credit.name}) to used credits`);
-          usedCredits.add(uniqueCreditString);
-          addedCredits.push(uniqueCreditString);
-
-          // Try to recurse
-          if (getAcrossAndDownRecursive(actor)) {
-            return true;
-          }
-
-          // If the recursion fails, remove the actor and their credits from the lists and continue
-          else {
-            if (direction === "across") {
-              acrossActors.pop();
-            } else {
-              downActors.pop();
-            }
-
-            for (const addedCredit of addedCredits) {
-              usedCredits.delete(addedCredit);
-            }
-          }
-        }
-      }
-    }
-
-    // If we reach this point, we've iterated over all credits for this actor
-    return false;
-  }
-
-  if (getAcrossAndDownRecursive(startingActor)) {
-    // List the used credits
-    console.log("Used credits: " + usedCredits.size);
-    for (const credit of usedCredits) {
-      console.log(`${credit}: ${graph.credits[credit].name}`);
-    }
-    return [acrossActors, downActors];
-  }
-
-  return [[], []];
-}
-
-/**
- * Determine if a credit is "legit" based on certain criteria.
- *
- * @param credit The credit to check
- * @returns true if the credit is "legit", false otherwise
- */
-function isLegitCredit(credit: CreditNode): boolean {
-  if (credit.type === "movie") {
-    return isLegitMovie(credit);
-  }
-
-  if (credit.type === "tv") {
-    return isLegitTVShow(credit);
-  }
-
-  return false;
 }
 
 /**
@@ -399,7 +278,8 @@ function isLegitCredit(credit: CreditNode): boolean {
  */
 function isLegitMovie(credit: CreditNode): boolean {
   if (!(credit.type === "movie")) {
-    console.log(`${credit.name} is not a movie`);
+    // console.log(`${credit.name} is not a movie`);
+    return false;
   }
 
   const INVALID_MOVIE_GENRE_IDS: number[] = [
@@ -410,7 +290,7 @@ function isLegitMovie(credit: CreditNode): boolean {
   const INVALID_MOVIE_IDS: number[] = [
     10788, // Kambakkht Ishq
   ];
-  const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(credit.id);
+  const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(parseInt(credit.id));
 
   // Still need to tweak this
   const MINIMUM_POPULARITY = 40;
@@ -419,99 +299,81 @@ function isLegitMovie(credit: CreditNode): boolean {
   return !isInvalidGenre && !isInvalidMovie && popularEnough;
 }
 
-/**
- * Determine if a TV show credit is "legit" based on certain criteria.
- *
- * @param credit The credit to check
- * @returns true if the credit is "legit", false otherwise
- */
-function isLegitTVShow(credit: CreditNode): boolean {
-  if (!(credit.type === "tv")) {
-    console.log(`${credit.name} is not a TV show`);
-  }
-
-  // Genre
-  const INVALID_TV_GENRE_IDS: number[] = [
-    99, // Documentary
-    10763, // News
-    10767, // Talk shows
-  ];
-  const isInvalidGenre: boolean = credit.genre_ids.some((id) => INVALID_TV_GENRE_IDS.includes(id));
-
-  // Invalid TV shows
-  const INVALID_TV_SHOW_IDS: number[] = [
-    456, // The Simpsons
-    1667, // Saturday Night Live
-    2224, // The Daily Show
-    3739, // E! True Hollywood Story
-    4779, // Hallmark Hall of Fame
-    13667, // MTV Movie & TV Awards
-    23521, // Kids' Choice Awards
-    27023, // The Oscars
-    28464, // The Emmy Awards
-    30048, // Tony Awards
-    43117, // Teen Choice Awards
-    89293, // Bambi Awards
-    122843, // Honest Trailers
-    1111889, // Carol Burnett: 90 Years of Laughter + Love
-  ];
-  const isInvalidShow: boolean = INVALID_TV_SHOW_IDS.includes(credit.id);
-
-  // Popularity
-  // Still need to tweak this
-  const MINIMUM_POPULARITY = 400;
-  const popularEnough = credit.popularity > MINIMUM_POPULARITY;
-
-  return !isInvalidGenre && !isInvalidShow;
-}
-
-/**
- * Get a Grid object from a graph and two lists of actors.
- *
- * The Grid object will contain the actors, credits, and answers for the grid.
- * The Grid will contain all of an actor's credits, whether or not they were
- * "legit" for the purposes of generating the two lists of actors.
- *
- * @param graph A graph of all actors and credits
- * @param across The actors going across the grid
- * @param down The actors going down the grid
- * @returns A Grid object representing the grid
- */
-function getGridFromGraphAndActors(
-  graph: Graph,
-  across: ActorNode[],
-  down: ActorNode[],
+function getGridExportFromGridGraphAndCategories(
+  grid: Grid,
+  graph: ActorCreditGraph,
+  allCategories: { [key: number]: Category },
   id: string
 ): GridExport {
-  const actors = across.concat(down).map((actorNode) => {
-    return { id: actorNode.id, name: actorNode.name };
-  });
-  const credits: CreditExport[] = [];
-  const answers: { [key: number]: { type: "movie" | "tv"; id: number }[] } = {};
-
-  // Create empty answers lists for each actor
-  for (const actor of actors) {
-    answers[actor.id] = [];
+  // Get the axes, actors, and categories
+  const axes: string[] = [];
+  const actors: ActorExport[] = [];
+  const categories: CategoryExport[] = [];
+  for (const axisEntity of grid.across.concat(grid.down)) {
+    if (axisEntity.entityType === "category") {
+      const category = allCategories[axisEntity.id];
+      // Categories have negative IDs, so make it positive to
+      // avoid having two dashes in the string.
+      axes.push(`category-${-1 * category.id}`);
+      categories.push({ id: category.id, name: category.name });
+    } else {
+      const actor = graph.actors[axisEntity.id];
+      axes.push(`actor-${actor.id}`);
+      actors.push({ id: parseInt(actor.id), name: actor.name });
+    }
   }
 
-  // Get all credits that the across and down actors share
-  for (const actor of across) {
-    for (const otherActor of down) {
-      for (const creditUniqueString of Object.keys(actor.edges)) {
-        if (otherActor.edges[creditUniqueString]) {
+  // Sort axes to have all categories appear after all actors
+  axes.sort((a, b) => {
+    if (a.startsWith("actor") && b.startsWith("category")) {
+      return -1;
+    }
+    if (a.startsWith("category") && b.startsWith("actor")) {
+      return 1;
+    }
+    return;
+  });
+
+  // Create empty answer lists for each axis entity
+  const answers: { [key: number]: { type: "movie" | "tv"; id: number }[] } = {};
+  for (const axisEntity of grid.across.concat(grid.down)) {
+    answers[axisEntity.id] = [];
+  }
+
+  // Create empty credits list
+  const credits: CreditExport[] = [];
+
+  // Add all credits that are shared by across and down pairs
+  for (const acrossAxisEntity of grid.across) {
+    for (const downAxisEntity of grid.down) {
+      // Only iterate over the axis entity with fewer connections
+      // This is particularly useful when a category with a lot of connections is present
+      const [axisEntityWithFewerConnections, axisEntityWithMoreConnections] =
+        acrossAxisEntity.connections.size < downAxisEntity.connections.size
+          ? [acrossAxisEntity, downAxisEntity]
+          : [downAxisEntity, acrossAxisEntity];
+      for (const creditUniqueString of Object.keys(axisEntityWithFewerConnections.connections)) {
+        if (axisEntityWithMoreConnections.connections[creditUniqueString]) {
           const creditIdNum = parseInt(creditUniqueString.split("-")[1]);
+          const credit = graph.credits[creditUniqueString];
           // Create the credit if it doesn't already exist
-          if (!credits.map((credit) => credit.id).includes(creditIdNum)) {
-            credits.push({
-              type: graph.credits[creditUniqueString].type,
-              id: creditIdNum,
-              name: graph.credits[creditUniqueString].name,
-            });
+          const creditExport = {
+            type: credit.type,
+            id: creditIdNum,
+            name: credit.name,
+          };
+          if (
+            !credits.find(
+              (existingCredit) => existingCredit.id === creditIdNum && existingCredit.type === credit.type
+            )
+          ) {
+            credits.push(creditExport);
           }
 
-          const answer = { type: graph.credits[creditUniqueString].type, id: creditIdNum };
-          answers[actor.id].push(answer);
-          answers[otherActor.id].push(answer);
+          // Add this credit to both axis entities' answers
+          const answer = { type: creditExport.type, id: creditExport.id };
+          answers[acrossAxisEntity.id].push(answer);
+          answers[downAxisEntity.id].push(answer);
         }
       }
     }
@@ -519,7 +381,9 @@ function getGridFromGraphAndActors(
 
   return {
     id,
+    axes,
     actors,
+    categories,
     credits,
     answers,
   };

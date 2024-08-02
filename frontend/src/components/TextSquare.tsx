@@ -11,6 +11,7 @@ const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, clickHandler
       clickHandler(event);
     }
   };
+
   return (
     <div
       onClick={handleClick}

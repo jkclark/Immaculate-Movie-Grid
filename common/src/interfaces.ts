@@ -3,8 +3,12 @@ export interface ActorExport {
   name: string;
 }
 
+export interface CategoryExport {
+  id: number;
+  name: string;
+}
+
 export interface CreditExport {
-  // For now this is the same as Credit
   type: "movie" | "tv";
   id: number;
   name: string;
@@ -12,8 +16,17 @@ export interface CreditExport {
 
 export interface GridExport {
   id: string; // this is typically the grid's date
+
+  // axes will contain strings like "actor-4495" or "category-1",
+  // which allow the frontend to know which actor or category to use.
+  // axes contains both across and down axes' information.
+  axes: string[];
+
   actors: ActorExport[];
+  categories: CategoryExport[];
   credits: CreditExport[];
+
+  // A mapping of actor/category ID -> credit IDs
   answers: { [key: number]: { type: "movie" | "tv"; id: number }[] }; // actor id -> [{type, id}, ...]
 }
 

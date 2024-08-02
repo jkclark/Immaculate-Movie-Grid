@@ -65,7 +65,15 @@ export async function getImagesAlreadyInS3(): Promise<[Set<number>, Set<number>,
   const sets = await Promise.all(
     prefixes.map(async (prefix) => {
       const objects = await listS3ObjectsWithPrefix(bucket, prefix);
-      const ids = new Set(objects.map((object) => parseInt(object.Key.split("/")[1])));
+      const ids = new Set(
+        objects.map((object) => {
+          const keyParts = object.Key.split("/");
+          // We could parseInt the whole last part of the key, because
+          // parseInt will stop at the first non-numeric character, but
+          // this is more explicit.
+          return parseInt(keyParts[keyParts.length - 1].split(".")[0]);
+        })
+      );
       return ids;
     })
   );
