@@ -20,13 +20,14 @@ export interface Grid {
 export function getGridFromGraph(
   graph: Graph,
   size: number,
-  connectionTypeWeights: { [key: string]: number }
+  axisEntityTypeWeights: { [key: string]: number },
+  random: boolean
 ): Grid {
   const across: GraphEntity[] = [];
   const down: GraphEntity[] = [];
 
   // Pick random starting axis entity
-  const startingAxisEntityType = getRandomKeyByWeight(connectionTypeWeights);
+  const startingAxisEntityType = getRandomKeyByWeight(axisEntityTypeWeights);
   const axisEntitiesOfType = Object.values(graph.axisEntities).filter(
     (entity) => entity.entityType === startingAxisEntityType
   );
@@ -49,8 +50,14 @@ export function getGridFromGraph(
     const mostRecentAxisEntity = fillDirection === "down" ? across[across.length - 1] : down[down.length - 1];
     const [fillAxis, compareAxis] = fillDirection === "down" ? [down, across] : [across, down];
 
+    let mostRecentAxisEntityConnections = Object.values(mostRecentAxisEntity.connections);
+    // Randomize order of connections, if random is true
+    if (random) {
+      mostRecentAxisEntityConnections = randomizeListOrder(mostRecentAxisEntityConnections);
+    }
+
     // Iterate over most recent axis entity's connections
-    for (const connection of Object.values(mostRecentAxisEntity.connections)) {
+    for (const connection of mostRecentAxisEntityConnections) {
       // If we've already used this connection, skip it
       if (usedConnections.has(connection.id)) {
         continue;
@@ -61,14 +68,24 @@ export function getGridFromGraph(
 
       // Determine what kind of axis entity we want to use next
       // (e.g., actor, category)
-      const nextAxisEntityType = getRandomKeyByWeight(connectionTypeWeights);
+      const nextAxisEntityType = getRandomKeyByWeight(axisEntityTypeWeights);
 
-      // Sort this connection's connections by whether or not their entity type matches nextAxisEntityType
-      const sortedConnectedAxisEntities = sortByFieldMatch(
+      // Get separate lists of axis entities that match and don't match nextAxisEntityType
+      // Remember, connection.connections are axis entities
+      let [matchingAxisEntities, nonMatchingAxisEntities] = splitByFieldMatch(
         Object.values(connection.connections),
         "entityType",
         nextAxisEntityType
       );
+
+      // If random is true, randomize the order of the matching and non-matching axis entities
+      if (random) {
+        matchingAxisEntities = randomizeListOrder(matchingAxisEntities);
+        nonMatchingAxisEntities = randomizeListOrder(nonMatchingAxisEntities);
+      }
+
+      // Append the non-matching axis entities to the matching axis entities
+      const sortedConnectedAxisEntities = matchingAxisEntities.concat(nonMatchingAxisEntities);
 
       // Iterate over the axis entities in this connection
       for (const axisEntity of sortedConnectedAxisEntities) {
@@ -122,6 +139,10 @@ export function getGridFromGraph(
   return { across: [], down: [] };
 }
 
+function randomizeListOrder(list: any[]): any[] {
+  return list.slice().sort(() => Math.random() - 0.5);
+}
+
 function getRandomKeyByWeight(weights: { [key: string]: number }): string {
   // Calculate the total weight
   const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
@@ -143,18 +164,19 @@ function getRandomKeyByWeight(weights: { [key: string]: number }): string {
   return Object.keys(weights)[0];
 }
 
-function sortByFieldMatch<T>(objects: T[], field: keyof T, value: any): T[] {
-  return objects.slice().sort((a, b) => {
-    const aMatches = a[field] === value;
-    const bMatches = b[field] === value;
-    if (aMatches && !bMatches) {
-      return -1;
-    } else if (!aMatches && bMatches) {
-      return 1;
+function splitByFieldMatch<T>(objects: T[], key: keyof T, value: any): [T[], T[]] {
+  const matching: T[] = [];
+  const nonMatching: T[] = [];
+
+  for (const obj of objects) {
+    if (obj[key] === value) {
+      matching.push(obj);
     } else {
-      return 0;
+      nonMatching.push(obj);
     }
-  });
+  }
+
+  return [matching, nonMatching];
 }
 
 /**

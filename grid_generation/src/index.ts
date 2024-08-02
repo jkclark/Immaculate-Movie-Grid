@@ -58,7 +58,7 @@ async function main(): Promise<void> {
 
   do {
     // Get a valid grid from the generic graph
-    grid = getGridFromGraph(genericGraph, 3, { actor: 0, category: 1 });
+    grid = getGridFromGraph(genericGraph, 3, { actor: 0, category: 1 }, true);
 
     // If no valid grid was found, exit
     if (grid.across.length === 0 || grid.down.length === 0) {
@@ -401,6 +401,7 @@ function getGridExportFromGridGraphAndCategories(
   for (const acrossAxisEntity of grid.across) {
     for (const downAxisEntity of grid.down) {
       // Only iterate over the axis entity with fewer connections
+      // This is particularly useful when a category is present with a lot of connections
       const [axisEntityWithFewerConnections, axisEntityWithMoreConnections] =
         acrossAxisEntity.connections.size < downAxisEntity.connections.size
           ? [acrossAxisEntity, downAxisEntity]
