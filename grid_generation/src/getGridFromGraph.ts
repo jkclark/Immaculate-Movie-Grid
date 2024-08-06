@@ -12,9 +12,14 @@ export interface Graph {
   connections: { [key: string]: Connection };
 }
 
+export interface UsedConnectionsWithAxisEntities {
+  [key: string]: Set<string>;
+}
+
 export interface Grid {
   across: GraphEntity[];
   down: GraphEntity[];
+  usedConnections: UsedConnectionsWithAxisEntities;
 }
 
 export function getGridFromGraph(
@@ -38,7 +43,7 @@ export function getGridFromGraph(
   across.push(startingAxisEntity);
 
   // Keep track of the connections used
-  const usedConnections = new Set<string>();
+  const usedConnections: UsedConnectionsWithAxisEntities = {};
 
   function getGridRecursively(): boolean {
     // Base case
@@ -60,12 +65,13 @@ export function getGridFromGraph(
     // Iterate over most recent axis entity's connections
     for (const connection of mostRecentAxisEntityConnections) {
       // If we've already used this connection, or if it's invalid as per the condition, skip it
-      if (usedConnections.has(connection.id) || !connectionFilter(connection)) {
+      if (Object.keys(usedConnections).includes(connection.id) || !connectionFilter(connection)) {
         continue;
       }
 
-      // Add this connection to the used connections
-      usedConnections.add(connection.id);
+      // Add this connection to the used connections, only with the most recent axis entity
+      // (we'll add the other axis entity later)
+      usedConnections[connection.id] = new Set([mostRecentAxisEntity.id]);
 
       // Determine what kind of axis entity we want to use next
       // (e.g., actor, category)
@@ -97,7 +103,7 @@ export function getGridFromGraph(
 
         // Compare this axis entity to the other axis's entities,
         // except for the most recent axis entity, because we're already connected to it
-        const newConnections: Set<string> = axisEntityWorksWithAxis(
+        const newConnections: UsedConnectionsWithAxisEntities = axisEntityWorksWithAxis(
           axisEntity,
           compareAxis.slice(0, compareAxis.length - 1),
           usedConnections,
@@ -107,9 +113,12 @@ export function getGridFromGraph(
           // Add the axis entity to the grid
           fillAxis.push(axisEntity);
 
+          // Add this axisEntity to the usedConnections entry for this connection
+          usedConnections[connection.id].add(axisEntity.id);
+
           // Add the connections to the other entities in the compare axis to the used connections
-          for (const newConnection of newConnections) {
-            usedConnections.add(newConnection);
+          for (const [connectionId, axisEntityIds] of Object.entries(newConnections)) {
+            usedConnections[connectionId] = axisEntityIds;
           }
 
           // Recurse
@@ -120,14 +129,15 @@ export function getGridFromGraph(
           // Recursion failed, remove the axis entity and
           // connections used for this axis entity
           fillAxis.pop();
-          for (const newConnection of newConnections) {
-            usedConnections.delete(newConnection);
+          usedConnections[connection.id].delete(axisEntity.id);
+          for (const connectionId of Object.keys(newConnections)) {
+            delete usedConnections[connectionId];
           }
         }
       }
 
       // Remove this connection from the used connections
-      usedConnections.delete(connection.id);
+      delete usedConnections[connection.id];
     }
 
     // No connections worked, so we need to backtrack
@@ -135,10 +145,10 @@ export function getGridFromGraph(
   }
 
   if (getGridRecursively()) {
-    return { across, down };
+    return { across, down, usedConnections };
   }
 
-  return { across: [], down: [] };
+  return { across: [], down: [], usedConnections: {} };
 }
 
 function randomizeListOrder(list: any[]): any[] {
@@ -193,15 +203,15 @@ function splitByFieldMatch<T>(objects: T[], key: keyof T, value: any): [T[], T[]
 function axisEntityWorksWithAxis(
   axisEntity: GraphEntity,
   axis: GraphEntity[],
-  excludeConnections: Set<string>,
+  excludeConnections: UsedConnectionsWithAxisEntities,
   connectionFilter: (connection: Connection) => boolean
-): Set<string> {
-  const connections: Set<string> = new Set();
+): UsedConnectionsWithAxisEntities {
+  const connections: UsedConnectionsWithAxisEntities = {};
   for (const otherAxisEntity of axis) {
     const sharedConnection: string = axisEntitiesShareConnection(
       axisEntity,
       otherAxisEntity,
-      new Set([...excludeConnections, ...connections]),
+      { ...excludeConnections, ...connections },
       connectionFilter
     );
 
@@ -209,7 +219,7 @@ function axisEntityWorksWithAxis(
       return null;
     }
 
-    connections.add(sharedConnection);
+    connections[sharedConnection] = new Set([axisEntity.id, otherAxisEntity.id]);
   }
 
   return connections;
@@ -226,11 +236,11 @@ function axisEntityWorksWithAxis(
 function axisEntitiesShareConnection(
   axisEntity1: GraphEntity,
   axisEntity2: GraphEntity,
-  excludeConnections: Set<string>,
+  excludeConnections: UsedConnectionsWithAxisEntities,
   connectionFilter: (connection: Connection) => boolean
 ): string {
   for (const connection of Object.values(axisEntity1.connections)) {
-    if (excludeConnections.has(connection.id) || !connectionFilter(connection)) {
+    if (Object.keys(excludeConnections).includes(connection.id) || !connectionFilter(connection)) {
       continue;
     }
 

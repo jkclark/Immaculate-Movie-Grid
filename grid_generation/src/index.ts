@@ -7,7 +7,13 @@ import { ActorExport, CategoryExport, CreditExport, GridExport } from "../../com
 import { allCategories, Category } from "./categories";
 import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
 import { famousActorIds } from "./famousActorIds";
-import { getGridFromGraph, Graph, GraphEntity, Grid } from "./getGridFromGraph";
+import {
+  getGridFromGraph,
+  Graph,
+  GraphEntity,
+  Grid,
+  UsedConnectionsWithAxisEntities,
+} from "./getGridFromGraph";
 import { ActorCreditGraph, CreditNode, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
 import { getAndSaveAllImagesForGrid } from "./images";
 import { Actor, getCreditUniqueString } from "./interfaces";
@@ -238,15 +244,59 @@ function printGrid(grid: Grid, graph: ActorCreditGraph, categories: { [key: numb
   console.log(acrossLine);
   console.log("-".repeat((across.length + 1) * fixedLength));
 
-  // Print down entities vertically
+  // Print down entities and their connections
   for (const axisEntity of down) {
+    let lineString = "";
+
+    // Print the axis entity's name
     let entityString = "";
     if (axisEntity.entityType === "category") {
       entityString = categories[axisEntity.id].name;
     } else {
       entityString = graph.actors[axisEntity.id].name;
     }
-    console.log(entityString.padEnd(fixedLength - 2) + " |");
+
+    lineString += entityString.padEnd(fixedLength);
+
+    // For each of the across axis entities, find the used connection and print its name
+    for (const acrossAxisEntity of across) {
+      let connectionName = findConnectionName(
+        axisEntity.id,
+        acrossAxisEntity.id,
+        grid.usedConnections,
+        graph
+      );
+
+      // Truncate the connection name to fit in the fixed length
+      // TODO: BUG Sometimes there is no connection... don't know if this is in findConnectionName or grid alg BUG
+      // if (connectionName.length > fixedLength) {
+      //   connectionName = connectionName.slice(0, fixedLength - 3) + "...";
+      // }
+      lineString += connectionName.padEnd(fixedLength);
+    }
+
+    console.log(lineString);
+  }
+}
+
+function findConnectionName(
+  axisEntityId: string,
+  otherAxisEntityId: string,
+  usedConnections: UsedConnectionsWithAxisEntities,
+  graph: ActorCreditGraph
+): string {
+  // Because the keys into usedConnections are just the IDs of the connections,
+  // we need to iterate over all of the values and see if the two axis entities
+  // match the value
+  for (const [connectionId, axisEntityIds] of Object.entries(usedConnections)) {
+    const [connectionAxisEntityId1, connectionAxisEntityId2] = Array.from(axisEntityIds);
+    // We need to check both possible orders of the IDs
+    if (
+      (connectionAxisEntityId1 === axisEntityId && connectionAxisEntityId2 === otherAxisEntityId) ||
+      (connectionAxisEntityId1 === otherAxisEntityId && connectionAxisEntityId2 === axisEntityId)
+    ) {
+      return graph.credits[connectionId].name;
+    }
   }
 }
 
