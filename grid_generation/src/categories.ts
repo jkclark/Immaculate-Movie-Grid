@@ -11,8 +11,8 @@ export interface Category {
 
 export const ratedRCategory: Category = {
   id: -1,
-  name: "Rated R",
-  creditFilter: (credit) => credit.rating === "R",
+  name: "Rated R or TV-MA",
+  creditFilter: (credit) => credit.rating === "R" || credit.rating === "TV-MA",
 };
 
 export const allCategories: { [key: number]: Category } = {
