@@ -12,12 +12,15 @@ const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, clickHandler
     }
   };
 
+  const mainTextLength = mainText.length;
+  const mainTextClass = `text-${7 - Math.floor(mainTextLength / 5)}xl`;
+
   return (
     <div
       onClick={handleClick}
       className="w-full h-full cursor-default text-center flex flex-col item-center justify-center"
     >
-      <p className="text-7xl hover:cursor-default">{mainText}</p>
+      <p className={`${mainTextClass} hover:cursor-default`}>{mainText}</p>
       {subText && <p className="text-xl">{subText}</p>}
     </div>
   );
