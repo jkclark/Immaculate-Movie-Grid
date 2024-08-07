@@ -78,6 +78,7 @@ interface creditNodeExport {
   name: string;
   genre_ids: number[];
   popularity: number;
+  release_date: string;
   connections: number[];
 }
 

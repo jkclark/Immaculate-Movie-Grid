@@ -10,6 +10,8 @@ export interface Credit {
   name: string;
   genre_ids: number[];
   popularity: number;
+  release_date: string;
+
   rating?: CreditRating;
 }
 
