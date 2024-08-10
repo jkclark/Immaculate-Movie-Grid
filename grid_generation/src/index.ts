@@ -190,14 +190,19 @@ function getCategoryGraphEntities(
   categories: { [key: number]: Category },
   graph: ActorCreditGraph
 ): GraphEntity[] {
-  const categoryGraphEntities = [];
+  const categoryGraphEntities: GraphEntity[] = [];
   for (const category of Object.values(categories)) {
     // Create the base object
     const categoryGraphEntity = {
-      id: category.id,
+      id: category.id.toString(),
       connections: {},
       entityType: "category",
+      incompatibleWith: [],
     };
+
+    if (category.incompatibleWith) {
+      categoryGraphEntity.incompatibleWith = category.incompatibleWith.map((id) => id.toString());
+    }
 
     // Iterate over all credits, adding to the connections object if they match the category
     for (const [creditUniqueString, credit] of Object.entries(graph.credits)) {
@@ -227,7 +232,7 @@ function addCategoriesToGenericGraph(categories: GraphEntity[], genericGraph: Gr
 
 function printGrid(grid: Grid, graph: ActorCreditGraph, categories: { [key: number]: Category }): void {
   const [across, down] = [grid.across, grid.down];
-  const fixedLength = 25;
+  const fixedLength = 30;
 
   // Collect across entities into a single string
   let acrossLine = "".padEnd(fixedLength + 5);
