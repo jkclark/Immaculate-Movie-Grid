@@ -7,6 +7,7 @@ export interface Category {
   id: number;
   name: string;
   creditFilter: (credit: Credit) => boolean;
+  incompatibleWith?: number[];
 }
 
 const ratedRCategory: Category = {
@@ -15,14 +16,28 @@ const ratedRCategory: Category = {
   creditFilter: (credit) => credit.rating === "R" || credit.rating === "TV-MA",
 };
 
-const ReleasedIn21stCenturyCategory: Category = {
+const releasedIn21stCenturyCategory: Category = {
   id: -2,
   name: "Released in the 21st century",
+
   // Technically, we could just parseInt the whole of credit.release_date, but this is more readable.
   creditFilter: (credit) => parseInt(credit.release_date.split("-")[0]) >= 2000,
+
+  // We would refer to releasedBefore21stCenturyCategory.id, but it's not defined yet
+  incompatibleWith: [-3],
+};
+
+const releasedBefore21stCenturyCategory: Category = {
+  id: -3,
+  name: "Released before the 21st century",
+  // Technically, we could just parseInt the whole of credit.release_date, but this is more readable.
+  creditFilter: (credit) => parseInt(credit.release_date.split("-")[0]) < 2000,
+
+  incompatibleWith: [releasedIn21stCenturyCategory.id],
 };
 
 export const allCategories: { [key: number]: Category } = {
   [ratedRCategory.id]: ratedRCategory,
-  [ReleasedIn21stCenturyCategory.id]: ReleasedIn21stCenturyCategory,
+  [releasedIn21stCenturyCategory.id]: releasedIn21stCenturyCategory,
+  [releasedBefore21stCenturyCategory.id]: releasedBefore21stCenturyCategory,
 };
