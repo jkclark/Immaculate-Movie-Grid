@@ -13,7 +13,12 @@ const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, clickHandler
   };
 
   const mainTextLength = mainText.length;
-  const mainTextClass = `text-${7 - Math.floor(mainTextLength / 5)}xl`;
+  const mainTextClassSize = 7 - Math.floor(mainTextLength / 5);
+  let mainTextClass = `text-${mainTextClassSize}xl`;
+  // The smallest font size utility with a number is text-2xl
+  if (mainTextClassSize <= 1) {
+    mainTextClass = "text-xl";
+  }
 
   return (
     <div
