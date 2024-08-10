@@ -41,6 +41,10 @@ export async function getAndSaveAllImagesForGrid(grid: GridExport, overwrite: bo
   const imagesBaseURL = tmdbAPIConfig.images.secure_base_url;
   const imageSize = "original";
 
+  console.log(
+    `Getting and saving images for:\n\t${actorIds.size} actors\n\t${movieIds.size} movies\n\t${tvIds.size} TV shows`
+  );
+
   for (const actorId of actorIds) {
     await getAndSaveImage(imagesBaseURL, actorId, "actor", imageSize);
   }
