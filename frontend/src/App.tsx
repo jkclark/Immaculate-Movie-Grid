@@ -43,7 +43,7 @@ function App() {
 
   const setSelectedRow = useSetAtom(selectedRowAtom);
   const setSelectedCol = useSetAtom(selectedColAtom);
-  const { addContentsToOverlay } = useOverlayStack();
+  const { addContentsToOverlay, resetOverlayContents } = useOverlayStack();
   const guessesRemaining = useAtomValue(guessesRemainingAtom);
   const usedAnswers = useAtomValue(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
@@ -197,6 +197,9 @@ function App() {
     setGameOver(true);
     setSelectedRow(-1);
     setSelectedCol(-1);
+    // Make sure to hide the search bar and search results if the last guess
+    // is an incorrect one
+    resetOverlayContents();
   }
 
   function getAllAnswerGridDisplayData(): AnyGridDisplayData[][] {
