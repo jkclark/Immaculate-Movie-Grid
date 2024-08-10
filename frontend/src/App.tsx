@@ -119,6 +119,13 @@ function App() {
     }
   }, [isLoading]);
 
+  // End the game if there are no guesses remaining
+  useEffect(() => {
+    if (guessesRemaining <= 0) {
+      endGame(gridDisplayData);
+    }
+  }, [guessesRemaining]);
+
   async function getGridDataForDate(dateString: string): Promise<GridExport> {
     // Load the grid named with today's date
     let jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", `${dateString}.json`);
