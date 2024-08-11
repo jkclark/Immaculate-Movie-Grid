@@ -24,10 +24,12 @@ dotenv.config();
 
 async function main(): Promise<void> {
   // Read arguments
-  const [gridDate, overwriteImages] = processArgs();
-  if (!gridDate) {
+  const [gridDate, graphMode, overwriteImages] = processArgs();
+  if (!gridDate || !graphMode) {
     console.error(
-      "Usage: npm run generate-grid -- <grid-date> [--overwrite-images]\n\ngrid-date should be supplied in the format YYYY-MM-DD\n"
+      "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--overwrite-images]\n" +
+        "\ngrid-date should be supplied in the format YYYY-MM-DD\n" +
+        "graph-mode should be either 'file' or 'db'\n"
     );
     return;
   }
@@ -101,24 +103,34 @@ async function main(): Promise<void> {
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
 }
 
-function processArgs(): [string, boolean] {
+function processArgs(): [string, "file" | "db" | null, boolean] {
   const args = process.argv.slice(2);
-  let gridDate = "";
+  let gridDate = null;
+  let graphMode: "file" | "db" | null = null;
   let overwriteImages = false;
 
-  if (args.length < 1) {
-    return [gridDate, overwriteImages];
+  console.log(args.length);
+  console.log("Arguments:", args);
+
+  if (args.length < 2) {
+    return [gridDate, graphMode, overwriteImages];
   }
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--overwrite-images") {
       overwriteImages = true;
-    } else {
+    } else if (!gridDate) {
       gridDate = args[i];
+    } else if (!graphMode) {
+      if (args[i] === "file" || args[i] === "db") {
+        graphMode = args[i] as "file" | "db";
+      } else {
+        return [null, null, null];
+      }
     }
   }
 
-  return [gridDate, overwriteImages];
+  return [gridDate, graphMode, overwriteImages];
 }
 
 /**
