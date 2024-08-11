@@ -22,12 +22,14 @@ dotenv.config();
 
 async function main(): Promise<void> {
   // Read arguments
-  const [gridDate, graphMode, overwriteImages] = processArgs();
+  const [gridDate, graphMode, refreshData, overwriteImages] = processArgs();
   if (!gridDate || !graphMode) {
     console.error(
-      "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--overwrite-images]\n" +
+      "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--refresh-data] [--overwrite-images]\n" +
         "\ngrid-date should be supplied in the format YYYY-MM-DD\n" +
-        "graph-mode should be either 'file' or 'db'\n"
+        "graph-mode should be either 'file' or 'db'\n" +
+        "--refresh-data will trigger a refresh of the graph data\n" +
+        "--overwrite-images will ignore existing images in S3\n"
     );
     return;
   }
@@ -99,31 +101,34 @@ async function main(): Promise<void> {
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
 }
 
-function processArgs(): [string, "file" | "db" | null, boolean] {
+function processArgs(): [string, "file" | "db" | null, boolean, boolean] {
   const args = process.argv.slice(2);
   let gridDate = null;
   let graphMode: "file" | "db" | null = null;
+  let refreshData = false;
   let overwriteImages = false;
 
   if (args.length < 2) {
-    return [gridDate, graphMode, overwriteImages];
+    return [gridDate, graphMode, refreshData, overwriteImages];
   }
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--overwrite-images") {
       overwriteImages = true;
+    } else if (args[i] === "--refresh-data") {
+      refreshData = true;
     } else if (!gridDate) {
       gridDate = args[i];
     } else if (!graphMode) {
       if (args[i] === "file" || args[i] === "db") {
         graphMode = args[i] as "file" | "db";
       } else {
-        return [null, null, null];
+        return [null, null, null, null];
       }
     }
   }
 
-  return [gridDate, graphMode, overwriteImages];
+  return [gridDate, graphMode, refreshData, overwriteImages];
 }
 
 function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {
