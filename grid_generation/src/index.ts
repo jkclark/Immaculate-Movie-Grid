@@ -28,7 +28,7 @@ async function main(): Promise<void> {
       "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--refresh-data] [--overwrite-images]\n" +
         "\ngrid-date should be supplied in the format YYYY-MM-DD\n" +
         "graph-mode should be either 'file' or 'db'\n" +
-        "--refresh-data will trigger a refresh of the graph data\n" +
+        "--refresh-data will force a refresh of the graph data\n" +
         "--overwrite-images will ignore existing images in S3\n"
     );
     return;
@@ -36,7 +36,7 @@ async function main(): Promise<void> {
 
   let graph: ActorCreditGraph = null;
   if (graphMode === "file") {
-    graph = await loadGraphFromFile();
+    graph = await loadGraphFromFile(refreshData);
   } else if (graphMode === "db") {
     graph = await loadGraphFromDB();
   }

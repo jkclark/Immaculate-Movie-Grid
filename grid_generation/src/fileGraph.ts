@@ -6,12 +6,12 @@ import { ActorCreditGraph, generateGraph, readGraphFromFile, writeGraphToFile } 
 import { Actor } from "./interfaces";
 import { getActorWithCreditsById } from "./tmdbAPI";
 
-export async function loadGraphFromFile(): Promise<ActorCreditGraph> {
+export async function loadGraphFromFile(refreshData: boolean): Promise<ActorCreditGraph> {
   // Load the graph, or generate it if it doesn't exist
-  const graph = await loadOrFetchGraph();
+  const graph = await loadOrFetchGraph(refreshData);
 
   // Load the extra info for all credits from file, or generate it if it doesn't exist
-  const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits);
+  const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits, refreshData);
 
   // Merge the extra info into the graph, in place
   mergeGraphAndExtraInfo(graph, allCreditExtraInfo);
@@ -24,10 +24,10 @@ export async function loadGraphFromFile(): Promise<ActorCreditGraph> {
  *
  * @returns A promise that resolves to a Graph object
  */
-async function loadOrFetchGraph(): Promise<ActorCreditGraph> {
-  // If graph exists, read it and return
+async function loadOrFetchGraph(refreshData): Promise<ActorCreditGraph> {
+  // If we don't want fresh data and a graph exists, read it and return
   const GRAPH_PATH = "./src/complete_graph.json";
-  if (fs.existsSync(GRAPH_PATH)) {
+  if (!refreshData && fs.existsSync(GRAPH_PATH)) {
     console.log("Graph exists, reading from file");
     return readGraphFromFile(GRAPH_PATH);
   }
