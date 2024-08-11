@@ -4,6 +4,7 @@ import * as readline from "readline";
 
 import { ActorExport, CategoryExport, CreditExport, GridExport } from "../../common/src/interfaces";
 import { allCategories, Category } from "./categories";
+import { loadGraphFromDB } from "./dbGraph";
 import { loadGraphFromFile } from "./fileGraph";
 import {
   getGridFromGraph,
@@ -31,7 +32,12 @@ async function main(): Promise<void> {
     return;
   }
 
-  const graph = await loadGraphFromFile();
+  let graph: ActorCreditGraph = null;
+  if (graphMode === "file") {
+    graph = await loadGraphFromFile();
+  } else if (graphMode === "db") {
+    graph = await loadGraphFromDB();
+  }
 
   // Get a generic graph from the actor credit graph
   const genericGraph = getGenericGraphFromActorCreditGraph(graph);
@@ -98,9 +104,6 @@ function processArgs(): [string, "file" | "db" | null, boolean] {
   let gridDate = null;
   let graphMode: "file" | "db" | null = null;
   let overwriteImages = false;
-
-  console.log(args.length);
-  console.log("Arguments:", args);
 
   if (args.length < 2) {
     return [gridDate, graphMode, overwriteImages];
