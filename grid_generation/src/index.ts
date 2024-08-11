@@ -13,9 +13,8 @@ import {
   Grid,
   UsedConnectionsWithAxisEntities,
 } from "./getGridFromGraph";
-import { ActorCreditGraph, CreditNode } from "./graph";
 import { getAndSaveAllImagesForGrid } from "./images";
-import { getCreditUniqueString } from "./interfaces";
+import { ActorCreditGraph, CreditNode, getCreditUniqueString } from "./interfaces";
 import { writeTextToS3 } from "./s3";
 
 dotenv.config();

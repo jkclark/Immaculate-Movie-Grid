@@ -1,4 +1,4 @@
-import { ActorCreditGraph } from "./graph";
+import { ActorCreditGraph } from "./interfaces";
 
 export async function loadGraphFromDB(): Promise<ActorCreditGraph> {
   return {

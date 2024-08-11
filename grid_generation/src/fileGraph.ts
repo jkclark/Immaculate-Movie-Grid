@@ -2,8 +2,7 @@ import fs from "fs";
 
 import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
 import { famousActorIds } from "./famousActorIds";
-import { ActorCreditGraph, generateGraph, readGraphFromFile, writeGraphToFile } from "./graph";
-import { Actor } from "./interfaces";
+import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUniqueString } from "./interfaces";
 import { getActorWithCreditsById } from "./tmdbAPI";
 
 export async function loadGraphFromFile(refreshData: boolean): Promise<ActorCreditGraph> {
@@ -81,4 +80,130 @@ async function getAllActorInformation(): Promise<Actor[]> {
   }
 
   return actorsWithCredits;
+}
+
+interface actorNodeExport {
+  id: string;
+  name: string;
+  connections: { type: "movie" | "tv"; id: string }[];
+}
+
+interface creditNodeExport {
+  type: "movie" | "tv";
+  id: string;
+  name: string;
+  genre_ids: number[];
+  popularity: number;
+  release_date: string;
+  connections: number[];
+}
+
+function generateGraph(actorsWithCredits: Actor[]): ActorCreditGraph {
+  const graph: ActorCreditGraph = { actors: {}, credits: {} };
+
+  for (const actor of actorsWithCredits) {
+    addActorToGraph(graph, actor.id, actor.name);
+    for (const credit of actor.credits) {
+      try {
+        addCreditToGraph(credit, graph);
+      } catch (e) {
+        if (!(e instanceof RepeatError)) {
+          throw e;
+        }
+      }
+      addLinkToGraph(graph, actor.id, credit);
+    }
+  }
+
+  return graph;
+}
+
+function addActorToGraph(graph: ActorCreditGraph, id: string, name: string): void {
+  if (graph.actors[id]) {
+    throw new Error(`Actor with id ${id} already exists: ${graph.actors[id].name}`);
+  }
+
+  graph.actors[id] = { id, name, connections: {}, entityType: "actor" };
+}
+
+function addCreditToGraph(credit: Credit, graph: ActorCreditGraph): void {
+  const creditUniqueString = getCreditUniqueString(credit);
+  if (graph.credits[creditUniqueString]) {
+    throw new RepeatError(
+      `Credit with id ${creditUniqueString} already exists: ${graph.credits[creditUniqueString].name}`
+    );
+  }
+  graph.credits[creditUniqueString] = {
+    ...credit,
+    connections: {},
+    entityType: "credit",
+  };
+}
+
+function addLinkToGraph(graph: ActorCreditGraph, actorId: string, credit: Credit): void {
+  const creditUniqueString = getCreditUniqueString(credit);
+  const actorNode: ActorNode = graph.actors[actorId];
+  const creditNode: CreditNode = graph.credits[creditUniqueString];
+  actorNode.connections[creditUniqueString] = creditNode;
+  creditNode.connections[actorId] = actorNode;
+}
+
+function readGraphFromFile(path: string): ActorCreditGraph {
+  const json = fs.readFileSync(path, "utf8");
+  const data: { actors: actorNodeExport[]; credits: creditNodeExport[] } = JSON.parse(json);
+
+  const graph: ActorCreditGraph = { actors: {}, credits: {} };
+
+  for (const actor of data.actors) {
+    addActorToGraph(graph, actor.id, actor.name);
+  }
+
+  for (const credit of data.credits) {
+    addCreditToGraph(credit, graph);
+  }
+
+  for (const actor of data.actors) {
+    for (const credit of actor.connections) {
+      addLinkToGraph(graph, actor.id, graph.credits[getCreditUniqueString(credit)]);
+    }
+  }
+
+  return graph;
+}
+
+function writeGraphToFile(graph: ActorCreditGraph, path: string): void {
+  const json = convertGraphToJSON(graph);
+  fs.writeFileSync(path, json);
+}
+
+function convertGraphToJSON(graph: ActorCreditGraph): string {
+  // Convert actorNodes to actorNodeExports (remove the references to connections, just keep the IDs)
+  const actorExports: actorNodeExport[] = [];
+  for (const actorId in graph.actors) {
+    const actor = graph.actors[actorId];
+    const connections = Object.values(actor.connections).map((credit) => {
+      return { type: credit.type, id: credit.id };
+    });
+    actorExports.push({ ...actor, connections });
+  }
+
+  // Convert creditNodes to creditNodeExports (remove the references to connections, just keep the IDs)
+  const creditExports: creditNodeExport[] = [];
+  for (const creditId in graph.credits) {
+    const credit = graph.credits[creditId];
+    const connections = Object.keys(credit.connections).map((actorId) => parseInt(actorId));
+    creditExports.push({
+      ...credit,
+      connections,
+    });
+  }
+
+  return JSON.stringify({ actors: actorExports, credits: creditExports });
+}
+
+class RepeatError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RepeatError";
+  }
 }

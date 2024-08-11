@@ -1,6 +1,5 @@
 import fs from "fs";
-import { CreditNode } from "./graph";
-import { Credit, CreditRating } from "./interfaces";
+import { Credit, CreditNode, CreditRating } from "./interfaces";
 import { getMovieRating, getTVRating } from "./tmdbAPI";
 
 export interface CreditExtraInfo {
