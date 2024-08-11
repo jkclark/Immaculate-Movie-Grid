@@ -5,7 +5,11 @@
         "target": "es6",
         "moduleResolution": "Node",
         "sourceMap": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        // The following two options are required for decorators
+        // used by the TypeORM models
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
     },
     "lib": [
         "es2015"

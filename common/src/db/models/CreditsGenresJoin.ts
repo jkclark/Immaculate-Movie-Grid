@@ -1,8 +1,8 @@
-import { Entity, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
+import { Entity, ManyToOne, PrimaryColumn } from "typeorm";
 import { Credit } from "./Credit";
 import { Genre } from "./Genre";
 
-@Entity()
+@Entity({ name: "credits_genres_join" })
 export class CreditGenreJoin {
   @PrimaryColumn()
   creditId!: number;
@@ -10,19 +10,9 @@ export class CreditGenreJoin {
   @PrimaryColumn()
   genreId!: number;
 
-  @ManyToMany(() => Credit)
-  @JoinTable({
-    name: "credit_genres_join",
-    joinColumns: [{ name: "credit_id", referencedColumnName: "id" }],
-    inverseJoinColumns: [{ name: "genre_id", referencedColumnName: "id" }],
-  })
-  credits!: Credit[];
+  @ManyToOne(() => Credit, (credit) => credit.id)
+  credit!: Credit;
 
-  @ManyToMany(() => Genre)
-  @JoinTable({
-    name: "credit_genres_join",
-    joinColumns: [{ name: "credit_id", referencedColumnName: "id" }],
-    inverseJoinColumns: [{ name: "genre_id", referencedColumnName: "id" }],
-  })
-  genres!: Genre[];
+  @ManyToOne(() => Genre, (genre) => genre.id)
+  genre!: Genre;
 }

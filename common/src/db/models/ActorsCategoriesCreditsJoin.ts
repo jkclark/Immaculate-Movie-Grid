@@ -1,28 +1,20 @@
-import { Entity, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
+import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { ActorOrCategory } from "./ActorOrCategory";
 import { Credit } from "./Credit";
 
-@Entity()
+@Entity({ name: "actors_categories_credits_join" })
 export class ActorOrCategoryCreditJoin {
   @PrimaryColumn()
-  actorOrCategoryId!: number;
+  actor_category_id!: number;
 
   @PrimaryColumn()
-  creditId!: number;
+  credit_id!: number;
 
-  @ManyToMany(() => ActorOrCategory)
-  @JoinTable({
-    name: "actors_categories_credits_join",
-    joinColumns: [{ name: "actor_category_id", referencedColumnName: "id" }],
-    inverseJoinColumns: [{ name: "credit_id", referencedColumnName: "id" }],
-  })
-  actors!: ActorOrCategory[];
+  @ManyToOne(() => ActorOrCategory, (actorOrCategory) => actorOrCategory.id)
+  @JoinColumn({ name: "actor_category_id" })
+  actorOrCategory!: ActorOrCategory;
 
-  @ManyToMany(() => Credit)
-  @JoinTable({
-    name: "actors_categories_credits_join",
-    joinColumns: [{ name: "actor_category_id", referencedColumnName: "id" }],
-    inverseJoinColumns: [{ name: "credit_id", referencedColumnName: "id" }],
-  })
-  credits!: Credit[];
+  @ManyToOne(() => Credit, (credit) => credit.id)
+  @JoinColumn({ name: "credit_id" })
+  credit!: Credit;
 }

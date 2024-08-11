@@ -4,7 +4,10 @@
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
+    // The following two options are required for decorators used by the TypeORM
+    // models, but we also have to define these in the tsconfig.json of the
+    // projects that use the common module
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
   }
 }
