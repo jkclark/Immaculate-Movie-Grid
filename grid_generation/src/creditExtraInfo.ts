@@ -97,11 +97,14 @@ function pruneCreditExtraInfo(
   credits: { [key: string]: CreditNode },
   creditExtraInfo: { [key: string]: CreditExtraInfo }
 ): void {
+  const numCredits = Object.keys(credits).length;
   for (const creditUniqueString of Object.keys(creditExtraInfo)) {
     if (!credits[creditUniqueString]) {
       delete creditExtraInfo[creditUniqueString];
     }
   }
+
+  console.log(`Pruned ${numCredits - Object.keys(credits).length} credits from extra info`);
 }
 
 export function writeAllCreditExtraInfoToFile(
