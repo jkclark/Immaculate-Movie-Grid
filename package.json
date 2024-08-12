@@ -6,38 +6,47 @@
     "frontend",
     "grid_generation"
   ],
+  "scripts": {
+    "create-lambda-package-dir": "mkdir lambda_package",
+    "npm-init-lambda-package": "cd lambda_package && npm init -y",
+    "merge-lambda-package-jsons": "cd lambda_package && jq -s '.[0] * .[1]' ../api/package.json ../common/package.json > package.json",
+    "install-lambda-dependencies": "cd lambda_package && npm install",
+    "build-lambda-package": "cd lambda_package && tsc --project ../api/tsconfig.json --outDir .",
+    "zip-lambda-package": "cd lambda_package && zip -r ../lambda_package.zip *",
+    "generate-lambda-zip": "npm run create-lambda-package-dir && npm run npm-init-lambda-package && npm run merge-lambda-package-jsons && npm run install-lambda-dependencies && npm run build-lambda-package && npm run zip-lambda-package"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.574.0",
+    "@aws-sdk/credential-provider-cognito-identity": "^3.574.0",
     "@aws-sdk/lib-storage": "^3.578.0",
-    "node-fetch": "^2.7.0",
-    "ts-node": "^10.9.2",
-    "pg": "^8.12.0",
-    "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.20",
     "@types/aws-lambda": "^8.10.138",
     "@types/node": "^20.12.12",
-    "@aws-sdk/credential-provider-cognito-identity": "^3.574.0",
     "jotai": "^2.8.3",
     "lodash.debounce": "^4.0.8",
+    "node-fetch": "^2.7.0",
+    "pg": "^8.12.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^5.2.1"
+    "react-icons": "^5.2.1",
+    "reflect-metadata": "^0.2.2",
+    "ts-node": "^10.9.2",
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
-    "dotenv": "^16.4.5",
-    "typescript": "^5.4.5",
-    "@types/node": "^20.12.12",
     "@types/lodash.debounce": "^4.0.9",
+    "@types/node": "^20.12.12",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
+    "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
     "prettier": "^3.3.1",
     "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5",
     "vite": "^5.2.0"
   }
 }
