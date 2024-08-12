@@ -1,7 +1,8 @@
 import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
-import { GridExport } from "../../common/src/interfaces";
+
+import { GridExport } from "common/src/interfaces";
 
 const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
 const typesToS3Prefixes = {

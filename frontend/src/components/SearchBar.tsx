@@ -1,9 +1,9 @@
+import { useAtomValue } from "jotai";
 import debounce from "lodash.debounce";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PiFilmSlate } from "react-icons/pi";
 
-import { useAtomValue } from "jotai";
-import { SearchResult as SearchResultData } from "../../../common/src/interfaces";
+import { SearchResult as SearchResultData } from "common/src/interfaces";
 import { usedAnswersAtom } from "../state";
 import SearchResult from "./SearchResult";
 

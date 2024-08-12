@@ -1,11 +1,12 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
+
 import {
   ActorExport,
   CategoryExport,
   GridExport as GridData,
   SearchResult as SearchResultData,
-} from "../../../common/src/interfaces";
+} from "common/src/interfaces";
 import {
   getGuessesRemainingGridDatum,
   gridDisplayDataAtom,

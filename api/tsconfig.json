@@ -6,16 +6,17 @@
         "moduleResolution": "Node",
         "sourceMap": true,
         "outDir": "dist",
-        // The following two options are required for decorators
-        // used by the TypeORM models
+        "baseUrl": ".",
+        "paths": {
+            "common/*": [
+                "../common/*"
+            ],
+        },
+        // The following two options are required for TypeORM's decorators
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
     },
     "lib": [
         "es2015"
-    ],
-    "include": [
-        "src/**/*.ts",
-        "../common/**/*.ts"
     ]
 }

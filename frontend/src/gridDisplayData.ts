@@ -1,5 +1,6 @@
 import { atom } from "jotai";
-import { ActorExport, CategoryExport, GridExport } from "../../common/src/interfaces";
+
+import { ActorExport, CategoryExport, GridExport } from "common/src/interfaces";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 
 interface GridDisplayData {

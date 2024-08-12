@@ -1,9 +1,26 @@
+import { getFromTMDBAPI, getFromTMDBAPIJson } from "common/src/api";
 import { Readable } from "node:stream";
-import { getFromTMDBAPI, getFromTMDBAPIJson } from "../../common/src/api";
+import { famousActorIds } from "./famousActorIds";
 import { Actor, Credit, CreditRating } from "./interfaces";
 
 const BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_404_STATUS_CODE = 34;
+
+/**
+ * Get actor and credit information for a list of actor IDs
+ * @param actorIds the list of actor IDs to get information for
+ * @returns A promise that resolves to a list of actors with their credits
+ */
+export async function getAllActorInformation(): Promise<Actor[]> {
+  const actorsWithCredits: Actor[] = [];
+  for (const id of famousActorIds) {
+    const actor = await getActorWithCreditsById(id);
+    actorsWithCredits.push(actor);
+    console.log(`Got actor ${actor.name} with ${actor.credits.size} credits`);
+  }
+
+  return actorsWithCredits;
+}
 
 export async function getActorWithCreditsById(id: number): Promise<Actor> {
   const actor = await getActorById(id);

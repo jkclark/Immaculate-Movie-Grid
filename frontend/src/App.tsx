@@ -1,7 +1,7 @@
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { ActorExport, CategoryExport, CreditExport, GridExport } from "../../common/src/interfaces";
+import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
 import CorrectCreditsSummary from "./components/CorrectCreditsSummary";
 import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";

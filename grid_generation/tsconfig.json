@@ -5,9 +5,18 @@
         "target": "es6",
         "moduleResolution": "node",
         "sourceMap": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "baseUrl": ".",
+        "paths": {
+            "common/*": [
+                "../common/*"
+            ],
+        },
+        // The following two options are required for TypeORM's decorators
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
     },
     "lib": [
         "es2015"
-    ],
+    ]
 }

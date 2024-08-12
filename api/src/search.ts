@@ -1,6 +1,7 @@
-import { APIGatewayProxyEvent, Context, Handler } from 'aws-lambda';
-import { getFromTMDBAPIJson } from '../../common/src/api';
-import { SearchResult } from '../../common/src/interfaces';
+import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
+
+import { getFromTMDBAPIJson } from "common/src/api";
+import { SearchResult } from "common/src/interfaces";
 
 export const handler: Handler = async (event: APIGatewayProxyEvent, context: Context) => {
   console.log("Github Actions test");
@@ -9,11 +10,11 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     return {
       statusCode: 400,
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        message: "No query provided"
-      })
+        message: "No query provided",
+      }),
     };
   }
 
@@ -32,7 +33,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
         media_type: result.media_type,
         id: result.id,
         title: result.title,
-        release_date: result.release_date
+        release_date: result.release_date,
       });
     } else {
       // Get the last air date from the API
@@ -56,11 +57,11 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
       // I'm not sure if there's a better way to do this, but for now it's fine.
       "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Allow-Origin": "*",
-      "Acess-Control-Allow-Methods": "GET"
+      "Acess-Control-Allow-Methods": "GET",
     },
     body: JSON.stringify({
       message: "Search complete!",
-      searchResults: resultsToReturn
-    })
+      searchResults: resultsToReturn,
+    }),
   };
-}
+};

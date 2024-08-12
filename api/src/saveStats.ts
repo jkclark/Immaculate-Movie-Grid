@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
-import { AppDataSource, initializeDataSource } from "../../common/src/db/connect";
-import { ActorOrCategory } from "../../common/src/db/models/ActorOrCategory";
+import { AppDataSource, initializeDataSource } from "common/src/db/connect";
+import { ActorOrCategory } from "common/src/db/models/ActorOrCategory";
 
 let initializationPromise: Promise<void> | null = null;
 

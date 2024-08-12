@@ -1,5 +1,5 @@
-import { getFromTMDBAPIJson } from "../../common/src/api";
-import { GridExport } from "../../common/src/interfaces";
+import { getFromTMDBAPIJson } from "common/src/api";
+import { GridExport } from "common/src/interfaces";
 import { listS3ObjectsWithPrefix, writeStreamToS3 } from "./s3";
 import { getImageByIdTypeAndSize } from "./tmdbAPI";
 

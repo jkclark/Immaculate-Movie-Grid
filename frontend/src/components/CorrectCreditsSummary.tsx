@@ -1,5 +1,6 @@
 import React from "react";
-import { CreditExport } from "../../../common/src/interfaces";
+
+import { CreditExport } from "common/src/interfaces";
 import CreditDetails from "./CreditDetails";
 import { useOverlayStack } from "./Overlay";
 

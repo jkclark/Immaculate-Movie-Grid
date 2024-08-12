@@ -1,9 +1,8 @@
 import fs from "fs";
 
 import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
-import { famousActorIds } from "./famousActorIds";
 import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUniqueString } from "./interfaces";
-import { getActorWithCreditsById } from "./tmdbAPI";
+import { getAllActorInformation } from "./tmdbAPI";
 
 export async function loadGraphFromFile(refreshData: boolean): Promise<ActorCreditGraph> {
   // Load the graph, or generate it if it doesn't exist
@@ -64,22 +63,6 @@ function mergeGraphAndExtraInfo(
     const credit = graph.credits[creditUniqueString];
     credit.rating = extraInfo.rating;
   }
-}
-
-/**
- * Get actor and credit information for a list of actor IDs
- * @param actorIds the list of actor IDs to get information for
- * @returns A promise that resolves to a list of actors with their credits
- */
-async function getAllActorInformation(): Promise<Actor[]> {
-  const actorsWithCredits: Actor[] = [];
-  for (const id of famousActorIds) {
-    const actor = await getActorWithCreditsById(id);
-    actorsWithCredits.push(actor);
-    console.log(`Got actor ${actor.name} with ${actor.credits.size} credits`);
-  }
-
-  return actorsWithCredits;
 }
 
 interface actorNodeExport {

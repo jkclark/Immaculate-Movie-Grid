@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import "node-fetch";
 import * as readline from "readline";
 
-import { ActorExport, CategoryExport, CreditExport, GridExport } from "../../common/src/interfaces";
+import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
 import { allCategories, Category } from "./categories";
 import { loadGraphFromDB } from "./dbGraph";
 import { loadGraphFromFile } from "./fileGraph";
@@ -37,7 +37,7 @@ async function main(): Promise<void> {
   if (graphMode === "file") {
     graph = await loadGraphFromFile(refreshData);
   } else if (graphMode === "db") {
-    graph = await loadGraphFromDB();
+    graph = await loadGraphFromDB(refreshData);
   }
 
   // Get a generic graph from the actor credit graph

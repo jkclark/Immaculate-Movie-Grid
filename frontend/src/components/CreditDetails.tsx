@@ -1,5 +1,6 @@
 import React from "react";
-import { CreditExport } from "../../../common/src/interfaces";
+
+import { CreditExport } from "common/src/interfaces";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "../s3";
 import ImageWithBackup from "./ImageWithBackup";
 import { useOverlayStack } from "./Overlay";

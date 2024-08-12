@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import { GridExport } from "../../common/src/interfaces";
+
+import { GridExport } from "common/src/interfaces";
 import { YOUR_ANSWERS_TAB_TEXT } from "./constants";
 import { AnyGridDisplayData } from "./gridDisplayData";
 
