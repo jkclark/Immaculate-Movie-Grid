@@ -7,6 +7,7 @@ import { allCategories, Category } from "./categories";
 import { loadGraphFromDB } from "./dbGraph";
 import { loadGraphFromFile } from "./fileGraph";
 import {
+  Connection,
   getGridFromGraph,
   Graph,
   GraphEntity,
@@ -37,46 +38,41 @@ async function main(): Promise<void> {
   if (graphMode === "file") {
     graph = await loadGraphFromFile(refreshData);
   } else if (graphMode === "db") {
-    graph = await loadGraphFromDB(refreshData);
+    graph = await loadGraphFromDB();
   }
 
+  // Pre-filter the graph to exclude connections that don't pass a given "connection filter"
+  const filteredGraph = prefilterGraph(graph, isLegitMovie);
+
   // Get a generic graph from the actor credit graph
-  const genericGraph = getGenericGraphFromActorCreditGraph(graph);
+  const genericGraph = getGenericGraphFromActorCreditGraph(filteredGraph);
 
   // Get category GraphEntities
-  const categories = getCategoryGraphEntities(allCategories, graph);
+  const categories = getCategoryGraphEntities(allCategories, filteredGraph);
 
   // Add categories to generic graph
   addCategoriesToGenericGraph(categories, genericGraph);
 
-  // Generate across/down until the user approves
-  let grid: Grid;
+  // Set up readline interface
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
+  // Generate across/down until the user approves
+  let grid: Grid;
   do {
     // Get a valid grid from the generic graph
-    grid = getGridFromGraph(
-      genericGraph,
-      3,
-      { actor: 0, category: 1 },
-      // This function serves to eliminate all TV shows from consideration during
-      // grid generation, as well as filtering out "invalid" movies.
-      // Even though `Connection`s are passed into this function, we know that all connections
-      // in the graph are also `CreditNode`s, so we can safely cast them.
-      isLegitMovie,
-      true
-    );
+    grid = getGridFromGraph(genericGraph, 3, { actor: 0.5, category: 0.5 }, true);
 
     // If no valid grid was found, exit
     if (grid.across.length === 0 || grid.down.length === 0) {
       console.log("No valid actor groups found");
+      rl.close();
       return;
     }
 
-    printGrid(grid, graph, allCategories);
+    printGrid(grid, filteredGraph, allCategories);
 
     // Ask the user if they want to continue
     const answer = await new Promise<string>((resolve) => rl.question("Continue? (y/n) ", resolve));
@@ -130,6 +126,71 @@ function processArgs(): [string, "file" | "db" | null, boolean, boolean] {
   return [gridDate, graphMode, refreshData, overwriteImages];
 }
 
+function prefilterGraph(
+  graph: ActorCreditGraph,
+  connectionFilter: (connection: Connection) => boolean
+): ActorCreditGraph {
+  // Copy the input graph
+  const filteredGraph: ActorCreditGraph = {
+    actors: { ...graph.actors },
+    credits: { ...graph.credits },
+  };
+
+  const numStartingCredits = Object.keys(graph.credits).length;
+  console.log(`Starting with ${numStartingCredits} credits`);
+
+  // Filter the connections
+  for (const [creditUniqueString, credit] of Object.entries(graph.credits)) {
+    if (!connectionFilter(credit)) {
+      // Delete the credit from the filtered graph
+      delete filteredGraph.credits[creditUniqueString];
+
+      // Delete the connection from all actors that have it
+      for (const actorId of Object.keys(credit.connections)) {
+        delete filteredGraph.actors[actorId].connections[creditUniqueString];
+      }
+    }
+  }
+
+  console.log(`Filtered out ${numStartingCredits - Object.keys(filteredGraph.credits).length} credits`);
+  console.log(`Ending with ${Object.keys(filteredGraph.credits).length} credits`);
+
+  return filteredGraph;
+}
+
+/**
+ * Determine if a movie credit is "legit" based on certain criteria.
+ *
+ * Currently, we check that:
+ * - None of the movie's genres are in a list of invalid genres
+ * - The movie is not in a list of invalid movies
+ *
+ * @param credit The credit to check
+ * @returns true if the credit is "legit", false otherwise
+ */
+function isLegitMovie(credit: CreditNode): boolean {
+  if (!(credit.type === "movie")) {
+    // console.log(`${credit.name} is not a movie`);
+    return false;
+  }
+
+  const INVALID_MOVIE_GENRE_IDS: number[] = [
+    99, // Documentary
+  ];
+  const isInvalidGenre: boolean = credit.genre_ids.some((id) => INVALID_MOVIE_GENRE_IDS.includes(id));
+
+  const INVALID_MOVIE_IDS: number[] = [
+    10788, // Kambakkht Ishq
+  ];
+  const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(parseInt(credit.id));
+
+  // Still need to tweak this
+  const MINIMUM_POPULARITY = 40;
+  const popularEnough = credit.popularity > MINIMUM_POPULARITY;
+
+  return !isInvalidGenre && !isInvalidMovie && popularEnough;
+}
+
 function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {
   const genericGraph: Graph = {
     axisEntities: graph.actors,
@@ -156,6 +217,7 @@ function getCategoryGraphEntities(
     // Create the base object
     const categoryGraphEntity = {
       id: category.id.toString(),
+      name: category.name,
       connections: {},
       entityType: "category",
       incompatibleWith: [],
@@ -264,39 +326,6 @@ function findConnectionName(
       return graph.credits[connectionId].name;
     }
   }
-}
-
-/**
- * Determine if a movie credit is "legit" based on certain criteria.
- *
- * Currently, we check that:
- * - None of the movie's genres are in a list of invalid genres
- * - The movie is not in a list of invalid movies
- *
- * @param credit The credit to check
- * @returns true if the credit is "legit", false otherwise
- */
-function isLegitMovie(credit: CreditNode): boolean {
-  if (!(credit.type === "movie")) {
-    // console.log(`${credit.name} is not a movie`);
-    return false;
-  }
-
-  const INVALID_MOVIE_GENRE_IDS: number[] = [
-    99, // Documentary
-  ];
-  const isInvalidGenre: boolean = credit.genre_ids.some((id) => INVALID_MOVIE_GENRE_IDS.includes(id));
-
-  const INVALID_MOVIE_IDS: number[] = [
-    10788, // Kambakkht Ishq
-  ];
-  const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(parseInt(credit.id));
-
-  // Still need to tweak this
-  const MINIMUM_POPULARITY = 40;
-  const popularEnough = credit.popularity > MINIMUM_POPULARITY;
-
-  return !isInvalidGenre && !isInvalidMovie && popularEnough;
 }
 
 function getGridExportFromGridGraphAndCategories(

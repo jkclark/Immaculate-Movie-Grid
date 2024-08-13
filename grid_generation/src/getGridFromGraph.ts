@@ -27,7 +27,6 @@ export function getGridFromGraph(
   graph: Graph,
   size: number,
   axisEntityTypeWeights: { [key: string]: number },
-  connectionFilter: (connection: Connection) => boolean,
   random: boolean
 ): Grid {
   const across: GraphEntity[] = [];
@@ -39,6 +38,11 @@ export function getGridFromGraph(
     (entity) => entity.entityType === startingAxisEntityType
   );
   const startingAxisEntity = axisEntitiesOfType[Math.floor(Math.random() * axisEntitiesOfType.length)];
+  if ("name" in startingAxisEntity) {
+    console.log(
+      `Starting with ${startingAxisEntity.name} with ${Object.keys(startingAxisEntity.connections).length} connections`
+    );
+  }
 
   // Add starting axis entity to across
   across.push(startingAxisEntity);
@@ -65,8 +69,8 @@ export function getGridFromGraph(
 
     // Iterate over most recent axis entity's connections
     for (const connection of mostRecentAxisEntityConnections) {
-      // If we've already used this connection, or if it's invalid as per the condition, skip it
-      if (Object.keys(usedConnections).includes(connection.id) || !connectionFilter(connection)) {
+      // If we've already used this connection, skip it
+      if (Object.keys(usedConnections).includes(connection.id)) {
         continue;
       }
 
@@ -107,8 +111,7 @@ export function getGridFromGraph(
         const newConnections: UsedConnectionsWithAxisEntities = axisEntityWorksWithAxis(
           axisEntity,
           compareAxis.slice(0, compareAxis.length - 1),
-          usedConnections,
-          connectionFilter
+          usedConnections
         );
         if (newConnections) {
           // Add the axis entity to the grid
@@ -204,8 +207,7 @@ function splitByFieldMatch<T>(objects: T[], key: keyof T, value: any): [T[], T[]
 function axisEntityWorksWithAxis(
   axisEntity: GraphEntity,
   axis: GraphEntity[],
-  excludeConnections: UsedConnectionsWithAxisEntities,
-  connectionFilter: (connection: Connection) => boolean
+  excludeConnections: UsedConnectionsWithAxisEntities
 ): UsedConnectionsWithAxisEntities {
   const connections: UsedConnectionsWithAxisEntities = {};
   for (const otherAxisEntity of axis) {
@@ -214,12 +216,10 @@ function axisEntityWorksWithAxis(
       return null;
     }
 
-    const sharedConnection: string = axisEntitiesShareConnection(
-      axisEntity,
-      otherAxisEntity,
-      { ...excludeConnections, ...connections },
-      connectionFilter
-    );
+    const sharedConnection: string = axisEntitiesShareConnection(axisEntity, otherAxisEntity, {
+      ...excludeConnections,
+      ...connections,
+    });
 
     if (!sharedConnection) {
       return null;
@@ -242,11 +242,10 @@ function axisEntityWorksWithAxis(
 function axisEntitiesShareConnection(
   axisEntity1: GraphEntity,
   axisEntity2: GraphEntity,
-  excludeConnections: UsedConnectionsWithAxisEntities,
-  connectionFilter: (connection: Connection) => boolean
+  excludeConnections: UsedConnectionsWithAxisEntities
 ): string {
   for (const connection of Object.values(axisEntity1.connections)) {
-    if (Object.keys(excludeConnections).includes(connection.id) || !connectionFilter(connection)) {
+    if (Object.keys(excludeConnections).includes(connection.id)) {
       continue;
     }
 
