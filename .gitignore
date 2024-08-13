@@ -133,3 +133,6 @@ dist.zip
 # Folder and zip created during local Lambda zip creation
 lambda_package
 lambda_package.zip
+
+# Folder created during frontend build (testing GH Actions workflow)
+frontend_dist

@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'frontend/src/**'
+      - "frontend/src/**"
   workflow_dispatch:
 
 jobs:
@@ -22,15 +22,24 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20'
+          node-version: "20"
 
-      - name: Install dependencies
-        run: npm ci
-        working-directory: frontend
+      # - name: Cache Node.js modules
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ~/.npm
+      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-node-
 
-      - name: Build
-        run: npm run build
-        working-directory: frontend
+      # Required for running vite in the next step
+      # The node_modules created during installation of dependencies
+      # isn't in the PATH without this step
+      - name: Update PATH
+        run: echo "$GITHUB_WORKSPACE/frontend_dist/node_modules/.bin" >> $GITHUB_PATH
+
+      - name: Install dependencies and build
+        run: npm run generate-frontend-dist
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -40,5 +49,4 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Sync dist directory to S3
-        run: aws s3 sync dist s3://${{ vars.STATIC_S3_BUCKET }}
-        working-directory: frontend
+        run: aws s3 sync ./frontend_dist/frontend/dist s3://${{ vars.STATIC_S3_BUCKET }}
