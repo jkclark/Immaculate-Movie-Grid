@@ -17,7 +17,7 @@ import {
   insertGridDisplayDatumAtRowCol,
   insertInnerGridDisplayData,
 } from "./gridDisplayData";
-import { getGridDataFromS3, getS3BackupImageURLForType, getS3ImageURLForType, preloadImageURL } from "./s3";
+import { getGridDataFromS3, getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 import {
   activeTabAtom,
   finalGameGridDisplayDataAtom,
@@ -102,22 +102,6 @@ function App() {
 
     setIsLoading(false);
   }, [gridData]);
-
-  // Preload all other images once the page has loaded
-  useEffect(() => {
-    if (!isLoading) {
-      async function preloadImages() {
-        await Promise.all(
-          gridData.credits.map((credit) => {
-            const imageURL = getS3ImageURLForType(credit.type, credit.id);
-            // Fail silently if we can't preload an image
-            return preloadImageURL(imageURL).catch(() => {});
-          })
-        );
-      }
-      preloadImages();
-    }
-  }, [isLoading]);
 
   // End the game if there are no guesses remaining
   useEffect(() => {
