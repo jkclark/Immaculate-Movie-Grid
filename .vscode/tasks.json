@@ -2,17 +2,17 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "typescript",
-            "tsconfig": "grid_generation/tsconfig.json",
-            "option": "watch",
-            "problemMatcher": [
-                "$tsc-watch"
-            ],
+            "label": "npm: build",
+            "type": "shell",
+            "command": "npm run build",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "label": "tsc: build - tsconfig.json"
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/grid_generation"
+            }
         }
     ]
 }

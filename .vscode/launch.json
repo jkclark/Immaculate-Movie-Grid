@@ -5,7 +5,7 @@
             "type": "node",
             "request": "launch",
             "name": "Compile & Generate Grid",
-            "preLaunchTask": "tsc: build - tsconfig.json", // run this task before launching the program
+            "preLaunchTask": "npm: build", // run this task before launching the program
             "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/index.js", // the program to debug
             "outFiles": [
                 "${workspaceFolder}/grid_generation/dist/**/*.js"
@@ -14,6 +14,7 @@
             "cwd": "${workspaceFolder}/grid_generation", // the current working directory for the debug process
             "args": [
                 "test-grid-graph",
+                "file"
             ],
             "console": "integratedTerminal",
         },
