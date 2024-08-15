@@ -15,7 +15,13 @@ import {
   UsedConnectionsWithAxisEntities,
 } from "./getGridFromGraph";
 import { getAndSaveAllImagesForGrid } from "./images";
-import { ActorCreditGraph, CreditNode, getCreditUniqueString } from "./interfaces";
+import {
+  ActorCreditGraph,
+  ActorNode,
+  CreditNode,
+  deepCopyActorCreditGraph,
+  getCreditUniqueString,
+} from "./interfaces";
 import { writeTextToS3 } from "./s3";
 
 dotenv.config();
@@ -41,17 +47,23 @@ async function main(): Promise<void> {
     graph = await loadGraphFromDB();
   }
 
-  // Pre-filter the graph to exclude connections that don't pass a given "connection filter"
-  const filteredGraph = prefilterGraph(graph, isLegitMovie);
+  // Filter the graph to exclude connections that don't pass a given "credit filter"
+  const filteredGraph: ActorCreditGraph = prefilterGraph(graph, isLegitMovie);
 
   // Get a generic graph from the actor credit graph
-  const genericGraph = getGenericGraphFromActorCreditGraph(filteredGraph);
+  const genericGraph: Graph = getGenericGraphFromActorCreditGraph(filteredGraph);
 
-  // Get category GraphEntities
-  const categories = getCategoryGraphEntities(allCategories, filteredGraph);
+  // Get filtered categories
+  // Here we pass the filteredGraph, and not the genericGraph, because the filteredGraph
+  // contains Credits, whereas the genericGraph contains Connections. We need the Credits
+  // to be able to filter the categories.
+  const filteredCategories: { [key: number]: GraphEntity } = getCategoryGraphEntities(
+    allCategories,
+    filteredGraph
+  );
 
   // Add categories to generic graph
-  addCategoriesToGenericGraph(categories, genericGraph);
+  addCategoriesToGenericGraph(filteredCategories, genericGraph);
 
   // Set up readline interface
   const rl = readline.createInterface({
@@ -72,7 +84,7 @@ async function main(): Promise<void> {
       return;
     }
 
-    printGrid(grid, filteredGraph, allCategories);
+    printGrid(grid, filteredGraph, filteredCategories);
 
     // Ask the user if they want to continue
     const answer = await new Promise<string>((resolve) => rl.question("Continue? (y/n) ", resolve));
@@ -82,8 +94,11 @@ async function main(): Promise<void> {
     }
   } while (true);
 
+  // Get categories with all credits
+  const categories: { [key: number]: GraphEntity } = getCategoryGraphEntities(allCategories, graph);
+
   // Get GridExport from grid, graph, and categories
-  const gridExport = getGridExportFromGridGraphAndCategories(grid, graph, allCategories, gridDate);
+  const gridExport = getGridExportFromGridGraphAndCategories(grid, graph, categories, gridDate);
 
   // Get images for actors and credits and save them to S3
   await getAndSaveAllImagesForGrid(gridExport, overwriteImages);
@@ -128,34 +143,115 @@ function processArgs(): [string, "file" | "db" | null, boolean, boolean] {
 
 function prefilterGraph(
   graph: ActorCreditGraph,
-  connectionFilter: (connection: Connection) => boolean
+  creditFilter: (credit: Connection) => boolean
 ): ActorCreditGraph {
-  // Copy the input graph
-  const filteredGraph: ActorCreditGraph = {
-    actors: { ...graph.actors },
-    credits: { ...graph.credits },
-  };
+  console.log("--- Start prefiltering graph ---");
 
   const numStartingCredits = Object.keys(graph.credits).length;
+  const numStartingActors = Object.keys(graph.actors).length;
+  console.log(`Starting with ${numStartingActors} actors`);
   console.log(`Starting with ${numStartingCredits} credits`);
 
-  // Filter the connections
-  for (const [creditUniqueString, credit] of Object.entries(graph.credits)) {
-    if (!connectionFilter(credit)) {
-      // Delete the credit from the filtered graph
-      delete filteredGraph.credits[creditUniqueString];
+  // Remove any credits that don't pass the credit filter
+  const filteredGraphNoInvalidCredits = removeInvalidCredits(graph, creditFilter);
 
-      // Delete the connection from all actors that have it
+  // Remove actors who now have fewer than 3 connections
+  const filteredGraphNoInvalidCreditsNoSparseActors = removeActorsWithoutEnoughCredits(
+    filteredGraphNoInvalidCredits,
+    3
+  );
+
+  console.log(
+    `Filtered out ${numStartingActors - Object.keys(filteredGraphNoInvalidCreditsNoSparseActors.actors).length} actors`
+  );
+  console.log(
+    `Filtered out ${numStartingCredits - Object.keys(filteredGraphNoInvalidCreditsNoSparseActors.credits).length} credits`
+  );
+  console.log(`Ending with ${Object.keys(filteredGraphNoInvalidCreditsNoSparseActors.actors).length} actors`);
+  console.log(
+    `Ending with ${Object.keys(filteredGraphNoInvalidCreditsNoSparseActors.credits).length} credits`
+  );
+  console.log("--- End prefiltering graph ---");
+
+  return filteredGraphNoInvalidCreditsNoSparseActors;
+}
+
+function removeInvalidCredits(
+  graph: ActorCreditGraph,
+  creditFilter: (credit: Connection) => boolean
+): ActorCreditGraph {
+  // Copy input graph
+  const graphCopy: ActorCreditGraph = deepCopyActorCreditGraph(graph);
+
+  const creditIdsToDeleteByActor: { [actorId: string]: string[] } = {};
+  const creditsToDelete: string[] = [];
+
+  // Collect the actor IDs and credit IDs to be deleted
+  for (const [creditUniqueString, credit] of Object.entries(graphCopy.credits)) {
+    if (!creditFilter(credit)) {
       for (const actorId of Object.keys(credit.connections)) {
-        delete filteredGraph.actors[actorId].connections[creditUniqueString];
+        if (!creditIdsToDeleteByActor[actorId]) {
+          creditIdsToDeleteByActor[actorId] = [];
+        }
+        creditIdsToDeleteByActor[actorId].push(creditUniqueString);
+      }
+      creditsToDelete.push(creditUniqueString);
+    }
+  }
+
+  // Delete the connections from all actors
+  for (const [actorId, creditUniqueStrings] of Object.entries(creditIdsToDeleteByActor)) {
+    if (graphCopy.actors[actorId] && graphCopy.actors[actorId].connections) {
+      for (const creditUniqueString of creditUniqueStrings) {
+        delete graphCopy.actors[actorId].connections[creditUniqueString];
       }
     }
   }
 
-  console.log(`Filtered out ${numStartingCredits - Object.keys(filteredGraph.credits).length} credits`);
-  console.log(`Ending with ${Object.keys(filteredGraph.credits).length} credits`);
+  // Delete the credits from the filtered graph
+  for (const creditUniqueString of creditsToDelete) {
+    if (graphCopy.credits[creditUniqueString]) {
+      delete graphCopy.credits[creditUniqueString];
+    }
+  }
 
-  return filteredGraph;
+  return graphCopy;
+}
+
+function removeActorsWithoutEnoughCredits(graph: ActorCreditGraph, minCredits: number): ActorCreditGraph {
+  // Remove any actors who now have fewer than 3 connections
+  const actorsToRemove: string[] = [];
+  for (const [actorId, actor] of Object.entries(graph.actors)) {
+    if (Object.keys(actor.connections).length < minCredits) {
+      actorsToRemove.push(actorId);
+    }
+  }
+
+  for (const actorId of actorsToRemove) {
+    // Remove the actor's connections
+    const actor = graph.actors[actorId];
+    for (const creditId of Object.keys(actor.connections)) {
+      delete graph.credits[creditId].connections[actorId];
+    }
+
+    // Remove the actor from the filtered graph
+    delete graph.actors[actorId];
+  }
+
+  // At this point, it's possible that some credits have no actors
+  // because we've removed the last ones, so we need to remove them from the graph
+  const creditsToRemove: string[] = [];
+  for (const [creditId, credit] of Object.entries(graph.credits)) {
+    if (Object.keys(credit.connections).length === 0) {
+      creditsToRemove.push(creditId);
+    }
+  }
+
+  for (const creditId of creditsToRemove) {
+    delete graph.credits[creditId];
+  }
+
+  return graph;
 }
 
 /**
@@ -170,7 +266,6 @@ function prefilterGraph(
  */
 function isLegitMovie(credit: CreditNode): boolean {
   if (!(credit.type === "movie")) {
-    // console.log(`${credit.name} is not a movie`);
     return false;
   }
 
@@ -192,15 +287,18 @@ function isLegitMovie(credit: CreditNode): boolean {
 }
 
 function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {
+  // Copy input graph
+  const graphCopy: ActorCreditGraph = deepCopyActorCreditGraph(graph);
+
   const genericGraph: Graph = {
-    axisEntities: graph.actors,
-    connections: graph.credits,
+    axisEntities: graphCopy.actors,
+    connections: graphCopy.credits,
   };
 
   // For the generic algorithm, connections' IDs must be the same as their keys
   // in the connections object. This was a problem because we use keys like 'movie-123'
   // everywhere, but the IDs in the connections object are just '123'.
-  for (const credit of Object.values(graph.credits)) {
+  for (const credit of Object.values(graphCopy.credits)) {
     const uniqueString = getCreditUniqueString(credit);
     genericGraph.connections[uniqueString].id = uniqueString;
   }
@@ -211,12 +309,12 @@ function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {
 function getCategoryGraphEntities(
   categories: { [key: number]: Category },
   graph: ActorCreditGraph
-): GraphEntity[] {
-  const categoryGraphEntities: GraphEntity[] = [];
-  for (const category of Object.values(categories)) {
+): { [key: number]: GraphEntity } {
+  const categoryGraphEntities: { [key: number]: GraphEntity } = {};
+  for (const [categoryId, category] of Object.entries(categories)) {
     // Create the base object
     const categoryGraphEntity = {
-      id: category.id.toString(),
+      id: categoryId.toString(), // This is already a string, because object keys are always strings
       name: category.name,
       connections: {},
       entityType: "category",
@@ -234,27 +332,39 @@ function getCategoryGraphEntities(
       }
     }
 
-    // Append to the output list
-    categoryGraphEntities.push(categoryGraphEntity);
+    // Add this category to the output object
+    categoryGraphEntities[categoryId] = categoryGraphEntity;
   }
 
   return categoryGraphEntities;
 }
 
-function addCategoriesToGenericGraph(categories: GraphEntity[], genericGraph: Graph): void {
-  for (const category of categories) {
+function addCategoriesToGenericGraph(categories: { [key: number]: GraphEntity }, genericGraph: Graph): void {
+  for (const category of Object.values(categories)) {
+    const genericGraphCategory = {
+      ...category,
+      connections: {},
+    };
+
     // Add the category to the axisEntities object
-    genericGraph.axisEntities[category.id] = category;
+    genericGraph.axisEntities[category.id] = genericGraphCategory;
+
+    // Point category connections at the generic graph connections
+    for (const creditUniqueString in category.connections) {
+      genericGraphCategory.connections[creditUniqueString] = genericGraph.connections[creditUniqueString];
+    }
 
     // Add the category to all connections that match it
     for (const creditUniqueString in category.connections) {
-      genericGraph.connections[creditUniqueString].connections[category.id] = category;
+      genericGraph.connections[creditUniqueString].connections[category.id] = genericGraphCategory;
     }
   }
 }
 
-function printGrid(grid: Grid, graph: ActorCreditGraph, categories: { [key: number]: Category }): void {
-  const [across, down] = [grid.across, grid.down];
+function printGrid(grid: Grid, graph: ActorCreditGraph, categories: { [key: number]: GraphEntity }): void {
+  const [acrossIds, downIds] = [grid.across, grid.down];
+  const across = getOriginalGraphEntitiesFromIds(acrossIds, graph, categories);
+  const down = getOriginalGraphEntitiesFromIds(downIds, graph, categories);
   const fixedLength = 30;
 
   // Collect across entities into a single string
@@ -331,22 +441,26 @@ function findConnectionName(
 function getGridExportFromGridGraphAndCategories(
   grid: Grid,
   graph: ActorCreditGraph,
-  allCategories: { [key: number]: Category },
+  categories: { [key: number]: GraphEntity },
   id: string
 ): GridExport {
+  const originalGraphAcrossEntities = getOriginalGraphEntitiesFromIds(grid.across, graph, categories);
+  const originalGraphDownEntities = getOriginalGraphEntitiesFromIds(grid.down, graph, categories);
+  const gridAxisEntities = originalGraphAcrossEntities.concat(originalGraphDownEntities);
+
   // Get the axes, actors, and categories
   const axes: string[] = [];
   const actors: ActorExport[] = [];
-  const categories: CategoryExport[] = [];
-  for (const axisEntity of grid.across.concat(grid.down)) {
+  const categoriesExport: CategoryExport[] = [];
+  for (const axisEntity of gridAxisEntities) {
     if (axisEntity.entityType === "category") {
-      const category = allCategories[axisEntity.id];
+      const category: GraphEntity = categories[axisEntity.id];
       // Categories have negative IDs, so make it positive to
       // avoid having two dashes in the string.
-      axes.push(`category-${-1 * category.id}`);
-      categories.push({ id: category.id, name: category.name });
+      axes.push(`category-${-1 * parseInt(category.id)}`);
+      categoriesExport.push({ id: parseInt(category.id), name: category.name });
     } else {
-      const actor = graph.actors[axisEntity.id];
+      const actor: ActorNode = graph.actors[axisEntity.id];
       axes.push(`actor-${actor.id}`);
       actors.push({ id: parseInt(actor.id), name: actor.name });
     }
@@ -361,7 +475,7 @@ function getGridExportFromGridGraphAndCategories(
 
   // Create empty answer lists for each axis entity
   const answers: { [key: number]: { type: "movie" | "tv"; id: number }[] } = {};
-  for (const axisEntity of grid.across.concat(grid.down)) {
+  for (const axisEntity of gridAxisEntities) {
     answers[axisEntity.id] = [];
   }
 
@@ -369,12 +483,12 @@ function getGridExportFromGridGraphAndCategories(
   const credits: CreditExport[] = [];
 
   // Add all credits that are shared by across and down pairs
-  for (const acrossAxisEntity of grid.across) {
-    for (const downAxisEntity of grid.down) {
+  for (const acrossAxisEntity of originalGraphAcrossEntities) {
+    for (const downAxisEntity of originalGraphDownEntities) {
       // Only iterate over the axis entity with fewer connections
       // This is particularly useful when a category with a lot of connections is present
       const [axisEntityWithFewerConnections, axisEntityWithMoreConnections] =
-        acrossAxisEntity.connections.size < downAxisEntity.connections.size
+        Object.keys(acrossAxisEntity.connections).length < Object.keys(downAxisEntity.connections).length
           ? [acrossAxisEntity, downAxisEntity]
           : [downAxisEntity, acrossAxisEntity];
       for (const creditUniqueString of Object.keys(axisEntityWithFewerConnections.connections)) {
@@ -408,7 +522,7 @@ function getGridExportFromGridGraphAndCategories(
     id,
     axes: axesActorsFirst,
     actors,
-    categories,
+    categories: categoriesExport,
     credits,
     answers,
   };
@@ -418,6 +532,29 @@ function sortAxisActorsFirst(axis: string[]): string[] {
   const actors = axis.filter((entity) => entity.startsWith("actor"));
   const categories = axis.filter((entity) => entity.startsWith("category"));
   return actors.concat(categories);
+}
+
+function getOriginalGraphEntitiesFromIds(
+  axisEntityIds: string[],
+  graph: ActorCreditGraph,
+  allCategories: { [key: number]: GraphEntity }
+): GraphEntity[] {
+  return axisEntityIds.map((id) => {
+    return getOriginalGraphEntityFromId(id, graph, allCategories);
+  });
+}
+
+function getOriginalGraphEntityFromId(
+  id: string,
+  graph: ActorCreditGraph,
+  allCategories: { [key: number]: GraphEntity }
+): GraphEntity {
+  const idNum = parseInt(id);
+  if (idNum < 0) {
+    return allCategories[idNum.toString()];
+  } else {
+    return graph.actors[idNum.toString()];
+  }
 }
 
 /**

@@ -50,5 +50,39 @@ export interface ActorNode extends GraphEntity {
 }
 
 export interface CreditNode extends Credit, GraphEntity {
+  name: string; // Because Credit has name required and GraphEntity does not
   connections: { [key: string]: ActorNode };
+}
+
+export function deepCopyActorCreditGraph(graph: ActorCreditGraph, check = true): ActorCreditGraph {
+  const graphCopy: ActorCreditGraph = {
+    actors: {},
+    credits: {},
+  };
+
+  for (const actorId in graph.actors) {
+    const actor = graph.actors[actorId];
+
+    // Create a new actor in the copy
+    graphCopy.actors[actorId] = {
+      ...actor,
+      connections: {},
+    };
+
+    for (const creditId in actor.connections) {
+      // If we haven't seen this credit yet, create a new credit in the copy
+      if (!graphCopy.credits[creditId]) {
+        graphCopy.credits[creditId] = {
+          ...graph.credits[creditId],
+          connections: {},
+        };
+      }
+
+      // Add the connection between the actor and the credit
+      graphCopy.actors[actorId].connections[creditId] = graphCopy.credits[creditId];
+      graphCopy.credits[creditId].connections[actorId] = graphCopy.actors[actorId];
+    }
+  }
+
+  return graphCopy;
 }

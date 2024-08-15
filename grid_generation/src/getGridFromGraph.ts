@@ -3,6 +3,7 @@ export interface GraphEntity {
   connections: { [key: string]: Connection };
   entityType: string;
   incompatibleWith?: string[]; // A list of axisEntity IDs with which this entity cannot be connected
+  name?: string;
 }
 
 export type AxisEntity = GraphEntity;
@@ -18,8 +19,8 @@ export interface UsedConnectionsWithAxisEntities {
 }
 
 export interface Grid {
-  across: GraphEntity[];
-  down: GraphEntity[];
+  across: string[];
+  down: string[];
   usedConnections: UsedConnectionsWithAxisEntities;
 }
 
@@ -41,6 +42,10 @@ export function getGridFromGraph(
   if ("name" in startingAxisEntity) {
     console.log(
       `Starting with ${startingAxisEntity.name} with ${Object.keys(startingAxisEntity.connections).length} connections`
+    );
+  } else {
+    console.log(
+      `Starting with ${startingAxisEntity.id} with ${Object.keys(startingAxisEntity.connections).length} connections`
     );
   }
 
@@ -149,7 +154,11 @@ export function getGridFromGraph(
   }
 
   if (getGridRecursively()) {
-    return { across, down, usedConnections };
+    return {
+      across: across.map((axisEntity) => axisEntity.id),
+      down: down.map((axisEntity) => axisEntity.id),
+      usedConnections,
+    };
   }
 
   return { across: [], down: [], usedConnections: {} };
