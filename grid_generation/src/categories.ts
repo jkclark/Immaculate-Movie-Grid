@@ -54,6 +54,24 @@ const crimeCategory: Category = {
   creditFilter: (credit) => credit.genre_ids.includes(80),
 };
 
+const dramaCategory: Category = {
+  id: -7,
+  name: "Drama",
+  creditFilter: (credit) => credit.genre_ids.includes(18),
+};
+
+const fantasyCategory: Category = {
+  id: -8,
+  name: "Fantasy",
+  creditFilter: (credit) => credit.genre_ids.includes(14),
+};
+
+const mysteryCategory: Category = {
+  id: -9,
+  name: "Mystery",
+  creditFilter: (credit) => credit.genre_ids.includes(9648),
+};
+
 export const allCategories: { [key: number]: Category } = {
   [ratedRCategory.id]: ratedRCategory,
   [releasedIn21stCenturyCategory.id]: releasedIn21stCenturyCategory,
@@ -61,4 +79,7 @@ export const allCategories: { [key: number]: Category } = {
   [comedyCategory.id]: comedyCategory,
   [animatedCategory.id]: animatedCategory,
   [crimeCategory.id]: crimeCategory,
+  [dramaCategory.id]: dramaCategory,
+  [fantasyCategory.id]: fantasyCategory,
+  [mysteryCategory.id]: mysteryCategory,
 };
