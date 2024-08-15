@@ -42,9 +42,16 @@ const comedyCategory: Category = {
   creditFilter: (credit) => credit.genre_ids.includes(35),
 };
 
+const animatedCategory: Category = {
+  id: -5,
+  name: "Animated",
+  creditFilter: (credit) => credit.genre_ids.includes(16),
+};
+
 export const allCategories: { [key: number]: Category } = {
   [ratedRCategory.id]: ratedRCategory,
   [releasedIn21stCenturyCategory.id]: releasedIn21stCenturyCategory,
   [releasedBefore21stCenturyCategory.id]: releasedBefore21stCenturyCategory,
   [comedyCategory.id]: comedyCategory,
+  [animatedCategory.id]: animatedCategory,
 };
