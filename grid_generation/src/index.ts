@@ -75,7 +75,7 @@ async function main(): Promise<void> {
   let grid: Grid;
   do {
     // Get a valid grid from the generic graph
-    grid = getGridFromGraph(genericGraph, 3, { actor: 0.5, category: 0.5 }, true);
+    grid = getGridFromGraph(genericGraph, 3, { actor: 0.1, category: 0.5 }, true);
 
     // If no valid grid was found, exit
     if (grid.across.length === 0 || grid.down.length === 0) {

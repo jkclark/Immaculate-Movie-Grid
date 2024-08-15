@@ -36,8 +36,15 @@ const releasedBefore21stCenturyCategory: Category = {
   incompatibleWith: [releasedIn21stCenturyCategory.id],
 };
 
+const comedyCategory: Category = {
+  id: -4,
+  name: "Comedy",
+  creditFilter: (credit) => credit.genre_ids.includes(35),
+};
+
 export const allCategories: { [key: number]: Category } = {
   [ratedRCategory.id]: ratedRCategory,
   [releasedIn21stCenturyCategory.id]: releasedIn21stCenturyCategory,
   [releasedBefore21stCenturyCategory.id]: releasedBefore21stCenturyCategory,
+  [comedyCategory.id]: comedyCategory,
 };
