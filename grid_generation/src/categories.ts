@@ -48,10 +48,17 @@ const animatedCategory: Category = {
   creditFilter: (credit) => credit.genre_ids.includes(16),
 };
 
+const crimeCategory: Category = {
+  id: -6,
+  name: "Crime",
+  creditFilter: (credit) => credit.genre_ids.includes(80),
+};
+
 export const allCategories: { [key: number]: Category } = {
   [ratedRCategory.id]: ratedRCategory,
   [releasedIn21stCenturyCategory.id]: releasedIn21stCenturyCategory,
   [releasedBefore21stCenturyCategory.id]: releasedBefore21stCenturyCategory,
   [comedyCategory.id]: comedyCategory,
   [animatedCategory.id]: animatedCategory,
+  [crimeCategory.id]: crimeCategory,
 };
