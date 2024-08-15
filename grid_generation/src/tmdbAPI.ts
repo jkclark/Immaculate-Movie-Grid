@@ -64,7 +64,7 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
       name: credit.title || credit.name,
       genre_ids: credit.genre_ids || [],
       popularity: credit.popularity || 0,
-      release_date: credit.release_date || "",
+      release_date: credit.release_date || credit.first_air_date || "",
     });
   }
 

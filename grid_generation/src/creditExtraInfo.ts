@@ -40,6 +40,8 @@ export async function getAllCreditExtraInfo(
     return creditExtraInfo;
   }
 
+  console.log(`Getting extra info for ${creditsNeedingExtraInfo.size} credits`);
+
   const totalCredits = creditsNeedingExtraInfo.size;
   let currentCount = 0;
   const tenPercentIncrement = totalCredits / 10;
