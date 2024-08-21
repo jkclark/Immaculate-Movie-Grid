@@ -44,7 +44,7 @@ function App() {
   const setSelectedRow = useSetAtom(selectedRowAtom);
   const setSelectedCol = useSetAtom(selectedColAtom);
   const { addContentsToOverlay, resetOverlayContents } = useOverlayStack();
-  const guessesRemaining = useAtomValue(guessesRemainingAtom);
+  const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const usedAnswers = useAtomValue(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
   const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
@@ -78,6 +78,9 @@ function App() {
 
         // Set isNewGrid to true so we know to set up the initial grid display data
         setIsNewGrid(true);
+
+        // Set the number of guesses remaining to 9
+        setGuessesRemaining(9);
 
         setGridData(jsonData);
       }
