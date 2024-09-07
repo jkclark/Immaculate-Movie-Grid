@@ -31,7 +31,7 @@ jobs:
         run: sudo apt-get install jq
 
       - name: Build and zip
-        run: npm run generate-lambda-zip
+        run: npm run generate-api-lambda-zip
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -41,4 +41,4 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Deploy search Lambda function
-        run: aws lambda update-function-code --function-name $SEARCH_LAMBDA_FUNCTION_NAME --zip-file fileb://lambda_package.zip
+        run: aws lambda update-function-code --function-name $SEARCH_LAMBDA_FUNCTION_NAME --zip-file fileb://api_lambda_package.zip
