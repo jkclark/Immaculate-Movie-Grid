@@ -28,7 +28,7 @@ dotenv.config();
 
 async function main(): Promise<void> {
   // Read arguments
-  const [gridDate, graphMode, refreshData, overwriteImages] = processArgs();
+  const [gridDate, graphMode, autoYes, refreshData, overwriteImages] = processArgs();
   if (!gridDate || !graphMode) {
     console.error(
       "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--refresh-data] [--overwrite-images]\n" +
@@ -86,6 +86,12 @@ async function main(): Promise<void> {
 
     printGrid(grid, filteredGraph, filteredCategories);
 
+    // If autoYes is true, skip asking the user for approval
+    if (autoYes) {
+      rl.close();
+      break;
+    }
+
     // Ask the user if they want to continue
     const answer = await new Promise<string>((resolve) => rl.question("Continue? (y/n) ", resolve));
     if (answer.toLowerCase() === "y") {
@@ -111,15 +117,16 @@ async function main(): Promise<void> {
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
 }
 
-function processArgs(): [string, "file" | "db" | null, boolean, boolean] {
+function processArgs(): [string, "file" | "db" | null, boolean, boolean, boolean] {
   const args = process.argv.slice(2);
   let gridDate = null;
   let graphMode: "file" | "db" | null = null;
+  let autoYes: boolean = false;
   let refreshData = false;
   let overwriteImages = false;
 
   if (args.length < 2) {
-    return [gridDate, graphMode, refreshData, overwriteImages];
+    return [gridDate, graphMode, autoYes, refreshData, overwriteImages];
   }
 
   for (let i = 0; i < args.length; i++) {
@@ -127,18 +134,20 @@ function processArgs(): [string, "file" | "db" | null, boolean, boolean] {
       overwriteImages = true;
     } else if (args[i] === "--refresh-data") {
       refreshData = true;
+    } else if (args[i] === "--auto-yes") {
+      autoYes = true;
     } else if (!gridDate) {
       gridDate = args[i];
     } else if (!graphMode) {
       if (args[i] === "file" || args[i] === "db") {
         graphMode = args[i] as "file" | "db";
       } else {
-        return [null, null, null, null];
+        return [null, null, null, null, null];
       }
     }
   }
 
-  return [gridDate, graphMode, refreshData, overwriteImages];
+  return [gridDate, graphMode, autoYes, refreshData, overwriteImages];
 }
 
 function prefilterGraph(
