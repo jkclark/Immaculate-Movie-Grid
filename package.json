@@ -11,7 +11,7 @@
     "npm-init-api-lambda-package": "cd api_lambda_package && npm init -y",
     "merge-api-lambda-package-jsons": "cd api_lambda_package && jq -s '.[0] * .[1]' ../api/package.json ../common/package.json > package.json",
     "install-api-lambda-dependencies": "cd api_lambda_package && npm install",
-    "build-api-lambda-package": "cd api_lambda_package && tsc --project ../api/tsconfig.json --outDir .",
+    "build-api-lambda-package": "cd api_lambda_package && tsc --project ../api/tsconfig.json --outDir . --baseUrl ./node_modules/ --typeRoots ./node_modules/@types",
     "zip-api-lambda-package": "cd api_lambda_package && zip -r ../api_lambda_package.zip *",
     "generate-api-lambda-zip": "npm run create-api-lambda-package-dir && npm run npm-init-api-lambda-package && npm run merge-api-lambda-package-jsons && npm run install-api-lambda-dependencies && npm run build-api-lambda-package && npm run zip-api-lambda-package",
     "create-frontend-dist-dir": "mkdir frontend_dist",
