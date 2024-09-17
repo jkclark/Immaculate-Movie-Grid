@@ -7,6 +7,13 @@
     "grid_generation"
   ],
   "scripts": {
+    "create-grid-generation-lambda-package-dir": "mkdir grid_generation_lambda_package",
+    "npm-init-grid-generation-lambda-package": "cd grid_generation_lambda_package && npm init -y",
+    "merge-grid-generation-lambda-package-jsons": "cd grid_generation_lambda_package && jq -s '.[0] * .[1]' ../grid_generation/package.json ../common/package.json > package.json",
+    "install-grid-generation-lambda-dependencies": "cd grid_generation_lambda_package && npm install",
+    "build-grid-generation-lambda-package": "cd grid_generation_lambda_package && tsc --project ../grid_generation/tsconfig.deploy.json && tsc-alias --project ../grid_generation/tsconfig.deploy.json",
+    "zip-grid-generation-lambda-package": "cd grid_generation_lambda_package && zip -r ../grid_generation_lambda_package.zip *",
+    "generate-grid-generation-lambda-zip": "npm run create-grid-generation-lambda-package-dir && npm run npm-init-grid-generation-lambda-package && npm run merge-grid-generation-lambda-package-jsons && npm run install-grid-generation-lambda-dependencies && npm run build-grid-generation-lambda-package && npm run zip-grid-generation-lambda-package",
     "create-api-lambda-package-dir": "mkdir api_lambda_package",
     "npm-init-api-lambda-package": "cd api_lambda_package && npm init -y",
     "merge-api-lambda-package-jsons": "cd api_lambda_package && jq -s '.[0] * .[1]' ../api/package.json ../common/package.json > package.json",

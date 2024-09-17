@@ -1,0 +1,13 @@
+// This file is used to build the grid-generation lambda package.
+{
+    "extends": "./tsconfig",
+    "compilerOptions": {
+        "baseUrl": "../grid_generation_lambda_package/node_modules/",
+        "outDir": "../grid_generation_lambda_package",
+        "paths": {
+            "common/*": [
+                "../../common/*"
+            ],
+        },
+    },
+}

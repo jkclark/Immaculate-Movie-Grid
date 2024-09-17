@@ -130,7 +130,11 @@ dist.zip
 .yarn/install-state.gz
 .pnp.*
 
-# Folder and zip created during local Lambda zip creation
+# Folder and zip create during local grid-generation Lambda zip creation
+grid_generation_lambda_package
+grid_generation_lambda_package.zip
+
+# Folder and zip created during local API Lambda zip creation
 api_lambda_package
 api_lambda_package.zip
 
