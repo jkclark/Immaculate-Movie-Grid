@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-grid": "npx ts-node src",
+    "generate-grid": "npx ts-node src/lambda.ts",
     "build": "tsc && tsc-alias"
   },
   "repository": {
@@ -22,6 +22,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.574.0",
     "@aws-sdk/lib-storage": "^3.578.0",
+    "@types/aws-lambda": "^8.10.138",
     "node-fetch": "^2.7.0",
     "pg": "^8.12.0",
     "reflect-metadata": "^0.2.2",

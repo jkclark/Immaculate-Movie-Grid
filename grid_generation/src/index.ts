@@ -26,17 +26,15 @@ import { writeTextToS3 } from "./s3";
 
 dotenv.config();
 
-async function main(): Promise<void> {
-  // Read arguments
-  const [gridDate, graphMode, autoYes, refreshData, overwriteImages] = processArgs();
+export async function main(
+  gridDate: string,
+  graphMode: "file" | "db",
+  autoYes: boolean,
+  refreshData: boolean,
+  overwriteImages: boolean
+): Promise<void> {
   if (!gridDate || !graphMode) {
-    console.error(
-      "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--refresh-data] [--overwrite-images]\n" +
-        "\ngrid-date should be supplied in the format YYYY-MM-DD\n" +
-        "graph-mode should be either 'file' or 'db'\n" +
-        "--refresh-data will force a refresh of the graph data\n" +
-        "--overwrite-images will ignore existing images in S3\n"
-    );
+    console.error("Missing gridDate or graphMode");
     return;
   }
 
@@ -575,5 +573,3 @@ function getOriginalGraphEntityFromId(
 function convertGridToJSON(grid: GridExport): string {
   return JSON.stringify(grid);
 }
-
-main();
