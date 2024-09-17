@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "grid-generation/src/**"
+      - "grid_generation/src/**"
   workflow_dispatch:
 
 jobs:
