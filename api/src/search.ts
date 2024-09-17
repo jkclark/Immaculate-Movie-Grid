@@ -26,7 +26,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     if (result.media_type !== "movie" && result.media_type !== "tv") {
       continue;
     }
-    console.log(`${result.media_type}: ${result.title || result.name}`);
+    console.log(`Search found ${result.media_type}: ${result.title || result.name}`);
     if (result.media_type === "movie") {
       resultsToReturn.push({
         media_type: result.media_type,
