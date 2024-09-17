@@ -10,8 +10,6 @@
         "paths": {
             "common/*": [
                 "../common/*",
-                // The below is required during Lambda-zip build and baseUrl is set to ./node_modules,
-                "../../common/*"
             ],
         },
         // The following two options are required for TypeORM's decorators
@@ -20,5 +18,5 @@
     },
     "lib": [
         "es2015"
-    ]
+    ],
 }

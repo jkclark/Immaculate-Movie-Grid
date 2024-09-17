@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig",
+    "compilerOptions": {
+        "baseUrl": "../api_lambda_package/node_modules/",
+        "outDir": "../api_lambda_package",
+        "paths": {
+            "common/*": [
+                "../../common/*",
+            ],
+        },
+    },
+}

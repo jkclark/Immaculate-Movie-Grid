@@ -4,7 +4,6 @@ import { getFromTMDBAPIJson } from "common/src/api";
 import { SearchResult } from "common/src/interfaces";
 
 export const handler: Handler = async (event: APIGatewayProxyEvent, context: Context) => {
-  console.log("Github Actions test");
   const query = event.queryStringParameters?.query;
   if (!query) {
     return {
