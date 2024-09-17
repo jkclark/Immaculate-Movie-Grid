@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import { Credit, CreditNode, CreditRating } from "./interfaces";
 import { getMovieRating, getTVRating } from "./tmdbAPI";
 
@@ -16,7 +17,7 @@ export async function getAllCreditExtraInfo(
 
   // If we don't want fresh data and there is already a file with the credit
   // extra info, read it and use that as the starting point
-  const CREDIT_EXTRA_INFO_PATH = "./src/complete_credit_extra_info.json";
+  const CREDIT_EXTRA_INFO_PATH = path.join(__dirname, "complete_credit_extra_info.json");
   if (!refreshData && fs.existsSync(CREDIT_EXTRA_INFO_PATH)) {
     console.log("Credit extra info exists, reading from file");
     creditExtraInfo = readAllCreditExtraInfoFromFile(CREDIT_EXTRA_INFO_PATH);

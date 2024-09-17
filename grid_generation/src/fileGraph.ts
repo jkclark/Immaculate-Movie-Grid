@@ -1,5 +1,6 @@
 import fs from "fs";
 
+import path from "path";
 import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
 import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUniqueString } from "./interfaces";
 import { getAllActorInformation } from "./tmdbAPI";
@@ -24,7 +25,7 @@ export async function loadGraphFromFile(refreshData: boolean): Promise<ActorCred
  */
 async function loadOrFetchGraph(refreshData): Promise<ActorCreditGraph> {
   // If we don't want fresh data and a graph exists, read it and return
-  const GRAPH_PATH = "./src/complete_graph.json";
+  const GRAPH_PATH = path.join(__dirname, "complete_graph.json");
   if (!refreshData && fs.existsSync(GRAPH_PATH)) {
     console.log("Graph exists, reading from file");
     return readGraphFromFile(GRAPH_PATH);
