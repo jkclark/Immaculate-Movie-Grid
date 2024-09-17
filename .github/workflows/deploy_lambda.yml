@@ -1,15 +1,20 @@
-name: Build, zip, and deploy to Lambda
-
-env:
-  SEARCH_LAMBDA_FUNCTION_NAME: SearchTMDBAPI
+name: Deploy Lambda
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "api/src/**"
-      - "common/src/**"
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      npm-script:
+        description: 'The npm script to run'
+        required: true
+        type: string
+      lambda-function-name:
+        description: 'The name of the Lambda function to update'
+        required: true
+        type: string
+      zip-file-name:
+        description: 'The name of the zip file to upload to Lambda'
+        required: true
+        type: string
 
 jobs:
   build-zip-and-deploy:
@@ -40,7 +45,7 @@ jobs:
         run: sudo apt-get install jq
 
       - name: Build and zip
-        run: npm run generate-api-lambda-zip
+        run: npm run ${{ inputs['npm-script'] }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -49,5 +54,5 @@ jobs:
           role-session-name: ${{ github.run_id }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Deploy search Lambda function
-        run: aws lambda update-function-code --function-name $SEARCH_LAMBDA_FUNCTION_NAME --zip-file fileb://api_lambda_package.zip
+      - name: Deploy Lambda function
+        run: aws lambda update-function-code --function-name ${{ inputs['lambda-function-name'] }} --zip-file fileb://${{ inputs['zip-file-name'] }}
