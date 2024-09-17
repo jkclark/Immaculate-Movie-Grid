@@ -10,7 +10,7 @@ interface EventWithGridGenArgs extends APIGatewayProxyEvent {
 }
 
 export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, context: Context) => {
-  main(...getEventArgs(event));
+  await main(...getEventArgs(event));
 
   return {
     statusCode: 200,
