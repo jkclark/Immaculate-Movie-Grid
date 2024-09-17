@@ -2,8 +2,9 @@ name: Deploy grid-generation Lambda
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths:
+      - "grid-generation/src/**"
   workflow_dispatch:
 
 jobs:

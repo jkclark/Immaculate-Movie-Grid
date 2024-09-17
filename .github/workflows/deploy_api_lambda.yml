@@ -2,8 +2,9 @@ name: Deploy API Lambda
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths:
+      - "api/src/**"
   workflow_dispatch:
 
 jobs:
