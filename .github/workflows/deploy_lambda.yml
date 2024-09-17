@@ -4,15 +4,15 @@ on:
   workflow_call:
     inputs:
       npm-script:
-        description: 'The npm script to run'
+        description: "The npm script to run"
         required: true
         type: string
       lambda-function-name:
-        description: 'The name of the Lambda function to update'
+        description: "The name of the Lambda function to update"
         required: true
         type: string
       zip-file-name:
-        description: 'The name of the zip file to upload to Lambda'
+        description: "The name of the zip file to upload to Lambda"
         required: true
         type: string
 
