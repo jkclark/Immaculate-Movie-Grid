@@ -285,7 +285,7 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen dark:bg-gray-800 dark:text-white relative">
+    <div className="flex flex-col h-dvh dark:bg-gray-800 dark:text-white relative">
       <Navbar />
 
       <Overlay />
