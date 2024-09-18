@@ -115,39 +115,6 @@ export async function main(
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
 }
 
-function processArgs(): [string, "file" | "db" | null, boolean, boolean, boolean] {
-  const args = process.argv.slice(2);
-  let gridDate = null;
-  let graphMode: "file" | "db" | null = null;
-  let autoYes: boolean = false;
-  let refreshData = false;
-  let overwriteImages = false;
-
-  if (args.length < 2) {
-    return [gridDate, graphMode, autoYes, refreshData, overwriteImages];
-  }
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--overwrite-images") {
-      overwriteImages = true;
-    } else if (args[i] === "--refresh-data") {
-      refreshData = true;
-    } else if (args[i] === "--auto-yes") {
-      autoYes = true;
-    } else if (!gridDate) {
-      gridDate = args[i];
-    } else if (!graphMode) {
-      if (args[i] === "file" || args[i] === "db") {
-        graphMode = args[i] as "file" | "db";
-      } else {
-        return [null, null, null, null, null];
-      }
-    }
-  }
-
-  return [gridDate, graphMode, autoYes, refreshData, overwriteImages];
-}
-
 function prefilterGraph(
   graph: ActorCreditGraph,
   creditFilter: (credit: Connection) => boolean
