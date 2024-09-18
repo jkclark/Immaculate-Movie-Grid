@@ -52,11 +52,16 @@ function App() {
   // On page load, load the grid data
   useEffect(() => {
     async function fetchData() {
-      // Get today's date in YYYY-MM-DD format
+      // * Get the date of the grid to load *
+      // If it is at or after 6AM for this computer's timezone, we can load today's grid
+      // Otherwise, we need to load yesterday's grid
       const today = new Date();
+      if (today.getHours() < 6) {
+        today.setDate(today.getDate() - 1);
+      }
       const todayString = today.toISOString().split("T")[0];
 
-      // If gridId is not set to today's date, there is (supposed to be)
+      // If gridId is not set to the current puzzle's date, there is (supposed to be)
       // a different grid available
       if (gridId !== todayString) {
         console.log("Grid ID is not today's date, loading grid data");
