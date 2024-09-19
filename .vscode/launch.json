@@ -6,7 +6,7 @@
             "request": "launch",
             "name": "Compile & Generate Grid",
             "preLaunchTask": "npm: build", // run this task before launching the program
-            "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/index.js", // the program to debug
+            "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/lambda.js", // the program to debug
             "outFiles": [
                 "${workspaceFolder}/grid_generation/dist/**/*.js"
             ], // the location of the compiled JavaScript files
