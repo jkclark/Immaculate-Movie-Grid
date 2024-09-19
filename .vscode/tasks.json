@@ -2,14 +2,22 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "npm: build",
+            "label": "npm: build & copy json files in",
             "type": "shell",
-            "command": "npm run build",
+            "command": "npm run build && cp ./src/*.json ./dist/grid_generation/src/",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/grid_generation"
+            }
+        },
+        {
+            "label": "copy json files out",
+            "type": "shell",
+            "command": "cp ./dist/grid_generation/src/*.json ./src/",
             "options": {
                 "cwd": "${workspaceFolder}/grid_generation"
             }
