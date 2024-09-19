@@ -1,6 +1,7 @@
 import { getFromTMDBAPI, getFromTMDBAPIJson } from "common/src/api";
 import { Readable } from "node:stream";
 import { famousActorIds } from "./famousActorIds";
+import { ignoredTVShowIds } from "./ignoredTVShows";
 import { Actor, Credit, CreditRating } from "./interfaces";
 
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -56,19 +57,42 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
     return credits;
   }
 
-  for (const credit of responseJson["cast"]) {
-    // Movies have a "title", TV shows have a "name"
-    credits.add({
-      type: credit.media_type,
-      id: credit.id.toString(),
-      name: credit.title || credit.name,
-      genre_ids: credit.genre_ids || [],
-      popularity: credit.popularity || 0,
-      release_date: credit.release_date || credit.first_air_date || "",
-    });
+  for (const responseCredit of responseJson["cast"]) {
+    const credit: Credit = {
+      type: responseCredit.media_type,
+      id: responseCredit.id.toString(),
+      name: responseCredit.title || responseCredit.name,
+      genre_ids: responseCredit.genre_ids || [],
+      popularity: responseCredit.popularity || 0,
+      release_date: responseCredit.release_date || responseCredit.first_air_date || "",
+    };
+
+    if (isCreditLegit(credit)) {
+      credits.add(credit);
+    }
   }
 
   return credits;
+}
+
+/**
+ * Determine if a credit is worth including in our system.
+ *
+ * The idea is that some credits, like talk shows, aren't worth anything in our system,
+ * both in grid generation but also as answers in the actual game. Since they have no value
+ * to us, we shouldn't even store their information in the first place.
+ *
+ * @param credit The credit to check
+ * @returns true if the credit passes all checks, false otherwise
+ */
+function isCreditLegit(credit: Credit): boolean {
+  const isMovieOrTV = credit.type === "movie" || credit.type === "tv";
+  const isNotTalkShow = credit.type !== "tv" || !credit.genre_ids.includes(10767);
+  const isNotNewsShow = credit.type !== "tv" || !credit.genre_ids.includes(10763);
+
+  const isNotIgnoredTVShow = credit.type !== "tv" || !ignoredTVShowIds.has(parseInt(credit.id));
+
+  return isMovieOrTV && isNotTalkShow && isNotNewsShow && isNotIgnoredTVShow;
 }
 
 export async function getImageByIdTypeAndSize(
