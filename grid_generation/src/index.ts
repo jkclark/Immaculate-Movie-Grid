@@ -69,11 +69,14 @@ export async function main(
     output: process.stdout,
   });
 
+  // Get axis entity type weights
+  const axisEntityTypeWeights = getAxisEntityTypeWeights();
+
   // Generate across/down until the user approves
   let grid: Grid;
   do {
     // Get a valid grid from the generic graph
-    grid = getGridFromGraph(genericGraph, 3, { actor: 0.95, category: 0.05 }, true);
+    grid = getGridFromGraph(genericGraph, 3, axisEntityTypeWeights, true);
 
     // If no valid grid was found, exit
     if (grid.across.length === 0 || grid.down.length === 0) {
@@ -333,6 +336,36 @@ function addCategoriesToGenericGraph(categories: { [key: number]: GraphEntity },
       genericGraph.connections[creditUniqueString].connections[category.id] = genericGraphCategory;
     }
   }
+}
+
+/**
+ * Get a dictionary of weights for each entity type for use in the grid generation algorithm.
+ *
+ * Even with a very low weight for categories, we usually end up with a grid that is largely categories.
+ * To resolve this, we want to dynamically choose the weights each time we generate a grid. One way
+ * to accomplish a lower ratio of categories is to sometimes force the grid to contain no categories at all.
+ * Thus, we randomly choose to include/exclude categories.
+ *
+ * @returns A dictionary of weights for each entity type for use in the grid generation algorithm.
+ */
+function getAxisEntityTypeWeights(): { [key: string]: number } {
+  const CHANCE_OF_NO_CATEGORIES = 0.4;
+
+  // No categories
+  if (Math.random() < CHANCE_OF_NO_CATEGORIES) {
+    console.log("Categories included? No");
+    return {
+      actor: 1,
+      category: 0,
+    };
+  }
+
+  // Categories included
+  console.log("Categories included? Yes");
+  return {
+    actor: 0.95,
+    category: 0.05,
+  };
 }
 
 function printGrid(grid: Grid, graph: ActorCreditGraph, categories: { [key: number]: GraphEntity }): void {
