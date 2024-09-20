@@ -79,7 +79,7 @@ export async function main(
     if (grid.across.length === 0 || grid.down.length === 0) {
       console.log("No valid actor groups found");
       rl.close();
-      return;
+      throw new NoValidActorGroupsFoundError("No valid actor groups found");
     }
 
     printGrid(grid, filteredGraph, filteredCategories);
@@ -539,4 +539,11 @@ function getOriginalGraphEntityFromId(
  */
 function convertGridToJSON(grid: GridExport): string {
   return JSON.stringify(grid);
+}
+
+class NoValidActorGroupsFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NoValidActorGroupsFoundError";
+  }
 }
