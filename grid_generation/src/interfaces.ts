@@ -15,6 +15,7 @@ export interface Credit {
   release_date: string;
 
   rating?: CreditRating;
+  last_air_date?: string;
 }
 
 export type CreditRating =

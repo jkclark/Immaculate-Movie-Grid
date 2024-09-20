@@ -62,7 +62,8 @@ function mergeGraphAndExtraInfo(
   // Iterate over extra info and add them to the graph
   for (const [creditUniqueString, extraInfo] of Object.entries(allCreditExtraInfo)) {
     const credit = graph.credits[creditUniqueString];
-    credit.rating = extraInfo.rating;
+    // Automatically take all fields from the extra info and add them to the credit
+    Object.assign(credit, extraInfo);
   }
 }
 

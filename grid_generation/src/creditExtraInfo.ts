@@ -1,12 +1,13 @@
 import fs from "fs";
 import path from "path";
 import { Credit, CreditNode, CreditRating } from "./interfaces";
-import { getMovieRating, getTVRating } from "./tmdbAPI";
+import { getMovieRating, getTVDetails, getTVRating } from "./tmdbAPI";
 
 export interface CreditExtraInfo {
   type: "movie" | "tv";
   id: string;
   rating: CreditRating;
+  last_air_date?: string;
 }
 
 export async function getAllCreditExtraInfo(
@@ -81,10 +82,13 @@ async function getMovieExtraInfo(id: string): Promise<CreditExtraInfo> {
 }
 
 async function getTVExtraInfo(id: string): Promise<CreditExtraInfo> {
+  const details = await getTVDetails(id);
+
   return {
     type: "tv",
     id: id,
     rating: await getTVRating(id),
+    last_air_date: details.last_air_date,
   };
 }
 

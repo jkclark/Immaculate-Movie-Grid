@@ -198,3 +198,13 @@ export async function getTVRating(id: string): Promise<CreditRating> {
 
   return rating;
 }
+
+interface TVDetails {
+  last_air_date: string;
+}
+
+export async function getTVDetails(id: string): Promise<TVDetails> {
+  const url = `${BASE_URL}/tv/${id}`;
+  const responseJson = await getFromTMDBAPIJson(url);
+  return { last_air_date: responseJson.last_air_date || "" };
+}

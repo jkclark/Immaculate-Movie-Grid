@@ -21,7 +21,9 @@ const releasedIn21stCenturyCategory: Category = {
   name: "Released in the 21st century",
 
   // Technically, we could just parseInt the whole of credit.release_date, but this is more readable.
-  creditFilter: (credit) => parseInt(credit.release_date.split("-")[0]) >= 2000,
+  creditFilter: (credit) =>
+    parseInt(credit.release_date.split("-")[0]) >= 2000 ||
+    parseInt(credit.last_air_date.split("-")[0]) >= 2000,
 
   // We would refer to releasedBefore21stCenturyCategory.id, but it's not defined yet
   incompatibleWith: [-3],
