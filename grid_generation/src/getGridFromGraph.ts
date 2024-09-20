@@ -83,26 +83,11 @@ export function getGridFromGraph(
       // (we'll add the other axis entity later)
       usedConnections[connection.id] = new Set([mostRecentAxisEntity.id]);
 
-      // Determine what kind of axis entity we want to use next
-      // (e.g., actor, category)
-      const nextAxisEntityType = getRandomKeyByWeight(axisEntityTypeWeights);
-
-      // Get separate lists of axis entities that match and don't match nextAxisEntityType
-      // Remember, connection.connections are axis entities
-      let [matchingAxisEntities, nonMatchingAxisEntities] = splitByFieldMatch(
-        Object.values(connection.connections),
-        "entityType",
-        nextAxisEntityType
+      const sortedConnectedAxisEntities = getConnectedAxisEntitiesList(
+        connection,
+        axisEntityTypeWeights,
+        random
       );
-
-      // If random is true, randomize the order of the matching and non-matching axis entities
-      if (random) {
-        matchingAxisEntities = randomizeListOrder(matchingAxisEntities);
-        nonMatchingAxisEntities = randomizeListOrder(nonMatchingAxisEntities);
-      }
-
-      // Append the non-matching axis entities to the matching axis entities
-      const sortedConnectedAxisEntities = matchingAxisEntities.concat(nonMatchingAxisEntities);
 
       // Iterate over the axis entities in this connection
       for (const axisEntity of sortedConnectedAxisEntities) {
@@ -164,6 +149,52 @@ export function getGridFromGraph(
   return { across: [], down: [], usedConnections: {} };
 }
 
+/**
+ * Get a list of axis entities to consider for the next axis.
+ *
+ * A type of axis entity is chosen randomly based on the axisEntityTypeWeights. If a weight is
+ * 0, that type of axis entity will not be included in the list. The output list will contain
+ * axis entities of the chosen type first, followed by axis entities of other types.
+ *
+ * If random is true, the order of the axis entities will be randomized within their portions
+ * of the list.
+ *
+ * @param connection the connection being considered
+ * @param axisEntityTypeWeights the weights of the axis entity types
+ * @param random whether or not to randomize the order of the axis entities
+ */
+function getConnectedAxisEntitiesList(
+  connection: Connection,
+  axisEntityTypeWeights: { [key: string]: number },
+  random: boolean
+): GraphEntity[] {
+  // Filter out axis entities whose type has a weight of 0
+  const validConnections = Object.values(connection.connections).filter(
+    (axisEntity) => axisEntityTypeWeights[axisEntity.entityType] > 0
+  );
+
+  // Determine what kind of axis entity we want to use next
+  // (e.g., actor, category)
+  const nextAxisEntityType = getRandomKeyByWeight(axisEntityTypeWeights);
+
+  // Get separate lists of axis entities that match and don't match nextAxisEntityType
+  // Remember, connection.connections are axis entities
+  let [matchingAxisEntities, nonMatchingAxisEntities] = splitByFieldMatch(
+    validConnections,
+    "entityType",
+    nextAxisEntityType
+  );
+
+  // If random is true, randomize the order of the matching and non-matching axis entities
+  if (random) {
+    matchingAxisEntities = randomizeListOrder(matchingAxisEntities);
+    nonMatchingAxisEntities = randomizeListOrder(nonMatchingAxisEntities);
+  }
+
+  // Append the non-matching axis entities to the matching axis entities
+  return matchingAxisEntities.concat(nonMatchingAxisEntities);
+}
+
 function randomizeListOrder(list: any[]): any[] {
   return list.slice().sort(() => Math.random() - 0.5);
 }
@@ -184,9 +215,9 @@ function getRandomKeyByWeight(weights: { [key: string]: number }): string {
     }
   }
 
-  // Fallback in case of rounding errors
-  console.log("!!! THIS SHOULD BE RARE !!! Falling back to first key");
-  return Object.keys(weights)[0];
+  console.log("!!! THIS SHOULD BE RARE !!! Falling back to key with the highest weight");
+  // Fallback in case of rounding errors: choose the key with the highest weight
+  return Object.keys(weights).reduce((a, b) => (weights[a] > weights[b] ? a : b));
 }
 
 function splitByFieldMatch<T>(objects: T[], key: keyof T, value: any): [T[], T[]] {
