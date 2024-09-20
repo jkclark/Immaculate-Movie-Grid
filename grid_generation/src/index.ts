@@ -30,6 +30,7 @@ export async function main(
   gridDate: string,
   graphMode: "file" | "db",
   autoYes: boolean,
+  autoRetry: boolean,
   refreshData: boolean,
   overwriteImages: boolean
 ): Promise<void> {
@@ -81,6 +82,11 @@ export async function main(
     // If no valid grid was found, exit
     if (grid.across.length === 0 || grid.down.length === 0) {
       console.log("No valid actor groups found");
+
+      if (autoRetry) {
+        continue;
+      }
+
       rl.close();
       throw new NoValidActorGroupsFoundError("No valid actor groups found");
     }

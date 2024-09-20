@@ -4,6 +4,7 @@ import { main } from "./index";
 interface EventWithGridGenArgs extends APIGatewayProxyEvent {
   graphMode: "file" | "db";
   autoYes: boolean;
+  autoRetry: boolean;
   refreshData: boolean;
   overwriteImages: boolean;
   gridDate?: string;
@@ -17,7 +18,9 @@ export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, 
   };
 };
 
-function getEventArgs(event: EventWithGridGenArgs): [string, "file" | "db", boolean, boolean, boolean] {
+function getEventArgs(
+  event: EventWithGridGenArgs
+): [string, "file" | "db", boolean, boolean, boolean, boolean] {
   // If gridDate is not provided, set the date to tomorrow's date
   let gridDate = event.gridDate;
   if (!gridDate) {
@@ -32,7 +35,14 @@ function getEventArgs(event: EventWithGridGenArgs): [string, "file" | "db", bool
     throw new Error(`Missing required arguments: ${required_args.join(", ")}`);
   }
 
-  return [gridDate, event.graphMode, event.autoYes, event.refreshData, event.overwriteImages];
+  return [
+    gridDate,
+    event.graphMode,
+    event.autoYes,
+    event.autoRetry,
+    event.refreshData,
+    event.overwriteImages,
+  ];
 }
 
 /**
@@ -41,16 +51,17 @@ function getEventArgs(event: EventWithGridGenArgs): [string, "file" | "db", bool
  *******************************************************
  */
 
-function processCLIArgs(): [string, "file" | "db" | null, boolean, boolean, boolean] {
+function processCLIArgs(): [string, "file" | "db" | null, boolean, boolean, boolean, boolean] {
   const args = process.argv.slice(2);
   let gridDate = null;
   let graphMode: "file" | "db" | null = null;
   let autoYes: boolean = false;
+  let autoRetry: boolean = false;
   let refreshData = false;
   let overwriteImages = false;
 
   if (args.length < 2) {
-    return [gridDate, graphMode, autoYes, refreshData, overwriteImages];
+    return [gridDate, graphMode, autoYes, autoRetry, refreshData, overwriteImages];
   }
 
   for (let i = 0; i < args.length; i++) {
@@ -60,6 +71,8 @@ function processCLIArgs(): [string, "file" | "db" | null, boolean, boolean, bool
       refreshData = true;
     } else if (args[i] === "--auto-yes") {
       autoYes = true;
+    } else if (args[i] === "--auto-retry") {
+      autoRetry = true;
     } else if (!gridDate) {
       gridDate = args[i];
     } else if (!graphMode) {
@@ -73,12 +86,12 @@ function processCLIArgs(): [string, "file" | "db" | null, boolean, boolean, bool
             "--refresh-data will force a refresh of the graph data\n" +
             "--overwrite-images will ignore existing images in S3\n"
         );
-        return [null, null, null, null, null];
+        return [null, null, null, null, null, null];
       }
     }
   }
 
-  return [gridDate, graphMode, autoYes, refreshData, overwriteImages];
+  return [gridDate, graphMode, autoYes, autoRetry, refreshData, overwriteImages];
 }
 
 if (require.main === module) {
@@ -184,8 +197,9 @@ if (require.main === module) {
   customEvent.gridDate = cliArgs[0];
   customEvent.graphMode = cliArgs[1];
   customEvent.autoYes = cliArgs[2];
-  customEvent.refreshData = cliArgs[3];
-  customEvent.overwriteImages = cliArgs[4];
+  customEvent.autoRetry = cliArgs[3];
+  customEvent.refreshData = cliArgs[4];
+  customEvent.overwriteImages = cliArgs[5];
 
   main(...getEventArgs(customEvent));
 }
