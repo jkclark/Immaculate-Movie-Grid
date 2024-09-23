@@ -1,5 +1,5 @@
 import { atom, useAtom, useSetAtom } from "jotai";
-import React from "react";
+import React, { useEffect } from "react";
 import { selectedColAtom, selectedRowAtom } from "../state";
 
 const overlayContentsAtom = atom<JSX.Element[]>([]);
@@ -38,6 +38,22 @@ const Overlay: React.FC = () => {
     setSelectedRow(-1);
     setSelectedCol(-1);
   }
+
+  // Close overlay on escape key press
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeOverlay();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const topOverlayContents = peekOverlayContents();
 
