@@ -1,26 +1,42 @@
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
+import FileGraphHandler from "./fileGraphHandler";
+import GraphHandler from "./graphHandler";
 import { main } from "./index";
 
-interface EventWithGridGenArgs extends APIGatewayProxyEvent {
+interface EventGridGenArgs {
+  gridDate: string;
   graphMode: "file" | "db";
   autoYes: boolean;
   autoRetry: boolean;
   refreshData: boolean;
   overwriteImages: boolean;
-  gridDate?: string;
 }
 
+interface EventWithGridGenArgs extends APIGatewayProxyEvent, EventGridGenArgs {}
+
 export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, context: Context) => {
-  await main(...getEventArgs(event));
+  const eventArgs: EventGridGenArgs = getEventArgs(event);
+  let graphHandler: GraphHandler = null;
+  if (eventArgs.graphMode === "file") {
+    graphHandler = new FileGraphHandler();
+  } else if (eventArgs.graphMode === "db") {
+    // graphHandler = new DBGraphHandler();
+    throw new Error("DB graph mode not implemented");
+  }
+
+  const gridGenArgs = {
+    ...eventArgs,
+    graphHandler,
+  };
+
+  await main(gridGenArgs);
 
   return {
     statusCode: 200,
   };
 };
 
-function getEventArgs(
-  event: EventWithGridGenArgs
-): [string, "file" | "db", boolean, boolean, boolean, boolean] {
+function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
   // If gridDate is not provided, set the date to tomorrow's date
   let gridDate = event.gridDate;
   if (!gridDate) {
@@ -35,19 +51,19 @@ function getEventArgs(
     throw new Error(`Missing required arguments: ${required_args.join(", ")}`);
   }
 
-  return [
+  return {
     gridDate,
-    event.graphMode,
-    event.autoYes,
-    event.autoRetry,
-    event.refreshData,
-    event.overwriteImages,
-  ];
+    graphMode: event.graphMode,
+    autoYes: event.autoYes,
+    autoRetry: event.autoRetry,
+    refreshData: event.refreshData,
+    overwriteImages: event.overwriteImages,
+  };
 }
 
 /**
  *******************************************************
- * The code below exists for running the Lambda function locally
+ * The code below exists for simulating the Lambda function locally
  *******************************************************
  */
 
@@ -201,5 +217,5 @@ if (require.main === module) {
   customEvent.refreshData = cliArgs[4];
   customEvent.overwriteImages = cliArgs[5];
 
-  main(...getEventArgs(customEvent));
+  generateGridHandler(customEvent, null, null);
 }

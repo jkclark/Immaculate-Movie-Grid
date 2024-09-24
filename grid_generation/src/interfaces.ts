@@ -87,3 +87,19 @@ export function deepCopyActorCreditGraph(graph: ActorCreditGraph, check = true):
 
   return graphCopy;
 }
+
+export interface actorNodeExport {
+  id: string;
+  name: string;
+  connections: { type: "movie" | "tv"; id: string }[];
+}
+
+export interface creditNodeExport {
+  type: "movie" | "tv";
+  id: string;
+  name: string;
+  genre_ids: number[];
+  popularity: number;
+  release_date: string;
+  connections: number[];
+}

@@ -4,8 +4,6 @@ import * as readline from "readline";
 
 import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
 import { allCategories, Category } from "./categories";
-import { loadGraphFromDB } from "./dbGraph";
-import { loadGraphFromFile } from "./fileGraph";
 import {
   Connection,
   getGridFromGraph,
@@ -14,6 +12,7 @@ import {
   Grid,
   UsedConnectionsWithAxisEntities,
 } from "./getGridFromGraph";
+import GraphHandler from "./graphHandler";
 import { getAndSaveAllImagesForGrid } from "./images";
 import {
   ActorCreditGraph,
@@ -26,25 +25,22 @@ import { writeTextToS3 } from "./s3";
 
 dotenv.config();
 
-export async function main(
-  gridDate: string,
-  graphMode: "file" | "db",
-  autoYes: boolean,
-  autoRetry: boolean,
-  refreshData: boolean,
-  overwriteImages: boolean
-): Promise<void> {
-  if (!gridDate || !graphMode) {
-    console.error("Missing gridDate or graphMode");
+export interface GridGenArgs {
+  gridDate: string;
+  graphHandler: GraphHandler;
+  autoYes: boolean;
+  autoRetry: boolean;
+  refreshData: boolean;
+  overwriteImages: boolean;
+}
+
+export async function main(args: GridGenArgs): Promise<void> {
+  if (!args.gridDate || !args.graphHandler) {
+    console.error("Missing gridDate or graphHandler");
     return;
   }
 
-  let graph: ActorCreditGraph = null;
-  if (graphMode === "file") {
-    graph = await loadGraphFromFile(refreshData);
-  } else if (graphMode === "db") {
-    graph = await loadGraphFromDB();
-  }
+  const graph = await args.graphHandler.loadGraph(args.refreshData);
 
   // Filter the graph to exclude connections that don't pass a given "credit filter"
   const filteredGraph: ActorCreditGraph = prefilterGraph(graph, isLegitMovie);
@@ -83,7 +79,7 @@ export async function main(
     if (grid.across.length === 0 || grid.down.length === 0) {
       console.log("No valid actor groups found");
 
-      if (autoRetry) {
+      if (args.autoRetry) {
         continue;
       }
 
@@ -94,7 +90,7 @@ export async function main(
     printGrid(grid, filteredGraph, filteredCategories);
 
     // If autoYes is true, skip asking the user for approval
-    if (autoYes) {
+    if (args.autoYes) {
       rl.close();
       break;
     }
@@ -111,17 +107,17 @@ export async function main(
   const categories: { [key: number]: GraphEntity } = getCategoryGraphEntities(allCategories, graph);
 
   // Get GridExport from grid, graph, and categories
-  const gridExport = getGridExportFromGridGraphAndCategories(grid, graph, categories, gridDate);
+  const gridExport = getGridExportFromGridGraphAndCategories(grid, graph, categories, args.gridDate);
 
   // Get images for actors and credits and save them to S3
-  await getAndSaveAllImagesForGrid(gridExport, overwriteImages);
+  await getAndSaveAllImagesForGrid(gridExport, args.overwriteImages);
 
   // Convert to JSON
   const jsonGrid = convertGridToJSON(gridExport);
   console.log(jsonGrid);
 
   // Write grid to S3
-  await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${gridDate}.json`);
+  await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${args.gridDate}.json`);
 }
 
 function prefilterGraph(
