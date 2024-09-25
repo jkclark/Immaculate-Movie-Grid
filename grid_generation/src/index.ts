@@ -30,7 +30,6 @@ export interface GridGenArgs {
   graphHandler: GraphHandler;
   autoYes: boolean;
   autoRetry: boolean;
-  refreshData: boolean;
   overwriteImages: boolean;
 }
 
@@ -40,7 +39,7 @@ export async function main(args: GridGenArgs): Promise<void> {
     return;
   }
 
-  const graph = await args.graphHandler.loadGraph(args.refreshData);
+  const graph = await args.graphHandler.loadGraph();
 
   // Filter the graph to exclude connections that don't pass a given "credit filter"
   const filteredGraph: ActorCreditGraph = prefilterGraph(graph, isLegitMovie);

@@ -11,7 +11,6 @@ interface EventGridGenArgs {
   graphMode: "file" | "db";
   autoYes: boolean;
   autoRetry: boolean;
-  refreshData: boolean;
   overwriteImages: boolean;
 }
 
@@ -49,7 +48,7 @@ function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
   }
 
   // All other arguments are required, enforce that here
-  const required_args = ["graphMode", "autoYes", "refreshData", "overwriteImages"];
+  const required_args = ["graphMode", "autoYes", "overwriteImages"];
   if (!required_args.every((arg) => event.hasOwnProperty(arg))) {
     throw new Error(`Missing required arguments: ${required_args.join(", ")}`);
   }
@@ -59,7 +58,6 @@ function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
     graphMode: event.graphMode,
     autoYes: event.autoYes,
     autoRetry: event.autoRetry,
-    refreshData: event.refreshData,
     overwriteImages: event.overwriteImages,
   };
 }
@@ -70,24 +68,21 @@ function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
  *******************************************************
  */
 
-function processCLIArgs(): [string, "file" | "db" | null, boolean, boolean, boolean, boolean] {
+function processCLIArgs(): [string, "file" | "db" | null, boolean, boolean, boolean] {
   const args = process.argv.slice(2);
   let gridDate = null;
   let graphMode: "file" | "db" | null = null;
   let autoYes: boolean = false;
   let autoRetry: boolean = false;
-  let refreshData = false;
   let overwriteImages = false;
 
   if (args.length < 2) {
-    return [gridDate, graphMode, autoYes, autoRetry, refreshData, overwriteImages];
+    return [gridDate, graphMode, autoYes, autoRetry, overwriteImages];
   }
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--overwrite-images") {
       overwriteImages = true;
-    } else if (args[i] === "--refresh-data") {
-      refreshData = true;
     } else if (args[i] === "--auto-yes") {
       autoYes = true;
     } else if (args[i] === "--auto-retry") {
@@ -99,18 +94,17 @@ function processCLIArgs(): [string, "file" | "db" | null, boolean, boolean, bool
         graphMode = args[i] as "file" | "db";
       } else {
         console.error(
-          "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--refresh-data] [--overwrite-images]\n" +
+          "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--overwrite-images]\n" +
             "\ngrid-date should be supplied in the format YYYY-MM-DD\n" +
             "graph-mode should be either 'file' or 'db'\n" +
-            "--refresh-data will force a refresh of the graph data\n" +
             "--overwrite-images will ignore existing images in S3\n"
         );
-        return [null, null, null, null, null, null];
+        return [null, null, null, null, null];
       }
     }
   }
 
-  return [gridDate, graphMode, autoYes, autoRetry, refreshData, overwriteImages];
+  return [gridDate, graphMode, autoYes, autoRetry, overwriteImages];
 }
 
 if (require.main === module) {
@@ -217,8 +211,7 @@ if (require.main === module) {
   customEvent.graphMode = cliArgs[1];
   customEvent.autoYes = cliArgs[2];
   customEvent.autoRetry = cliArgs[3];
-  customEvent.refreshData = cliArgs[4];
-  customEvent.overwriteImages = cliArgs[5];
+  customEvent.overwriteImages = cliArgs[4];
 
   generateGridHandler(customEvent, null, null);
 }

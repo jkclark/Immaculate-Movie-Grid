@@ -24,12 +24,12 @@ export default class FileGraphHandler extends GraphHandler {
 
   async fetchData(): Promise<void> {}
 
-  async loadGraph(refreshData): Promise<ActorCreditGraph> {
+  async loadGraph(): Promise<ActorCreditGraph> {
     // Load the graph, or generate it if it doesn't exist
-    const graph = await this.loadOrFetchActorsAndCreditsGraph(refreshData);
+    const graph = await this.loadOrFetchActorsAndCreditsGraph();
 
     // Load the extra info for all credits from file, or generate it if it doesn't exist
-    const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits, refreshData);
+    const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits);
 
     // Merge the extra info into the graph, in place
     this.mergeGraphAndExtraInfo(graph, allCreditExtraInfo);
@@ -55,9 +55,9 @@ export default class FileGraphHandler extends GraphHandler {
    *
    * @returns A promise that resolves to a Graph object
    */
-  async loadOrFetchActorsAndCreditsGraph(refreshData): Promise<ActorCreditGraph> {
+  async loadOrFetchActorsAndCreditsGraph(): Promise<ActorCreditGraph> {
     // If we don't want fresh data and a graph exists, read it and return
-    if (!refreshData && fs.existsSync(this.graphPath)) {
+    if (fs.existsSync(this.graphPath)) {
       console.log("Graph exists, reading from file");
       return this.readGraphFromFile(this.graphPath);
     }

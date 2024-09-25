@@ -10,16 +10,15 @@ export interface CreditExtraInfo {
   last_air_date?: string;
 }
 
-export async function getAllCreditExtraInfo(
-  credits: { [key: string]: CreditNode },
-  refreshData: boolean
-): Promise<{ [key: string]: CreditExtraInfo }> {
+export async function getAllCreditExtraInfo(credits: {
+  [key: string]: CreditNode;
+}): Promise<{ [key: string]: CreditExtraInfo }> {
   let creditExtraInfo: { [key: string]: CreditExtraInfo } = {};
 
   // If we don't want fresh data and there is already a file with the credit
   // extra info, read it and use that as the starting point
   const CREDIT_EXTRA_INFO_PATH = path.join(__dirname, "complete_credit_extra_info.json");
-  if (!refreshData && fs.existsSync(CREDIT_EXTRA_INFO_PATH)) {
+  if (fs.existsSync(CREDIT_EXTRA_INFO_PATH)) {
     console.log("Credit extra info exists, reading from file");
     creditExtraInfo = readAllCreditExtraInfoFromFile(CREDIT_EXTRA_INFO_PATH);
   }
