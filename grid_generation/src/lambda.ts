@@ -20,7 +20,10 @@ export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, 
   const eventArgs: EventGridGenArgs = getEventArgs(event);
   let graphHandler: GraphHandler = null;
   if (eventArgs.graphMode === "file") {
-    graphHandler = new FileGraphHandler(path.join(__dirname, "complete_graph.json"));
+    graphHandler = new FileGraphHandler(
+      path.join(__dirname, "complete_graph.json"),
+      path.join(__dirname, "complete_credit_extra_info.json")
+    );
   } else if (eventArgs.graphMode === "db") {
     // graphHandler = new DBGraphHandler();
     throw new Error("DB graph mode not implemented");

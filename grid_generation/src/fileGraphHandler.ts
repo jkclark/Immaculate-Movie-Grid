@@ -1,6 +1,6 @@
 import fs from "fs";
 
-import { getAllCreditExtraInfo } from "./creditExtraInfo";
+import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
 import GraphHandler from "./graphHandler";
 import { ActorCreditGraph, actorNodeExport, creditNodeExport, getCreditUniqueString } from "./interfaces";
 import { getAllActorInformation } from "./tmdbAPI";
@@ -15,26 +15,74 @@ import { getAllActorInformation } from "./tmdbAPI";
  * need to handle them separately.
  */
 export default class FileGraphHandler extends GraphHandler {
-  private graphPath: string;
+  private actorsAndCreditsGraphPath: string;
+  private creditExtraInfoPath: string;
 
-  constructor(graphPath: string) {
+  constructor(actorsAndCreditsGraphPath: string, creditExtraInfoPath: string) {
     super();
-    this.graphPath = graphPath;
+    this.actorsAndCreditsGraphPath = actorsAndCreditsGraphPath;
+    this.creditExtraInfoPath = creditExtraInfoPath;
   }
 
-  async fetchData(): Promise<void> {}
+  /**
+   * Download actor data, credit data, and extra info about credits, and save them to files.
+   */
+  async fetchAndSaveData(): Promise<void> {
+    // Get actor and credit data and write it to file
+    const graph = await this.fetchAndSaveActorsAndCreditsGraph();
 
+    // Get extra credit info and write it to file
+    await this.fetchAndSaveExtraCreditInfo(graph);
+  }
+
+  /**
+   * Get a graph object containing actors, credits, and extra information from a file.
+   *
+   * @returns a promise that resolves to a graph object, which includes credit extra info
+   */
   async loadGraph(): Promise<ActorCreditGraph> {
-    // Load the graph, or generate it if it doesn't exist
-    const graph = await this.loadOrFetchActorsAndCreditsGraph();
+    // Load the graph from a file
+    const graph = await this.readActorCreditGraphFromFile(this.actorsAndCreditsGraphPath);
 
-    // Load the extra info for all credits from file, or generate it if it doesn't exist
-    const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits);
+    // Load the extra info for all credits from file
+    const allCreditExtraInfo = this.readExtraCreditInfoFromFile(this.creditExtraInfoPath);
 
     // Merge the extra info into the graph, in place
     super.mergeGraphAndExtraInfo(graph, allCreditExtraInfo);
 
     return graph;
+  }
+
+  /**
+   * Download the actor and credit data, generate the graph, and write it to file.
+   *
+   * @returns A promise that resolves to a graph object
+   */
+  async fetchAndSaveActorsAndCreditsGraph(): Promise<ActorCreditGraph> {
+    // Get all actor information
+    const actorsWithCredits = await getAllActorInformation();
+    console.log(`${actorsWithCredits.length} actors with credits:`);
+
+    // Generate graph
+    const graph = super.generateActorCreditGraph(actorsWithCredits);
+
+    // Write graph to file
+    // NOTE: This file cannot be called graph.json because it somehow conflicts with
+    //       the graph.ts file in the same directory.
+    this.writeActorCreditGraphToFile(graph, this.actorsAndCreditsGraphPath);
+
+    return graph;
+  }
+
+  /**
+   * Fetch the extra information about credits and save it to a file.
+   *
+   * @param graph the graph whose credits' extra information should be fetched and saved
+   */
+  async fetchAndSaveExtraCreditInfo(graph: ActorCreditGraph): Promise<void> {
+    const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits);
+
+    this.writeAllCreditExtraInfoToFile(allCreditExtraInfo, this.creditExtraInfoPath);
   }
 
   /**
@@ -46,39 +94,28 @@ export default class FileGraphHandler extends GraphHandler {
    * @param graph the graph to save to file
    * @param name the name of the file to save the graph to
    */
-  saveGraph(graph: ActorCreditGraph, name: string): void {
+  writeActorCreditGraphToFile(graph: ActorCreditGraph, name: string): void {
     const json = this.convertGraphToJSON(graph);
     fs.writeFileSync(name, json);
   }
+
   /**
-   * Get a graph object from a file if it exists, otherwise scrape the data, generate the graph, and write it to file.
+   * Write the extra information about credits to a file.
    *
-   * @returns A promise that resolves to a Graph object
+   * @param allCreditExtraInfo the extra information about credits to write to file
+   * @param path the path to write the extra information to
    */
-  async loadOrFetchActorsAndCreditsGraph(): Promise<ActorCreditGraph> {
-    // If we don't want fresh data and a graph exists, read it and return
-    if (fs.existsSync(this.graphPath)) {
-      console.log("Graph exists, reading from file");
-      return this.readGraphFromFile(this.graphPath);
-    }
-
-    // Otherwise, scrape the data, generate the graph, and write it to file
-    // Get all actor information
-    const actorsWithCredits = await getAllActorInformation();
-    console.log("Actors with credits:", actorsWithCredits.length);
-
-    // Generate graph
-    const graph = super.generateActorCreditGraph(actorsWithCredits);
-
-    // Write graph to file
-    // NOTE: This file cannot be called graph.json because it somehow conflicts with
-    //       the graph.ts file in the same directory.
-    this.saveGraph(graph, this.graphPath);
-
-    return graph;
+  writeAllCreditExtraInfoToFile(allCreditExtraInfo: { [key: string]: CreditExtraInfo }, path: string): void {
+    fs.writeFileSync(path, JSON.stringify(allCreditExtraInfo));
   }
 
-  readGraphFromFile(path: string): ActorCreditGraph {
+  /**
+   * Get a graph of actors and credits from a file.
+   *
+   * @param path the path to read the graph from
+   * @returns a graph object read from the file
+   */
+  readActorCreditGraphFromFile(path: string): ActorCreditGraph {
     const json = fs.readFileSync(path, "utf8");
     const data: { actors: actorNodeExport[]; credits: creditNodeExport[] } = JSON.parse(json);
 
@@ -99,6 +136,17 @@ export default class FileGraphHandler extends GraphHandler {
     }
 
     return graph;
+  }
+
+  /**
+   * Get the extra information about credits from a file.
+   *
+   * @param path the path to read the extra credit information from
+   * @returns a dictionary of credit IDs to extra information about those credits
+   */
+  readExtraCreditInfoFromFile(path: string): { [key: string]: CreditExtraInfo } {
+    const json = fs.readFileSync(path, "utf8");
+    return JSON.parse(json);
   }
 
   /**

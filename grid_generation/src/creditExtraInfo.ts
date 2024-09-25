@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import { Credit, CreditNode, CreditRating } from "./interfaces";
 import { getMovieRating, getTVDetails, getTVRating } from "./tmdbAPI";
 
@@ -15,51 +13,22 @@ export async function getAllCreditExtraInfo(credits: {
 }): Promise<{ [key: string]: CreditExtraInfo }> {
   let creditExtraInfo: { [key: string]: CreditExtraInfo } = {};
 
-  // If we don't want fresh data and there is already a file with the credit
-  // extra info, read it and use that as the starting point
-  const CREDIT_EXTRA_INFO_PATH = path.join(__dirname, "complete_credit_extra_info.json");
-  if (fs.existsSync(CREDIT_EXTRA_INFO_PATH)) {
-    console.log("Credit extra info exists, reading from file");
-    creditExtraInfo = readAllCreditExtraInfoFromFile(CREDIT_EXTRA_INFO_PATH);
-  }
+  const numCredits = Object.keys(credits).length;
+  console.log(`Getting extra info for ${numCredits} credits`);
 
-  // Remove any credit extra info for credits that no longer exist
-  pruneCreditExtraInfo(credits, creditExtraInfo);
-
-  // Find all of the credits that need extra information
-  const creditsNeedingExtraInfo: Set<string> = new Set();
-
-  // Determine the credits that need extra info
-  for (const creditUniqueString of Object.keys(credits)) {
-    if (!creditExtraInfo[creditUniqueString]) {
-      creditsNeedingExtraInfo.add(creditUniqueString);
-    }
-  }
-
-  if (creditsNeedingExtraInfo.size === 0) {
-    console.log("No credits need extra info");
-    return creditExtraInfo;
-  }
-
-  console.log(`Getting extra info for ${creditsNeedingExtraInfo.size} credits`);
-
-  const totalCredits = creditsNeedingExtraInfo.size;
   let currentCount = 0;
-  const tenPercentIncrement = totalCredits / 10;
+  const tenPercentIncrement = numCredits / 10;
   let nextTenPercentMilestone = tenPercentIncrement;
 
-  for (const creditUniqueString of creditsNeedingExtraInfo) {
+  for (const creditUniqueString of Object.keys(credits)) {
     currentCount++;
     creditExtraInfo[creditUniqueString] = await getCreditExtraInfo(credits[creditUniqueString]);
 
     if (currentCount >= nextTenPercentMilestone) {
-      console.log(`Progress: ${((currentCount / totalCredits) * 100).toFixed(2)}%`);
+      console.log(`Progress: ${((currentCount / numCredits) * 100).toFixed(2)}%`);
       nextTenPercentMilestone += tenPercentIncrement;
     }
   }
-
-  // Write the credit extra info to a file
-  writeAllCreditExtraInfoToFile(creditExtraInfo, CREDIT_EXTRA_INFO_PATH);
 
   return creditExtraInfo;
 }
@@ -89,39 +58,4 @@ async function getTVExtraInfo(id: string): Promise<CreditExtraInfo> {
     rating: await getTVRating(id),
     last_air_date: details.last_air_date,
   };
-}
-
-/**
- * Remove any credit extra info for a credit that isn't in the credits object
- *
- * It seems that it's possible that TMDB remove some credits from their database,
- * so we need to make sure that we don't have any extra info for credits that no longer exist
- *
- * @param credits All credits in the graph
- * @param creditExtraInfo All credit extra info
- */
-function pruneCreditExtraInfo(
-  credits: { [key: string]: CreditNode },
-  creditExtraInfo: { [key: string]: CreditExtraInfo }
-): void {
-  const numCredits = Object.keys(credits).length;
-  for (const creditUniqueString of Object.keys(creditExtraInfo)) {
-    if (!credits[creditUniqueString]) {
-      delete creditExtraInfo[creditUniqueString];
-    }
-  }
-
-  console.log(`Pruned ${numCredits - Object.keys(credits).length} credits from extra info`);
-}
-
-export function writeAllCreditExtraInfoToFile(
-  allCreditExtraInfo: { [key: string]: CreditExtraInfo },
-  path: string
-): void {
-  fs.writeFileSync(path, JSON.stringify(allCreditExtraInfo));
-}
-
-export function readAllCreditExtraInfoFromFile(path: string): { [key: string]: CreditExtraInfo } {
-  const json = fs.readFileSync(path, "utf8");
-  return JSON.parse(json);
 }

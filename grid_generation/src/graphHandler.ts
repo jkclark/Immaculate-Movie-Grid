@@ -2,11 +2,9 @@ import { CreditExtraInfo } from "./creditExtraInfo";
 import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUniqueString } from "./interfaces";
 
 export default abstract class GraphHandler {
-  abstract fetchData(): Promise<void>;
+  abstract fetchAndSaveData(): Promise<void>;
 
   abstract loadGraph(): Promise<ActorCreditGraph>;
-
-  abstract saveGraph(graph: ActorCreditGraph, name: string): void;
 
   /**
    * Create a graph object from a list of actors with their credits.
