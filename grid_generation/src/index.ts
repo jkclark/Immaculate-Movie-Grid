@@ -40,7 +40,7 @@ export async function main(args: GridGenArgs): Promise<void> {
     return;
   }
 
-  const graph = await args.graphHandler.loadOrFetchGraph(args.refreshData);
+  const graph = await args.graphHandler.loadGraph(args.refreshData);
 
   // Filter the graph to exclude connections that don't pass a given "credit filter"
   const filteredGraph: ActorCreditGraph = prefilterGraph(graph, isLegitMovie);
