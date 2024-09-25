@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 
 import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
 import GraphHandler from "./graphHandler";
@@ -25,6 +24,13 @@ import { getAllActorInformation } from "./tmdbAPI";
  * need to handle them separately.
  */
 export default class FileGraphHandler extends GraphHandler {
+  private graphPath: string;
+
+  constructor(graphPath: string) {
+    super();
+    this.graphPath = graphPath;
+  }
+
   async loadOrFetchGraph(refreshData): Promise<ActorCreditGraph> {
     // Load the graph, or generate it if it doesn't exist
     const graph = await this.loadOrFetchActorsAndCreditsGraph(refreshData);
@@ -58,10 +64,9 @@ export default class FileGraphHandler extends GraphHandler {
    */
   async loadOrFetchActorsAndCreditsGraph(refreshData): Promise<ActorCreditGraph> {
     // If we don't want fresh data and a graph exists, read it and return
-    const GRAPH_PATH = path.join(__dirname, "complete_graph.json");
-    if (!refreshData && fs.existsSync(GRAPH_PATH)) {
+    if (!refreshData && fs.existsSync(this.graphPath)) {
       console.log("Graph exists, reading from file");
-      return this.readGraphFromFile(GRAPH_PATH);
+      return this.readGraphFromFile(this.graphPath);
     }
 
     // Otherwise, scrape the data, generate the graph, and write it to file
@@ -75,7 +80,7 @@ export default class FileGraphHandler extends GraphHandler {
     // Write graph to file
     // NOTE: This file cannot be called graph.json because it somehow conflicts with
     //       the graph.ts file in the same directory.
-    this.saveGraph(graph, GRAPH_PATH);
+    this.saveGraph(graph, this.graphPath);
 
     return graph;
   }

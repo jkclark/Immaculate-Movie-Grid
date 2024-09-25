@@ -1,4 +1,7 @@
+import path from "path";
+
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
+
 import FileGraphHandler from "./fileGraphHandler";
 import GraphHandler from "./graphHandler";
 import { main } from "./index";
@@ -18,7 +21,7 @@ export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, 
   const eventArgs: EventGridGenArgs = getEventArgs(event);
   let graphHandler: GraphHandler = null;
   if (eventArgs.graphMode === "file") {
-    graphHandler = new FileGraphHandler();
+    graphHandler = new FileGraphHandler(path.join(__dirname, "complete_graph.json"));
   } else if (eventArgs.graphMode === "db") {
     // graphHandler = new DBGraphHandler();
     throw new Error("DB graph mode not implemented");
