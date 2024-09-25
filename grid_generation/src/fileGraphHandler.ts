@@ -15,10 +15,19 @@ import {
 } from "./interfaces";
 import { getAllActorInformation } from "./tmdbAPI";
 
+/**
+ * A class that handles the reading and writing of graphs to and from files.
+ *
+ * It is important to note that the file graph handler works differently from other graph handlers.
+ * The file graph handler actually uses two separate files: one file contains actors and credits,
+ * and the other file contains extra information about the credits. In the database graph handler,
+ * for example, the extra information is stored alongside the credits in the same table, so there is no
+ * need to handle them separately.
+ */
 export default class FileGraphHandler extends GraphHandler {
-  async loadGraph(refreshData): Promise<ActorCreditGraph> {
+  async loadOrFetchGraph(refreshData): Promise<ActorCreditGraph> {
     // Load the graph, or generate it if it doesn't exist
-    const graph = await this.loadOrFetchGraph(refreshData);
+    const graph = await this.loadOrFetchActorsAndCreditsGraph(refreshData);
 
     // Load the extra info for all credits from file, or generate it if it doesn't exist
     const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits, refreshData);
@@ -32,6 +41,9 @@ export default class FileGraphHandler extends GraphHandler {
   /**
    * Write a graph to a file.
    *
+   * The "graph" written to file here only contains information about actors and credits,
+   * not the extra information about credits. The extra information is stored in a separate file.
+   *
    * @param graph the graph to save to file
    * @param name the name of the file to save the graph to
    */
@@ -44,7 +56,7 @@ export default class FileGraphHandler extends GraphHandler {
    *
    * @returns A promise that resolves to a Graph object
    */
-  async loadOrFetchGraph(refreshData): Promise<ActorCreditGraph> {
+  async loadOrFetchActorsAndCreditsGraph(refreshData): Promise<ActorCreditGraph> {
     // If we don't want fresh data and a graph exists, read it and return
     const GRAPH_PATH = path.join(__dirname, "complete_graph.json");
     if (!refreshData && fs.existsSync(GRAPH_PATH)) {
