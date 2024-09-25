@@ -31,6 +31,8 @@ export default class FileGraphHandler extends GraphHandler {
     this.graphPath = graphPath;
   }
 
+  async fetchData(): Promise<void> {}
+
   async loadGraph(refreshData): Promise<ActorCreditGraph> {
     // Load the graph, or generate it if it doesn't exist
     const graph = await this.loadOrFetchActorsAndCreditsGraph(refreshData);
