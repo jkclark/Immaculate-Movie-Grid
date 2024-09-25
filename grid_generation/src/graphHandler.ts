@@ -1,3 +1,4 @@
+import { CreditExtraInfo } from "./creditExtraInfo";
 import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUniqueString } from "./interfaces";
 
 export default abstract class GraphHandler {
@@ -64,6 +65,26 @@ export default abstract class GraphHandler {
     const creditNode: CreditNode = graph.credits[creditUniqueString];
     actorNode.connections[creditUniqueString] = creditNode;
     creditNode.connections[actorId] = actorNode;
+  }
+
+  /**
+   * Add extra info for graph credits into the graph.
+   *
+   * Note: This function modifies the graph in place.
+   *
+   * @param graph the graph to update with extra info
+   * @param allCreditExtraInfo the extra info to merge into the graph
+   */
+  mergeGraphAndExtraInfo(
+    graph: ActorCreditGraph,
+    allCreditExtraInfo: { [key: string]: CreditExtraInfo }
+  ): void {
+    // Iterate over extra info and add them to the graph
+    for (const [creditUniqueString, extraInfo] of Object.entries(allCreditExtraInfo)) {
+      const credit = graph.credits[creditUniqueString];
+      // Automatically take all fields from the extra info and add them to the credit
+      Object.assign(credit, extraInfo);
+    }
   }
 }
 

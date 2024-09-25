@@ -1,6 +1,6 @@
 import fs from "fs";
 
-import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
+import { getAllCreditExtraInfo } from "./creditExtraInfo";
 import GraphHandler from "./graphHandler";
 import { ActorCreditGraph, actorNodeExport, creditNodeExport, getCreditUniqueString } from "./interfaces";
 import { getAllActorInformation } from "./tmdbAPI";
@@ -32,7 +32,7 @@ export default class FileGraphHandler extends GraphHandler {
     const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits);
 
     // Merge the extra info into the graph, in place
-    this.mergeGraphAndExtraInfo(graph, allCreditExtraInfo);
+    super.mergeGraphAndExtraInfo(graph, allCreditExtraInfo);
 
     return graph;
   }
@@ -76,26 +76,6 @@ export default class FileGraphHandler extends GraphHandler {
     this.saveGraph(graph, this.graphPath);
 
     return graph;
-  }
-
-  /**
-   * Add extra info for graph credits into the graph.
-   *
-   * Note: This function modifies the graph in place.
-   *
-   * @param graph the graph to update with extra info
-   * @param allCreditExtraInfo the extra info to merge into the graph
-   */
-  mergeGraphAndExtraInfo(
-    graph: ActorCreditGraph,
-    allCreditExtraInfo: { [key: string]: CreditExtraInfo }
-  ): void {
-    // Iterate over extra info and add them to the graph
-    for (const [creditUniqueString, extraInfo] of Object.entries(allCreditExtraInfo)) {
-      const credit = graph.credits[creditUniqueString];
-      // Automatically take all fields from the extra info and add them to the credit
-      Object.assign(credit, extraInfo);
-    }
   }
 
   readGraphFromFile(path: string): ActorCreditGraph {
