@@ -48,7 +48,7 @@ export default class FileGraphHandler extends GraphHandler {
    * @param name the name of the file to save the graph to
    */
   saveGraph(graph: ActorCreditGraph, name: string): void {
-    const json = super.convertGraphToJSON(graph);
+    const json = this.convertGraphToJSON(graph);
     fs.writeFileSync(name, json);
   }
   /**
@@ -171,6 +171,39 @@ export default class FileGraphHandler extends GraphHandler {
     const creditNode: CreditNode = graph.credits[creditUniqueString];
     actorNode.connections[creditUniqueString] = creditNode;
     creditNode.connections[actorId] = actorNode;
+  }
+
+  /**
+   * Convert a graph of actors and credits to JSON.
+   *
+   * It should be noted that this graph does NOT contain the extra information about credits.
+   *
+   * @param graph the ActorCreditGraph to convert to JSON
+   * @returns a JSON string representing the graph
+   */
+  convertGraphToJSON(graph: ActorCreditGraph): string {
+    // Convert actorNodes to actorNodeExports (remove the references to connections, just keep the IDs)
+    const actorExports: actorNodeExport[] = [];
+    for (const actorId in graph.actors) {
+      const actor = graph.actors[actorId];
+      const connections = Object.values(actor.connections).map((credit) => {
+        return { type: credit.type, id: credit.id };
+      });
+      actorExports.push({ ...actor, connections });
+    }
+
+    // Convert creditNodes to creditNodeExports (remove the references to connections, just keep the IDs)
+    const creditExports: creditNodeExport[] = [];
+    for (const creditId in graph.credits) {
+      const credit = graph.credits[creditId];
+      const connections = Object.keys(credit.connections).map((actorId) => parseInt(actorId));
+      creditExports.push({
+        ...credit,
+        connections,
+      });
+    }
+
+    return JSON.stringify({ actors: actorExports, credits: creditExports });
   }
 }
 
