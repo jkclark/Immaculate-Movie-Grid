@@ -2,16 +2,7 @@ import fs from "fs";
 
 import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
 import GraphHandler from "./graphHandler";
-import {
-  Actor,
-  ActorCreditGraph,
-  ActorNode,
-  actorNodeExport,
-  Credit,
-  CreditNode,
-  creditNodeExport,
-  getCreditUniqueString,
-} from "./interfaces";
+import { ActorCreditGraph, actorNodeExport, creditNodeExport, getCreditUniqueString } from "./interfaces";
 import { getAllActorInformation } from "./tmdbAPI";
 
 /**
@@ -77,32 +68,12 @@ export default class FileGraphHandler extends GraphHandler {
     console.log("Actors with credits:", actorsWithCredits.length);
 
     // Generate graph
-    const graph = this.generateGraph(actorsWithCredits);
+    const graph = super.generateActorCreditGraph(actorsWithCredits);
 
     // Write graph to file
     // NOTE: This file cannot be called graph.json because it somehow conflicts with
     //       the graph.ts file in the same directory.
     this.saveGraph(graph, this.graphPath);
-
-    return graph;
-  }
-
-  generateGraph(actorsWithCredits: Actor[]): ActorCreditGraph {
-    const graph: ActorCreditGraph = { actors: {}, credits: {} };
-
-    for (const actor of actorsWithCredits) {
-      this.addActorToGraph(graph, actor.id, actor.name);
-      for (const credit of actor.credits) {
-        try {
-          this.addCreditToGraph(credit, graph);
-        } catch (e) {
-          if (!(e instanceof RepeatError)) {
-            throw e;
-          }
-        }
-        this.addLinkToGraph(graph, actor.id, credit);
-      }
-    }
 
     return graph;
   }
@@ -150,36 +121,6 @@ export default class FileGraphHandler extends GraphHandler {
     return graph;
   }
 
-  addActorToGraph(graph: ActorCreditGraph, id: string, name: string): void {
-    if (graph.actors[id]) {
-      throw new Error(`Actor with id ${id} already exists: ${graph.actors[id].name}`);
-    }
-
-    graph.actors[id] = { id, name, connections: {}, entityType: "actor" };
-  }
-
-  addCreditToGraph(credit: Credit, graph: ActorCreditGraph): void {
-    const creditUniqueString = getCreditUniqueString(credit);
-    if (graph.credits[creditUniqueString]) {
-      throw new RepeatError(
-        `Credit with id ${creditUniqueString} already exists: ${graph.credits[creditUniqueString].name}`
-      );
-    }
-    graph.credits[creditUniqueString] = {
-      ...credit,
-      connections: {},
-      entityType: "credit",
-    };
-  }
-
-  addLinkToGraph(graph: ActorCreditGraph, actorId: string, credit: Credit): void {
-    const creditUniqueString = getCreditUniqueString(credit);
-    const actorNode: ActorNode = graph.actors[actorId];
-    const creditNode: CreditNode = graph.credits[creditUniqueString];
-    actorNode.connections[creditUniqueString] = creditNode;
-    creditNode.connections[actorId] = actorNode;
-  }
-
   /**
    * Convert a graph of actors and credits to JSON.
    *
@@ -211,12 +152,5 @@ export default class FileGraphHandler extends GraphHandler {
     }
 
     return JSON.stringify({ actors: actorExports, credits: creditExports });
-  }
-}
-
-class RepeatError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "RepeatError";
   }
 }
