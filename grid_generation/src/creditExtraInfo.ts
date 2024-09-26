@@ -20,14 +20,23 @@ export async function getAllCreditExtraInfo(credits: {
   const tenPercentIncrement = numCredits / 10;
   let nextTenPercentMilestone = tenPercentIncrement;
 
-  for (const creditUniqueString of Object.keys(credits)) {
-    currentCount++;
-    creditExtraInfo[creditUniqueString] = await getCreditExtraInfo(credits[creditUniqueString]);
+  const creditKeys = Object.keys(credits);
+  const BATCH_SIZE = 75; // Number of requests to send simultaneously
 
-    if (currentCount >= nextTenPercentMilestone) {
-      console.log(`Progress: ${((currentCount / numCredits) * 100).toFixed(2)}%`);
-      nextTenPercentMilestone += tenPercentIncrement;
-    }
+  for (let i = 0; i < creditKeys.length; i += BATCH_SIZE) {
+    const batch = creditKeys.slice(i, i + BATCH_SIZE);
+    const batchPromises = batch.map(async (creditUniqueString) => {
+      const info = await getCreditExtraInfo(credits[creditUniqueString]);
+      creditExtraInfo[creditUniqueString] = info;
+
+      currentCount++;
+      if (currentCount >= nextTenPercentMilestone) {
+        console.log(`Progress: ${((currentCount / numCredits) * 100).toFixed(2)}%`);
+        nextTenPercentMilestone += tenPercentIncrement;
+      }
+    });
+
+    await Promise.all(batchPromises);
   }
 
   return creditExtraInfo;

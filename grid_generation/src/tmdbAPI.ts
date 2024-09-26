@@ -8,16 +8,27 @@ const BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_404_STATUS_CODE = 34;
 
 /**
- * Get actor and credit information for a list of actor IDs
+ * Get actor and credit information for a list of actor IDs.
+ *
+ * This function is parallelized to get info for multiple actors at once.
+ *
  * @param actorIds the list of actor IDs to get information for
  * @returns A promise that resolves to a list of actors with their credits
  */
 export async function getAllActorInformation(): Promise<Actor[]> {
+  const BATCH_SIZE = 10;
   const actorsWithCredits: Actor[] = [];
-  for (const id of famousActorIds) {
-    const actor = await getActorWithCreditsById(id);
-    actorsWithCredits.push(actor);
-    console.log(`Got actor ${actor.name} with ${actor.credits.size} credits`);
+
+  for (let i = 0; i < famousActorIds.length; i += BATCH_SIZE) {
+    const batch = famousActorIds.slice(i, i + BATCH_SIZE);
+    const batchPromises = batch.map(async (id) => {
+      const actor = await getActorWithCreditsById(id);
+      console.log(`Got actor ${actor.name} with ${actor.credits.size} credits`);
+      return actor;
+    });
+
+    const batchResults = await Promise.all(batchPromises);
+    actorsWithCredits.push(...batchResults);
   }
 
   return actorsWithCredits;
