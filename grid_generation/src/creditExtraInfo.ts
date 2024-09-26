@@ -56,6 +56,6 @@ async function getTVExtraInfo(id: string): Promise<CreditExtraInfo> {
     type: "tv",
     id: id,
     rating: await getTVRating(id),
-    last_air_date: details.last_air_date,
+    last_air_date: details.last_air_date || null,
   };
 }

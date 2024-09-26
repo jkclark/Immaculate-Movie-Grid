@@ -14,9 +14,12 @@ export class Credit {
   @Column("float")
   popularity!: number;
 
-  @Column("date")
+  @Column("date", { nullable: true })
   release_date!: Date;
 
-  @Column()
+  @Column("date", { nullable: true })
+  last_air_date!: Date;
+
+  @Column("varchar", { nullable: true })
   rating!: string;
 }

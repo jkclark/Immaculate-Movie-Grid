@@ -64,7 +64,7 @@ export async function getActorCredits(actor: Actor): Promise<Set<Credit>> {
       name: responseCredit.title || responseCredit.name,
       genre_ids: responseCredit.genre_ids || [],
       popularity: responseCredit.popularity || 0,
-      release_date: responseCredit.release_date || responseCredit.first_air_date || "",
+      release_date: responseCredit.release_date || responseCredit.first_air_date || null,
     };
 
     if (isCreditLegit(credit)) {
@@ -207,4 +207,36 @@ export async function getTVDetails(id: string): Promise<TVDetails> {
   const url = `${BASE_URL}/tv/${id}`;
   const responseJson = await getFromTMDBAPIJson(url);
   return { last_air_date: responseJson.last_air_date || "" };
+}
+
+/**
+ * Get a list of all genres from the TMDB API.
+ *
+ * TMDB provides two lists for genres: one for movies and one for TV.
+ * As far as I can tell, genres which exist in both lists have the same ID.
+ * This function prioritizes the movie list, overwriting any genre with the same ID
+ * in the TV list.
+ *
+ * @returns a map of genre IDs to genre names
+ */
+export async function getAllGenres(): Promise<{ [key: number]: string }> {
+  const genres: { [id: number]: string } = {};
+
+  // TV
+  const tvGenresListURL = `${BASE_URL}/genre/tv/list`;
+  const tvGenresResponseJSON = await getFromTMDBAPIJson(tvGenresListURL);
+
+  for (const genre of tvGenresResponseJSON.genres) {
+    genres[genre.id] = genre.name;
+  }
+
+  // Movies
+  const movieGenresListURL = `${BASE_URL}/genre/movie/list`;
+  const movieGenresResponseJSON = await getFromTMDBAPIJson(movieGenresListURL);
+
+  for (const genre of movieGenresResponseJSON.genres) {
+    genres[genre.id] = genre.name;
+  }
+
+  return genres;
 }

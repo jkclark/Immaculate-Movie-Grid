@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS credits (
     name VARCHAR(255) NOT NULL,
     popularity FLOAT,
     release_date DATE,
+    last_air_date DATE,
     rating VARCHAR(255)
 );
 
