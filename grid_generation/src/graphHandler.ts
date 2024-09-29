@@ -2,6 +2,8 @@ import { CreditExtraInfo } from "./creditExtraInfo";
 import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUniqueString } from "./interfaces";
 
 export default abstract class GraphHandler {
+  abstract init(): Promise<void>;
+
   abstract fetchAndSaveData(): Promise<void>;
 
   abstract loadGraph(): Promise<ActorCreditGraph>;
@@ -9,13 +11,16 @@ export default abstract class GraphHandler {
   /**
    * Create a graph object from a list of actors with their credits.
    *
+   * This method uses the structure of data that comes from the TMDB API, where
+   * actors are listed with their credits.
+   *
    * The graph object does NOT contain extra credit information at this point,
    * only the actors and credits themselves.
    *
    * @param actorsWithCredits a list of actors with their credits
    * @returns a graph object with actors and credits as nodes, and links between them
    */
-  generateActorCreditGraph(actorsWithCredits: Actor[]): ActorCreditGraph {
+  generateActorCreditGraphFromTMDBData(actorsWithCredits: Actor[]): ActorCreditGraph {
     const graph: ActorCreditGraph = { actors: {}, credits: {} };
 
     for (const actor of actorsWithCredits) {
@@ -37,7 +42,7 @@ export default abstract class GraphHandler {
 
   addActorToGraph(graph: ActorCreditGraph, id: string, name: string): void {
     if (graph.actors[id]) {
-      throw new Error(`Actor with id ${id} already exists: ${graph.actors[id].name}`);
+      throw new RepeatError(`Actor with id ${id} already exists: ${graph.actors[id].name}`);
     }
 
     graph.actors[id] = { id, name, connections: {}, entityType: "actor" };
@@ -86,7 +91,7 @@ export default abstract class GraphHandler {
   }
 }
 
-class RepeatError extends Error {
+export class RepeatError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "RepeatError";

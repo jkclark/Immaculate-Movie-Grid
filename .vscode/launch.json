@@ -19,18 +19,5 @@
             ],
             "console": "integratedTerminal",
         },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Compile and debug current grid-gen TS File",
-            "preLaunchTask": "tsc: build - tsconfig.json", // Compiles the TS files according to tsconfig.json
-            "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/${fileBasenameNoExtension}.js", // Specifies the JS file to run
-            "outFiles": [
-                "${workspaceFolder}/grid_generation/**/*.js" // Adjust the path as necessary to match the location of compiled JS files
-            ],
-            "sourceMaps": true,
-            "cwd": "${workspaceFolder}/grid_generation",
-            "console": "integratedTerminal"
-        }
     ]
 }

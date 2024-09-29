@@ -24,6 +24,8 @@ export default class FileGraphHandler extends GraphHandler {
     this.creditExtraInfoPath = creditExtraInfoPath;
   }
 
+  async init(): Promise<void> {}
+
   /**
    * Download actor data, credit data, and extra info about credits, and save them to files.
    */
@@ -64,7 +66,7 @@ export default class FileGraphHandler extends GraphHandler {
     console.log(`${actorsWithCredits.length} actors with credits:`);
 
     // Generate graph
-    const graph = super.generateActorCreditGraph(actorsWithCredits);
+    const graph = super.generateActorCreditGraphFromTMDBData(actorsWithCredits);
 
     // Write graph to file
     // NOTE: This file cannot be called graph.json because it somehow conflicts with

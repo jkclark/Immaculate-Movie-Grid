@@ -5,13 +5,13 @@ export class Credit {
   @PrimaryColumn()
   id!: number;
 
-  @Column()
+  @PrimaryColumn()
   type!: string;
 
   @Column()
   name!: string;
 
-  @Column("float")
+  @Column("float", { nullable: true })
   popularity!: number;
 
   @Column("date", { nullable: true })

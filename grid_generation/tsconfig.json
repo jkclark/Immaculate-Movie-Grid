@@ -11,6 +11,9 @@
             "common/*": [
                 "../common/*"
             ],
+            "src/*": [
+                "src/*"
+            ]
         },
         // The following two options are required for TypeORM's decorators
         "experimentalDecorators": true,

@@ -10,11 +10,17 @@ export class ActorOrCategoryCreditJoin {
   @PrimaryColumn()
   credit_id!: number;
 
+  @PrimaryColumn()
+  credit_type!: string;
+
   @ManyToOne(() => ActorOrCategory, (actorOrCategory) => actorOrCategory.id)
   @JoinColumn({ name: "actor_category_id" })
   actorOrCategory!: ActorOrCategory;
 
   @ManyToOne(() => Credit, (credit) => credit.id)
-  @JoinColumn({ name: "credit_id" })
+  @JoinColumn([
+    { name: "credit_id", referencedColumnName: "id" },
+    { name: "credit_type", referencedColumnName: "type" },
+  ])
   credit!: Credit;
 }

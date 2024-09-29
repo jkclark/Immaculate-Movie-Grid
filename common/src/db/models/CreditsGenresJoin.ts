@@ -8,10 +8,16 @@ export class CreditGenreJoin {
   credit_id!: number;
 
   @PrimaryColumn()
+  credit_type!: string;
+
+  @PrimaryColumn()
   genre_id!: number;
 
   @ManyToOne(() => Credit, (credit) => credit.id)
-  @JoinColumn({ name: "credit_id" })
+  @JoinColumn([
+    { name: "credit_id", referencedColumnName: "id" },
+    { name: "credit_type", referencedColumnName: "type" },
+  ])
   credit!: Credit;
 
   @ManyToOne(() => Genre, (genre) => genre.id)

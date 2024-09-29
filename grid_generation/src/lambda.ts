@@ -2,6 +2,7 @@ import path from "path";
 
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
+import DBGraphHandler from "./dbGraphHandler";
 import FileGraphHandler from "./fileGraphHandler";
 import GraphHandler from "./graphHandler";
 import { main } from "./index";
@@ -25,9 +26,10 @@ export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, 
       path.join(__dirname, "complete_credit_extra_info.json")
     );
   } else if (eventArgs.graphMode === "db") {
-    // graphHandler = new DBGraphHandler();
-    throw new Error("DB graph mode not implemented");
+    graphHandler = new DBGraphHandler();
   }
+
+  await graphHandler.init();
 
   const gridGenArgs = {
     ...eventArgs,

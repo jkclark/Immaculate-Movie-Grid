@@ -5,6 +5,6 @@ export class Genre {
   @PrimaryColumn()
   id!: number;
 
-  @Column()
+  @Column("varchar", { nullable: true })
   name!: string;
 }

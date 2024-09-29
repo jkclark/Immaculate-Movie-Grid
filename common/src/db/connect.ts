@@ -36,7 +36,7 @@ export const AppDataSource = new DataSource({
   username: POSTGRES_USER,
   password: POSTGRES_PASSWORD,
   database: POSTGRES_DB,
-  synchronize: true, // set to false in production
+  synchronize: false, // set to false in production
   logging: false,
   entities: allEntities,
   migrations: [],
