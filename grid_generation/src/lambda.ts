@@ -2,9 +2,9 @@ import path from "path";
 
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
-import DBGraphHandler from "./dbGraphHandler";
-import FileGraphHandler from "./fileGraphHandler";
-import GraphHandler from "./graphHandler";
+import DBGraphHandler from "./graph_handlers/dbGraphHandler";
+import FileGraphHandler from "./graph_handlers/fileGraphHandler";
+import GraphHandler from "./graph_handlers/graphHandler";
 import { main } from "./index";
 
 interface EventGridGenArgs {

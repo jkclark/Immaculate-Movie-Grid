@@ -1,5 +1,5 @@
-import { CreditExtraInfo } from "./creditExtraInfo";
-import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUniqueString } from "./interfaces";
+import { CreditExtraInfo } from "../creditExtraInfo";
+import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUniqueString } from "../interfaces";
 
 export default abstract class GraphHandler {
   abstract init(): Promise<void>;

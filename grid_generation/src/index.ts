@@ -12,7 +12,7 @@ import {
   Grid,
   UsedConnectionsWithAxisEntities,
 } from "./getGridFromGraph";
-import GraphHandler from "./graphHandler";
+import GraphHandler from "./graph_handlers/graphHandler";
 import { getAndSaveAllImagesForGrid } from "./images";
 import {
   ActorCreditGraph,

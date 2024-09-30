@@ -1,9 +1,9 @@
 import fs from "fs";
 
-import { CreditExtraInfo, getAllCreditExtraInfo } from "./creditExtraInfo";
+import { CreditExtraInfo, getAllCreditExtraInfo } from "../creditExtraInfo";
+import { ActorCreditGraph, actorNodeExport, creditNodeExport, getCreditUniqueString } from "../interfaces";
+import { getAllActorInformation } from "../tmdbAPI";
 import GraphHandler from "./graphHandler";
-import { ActorCreditGraph, actorNodeExport, creditNodeExport, getCreditUniqueString } from "./interfaces";
-import { getAllActorInformation } from "./tmdbAPI";
 
 /**
  * A class that handles the reading and writing of graphs to and from files.

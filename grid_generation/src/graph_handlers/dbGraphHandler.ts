@@ -4,10 +4,10 @@ import { ActorOrCategoryCreditJoin } from "common/src/db/models/ActorsCategories
 import { Credit } from "common/src/db/models/Credit";
 import { CreditGenreJoin } from "common/src/db/models/CreditsGenresJoin";
 import { Genre } from "common/src/db/models/Genre";
-import { getAllCreditExtraInfo } from "./creditExtraInfo";
+import { getAllCreditExtraInfo } from "../creditExtraInfo";
+import { ActorCreditGraph, getCreditUniqueString } from "../interfaces";
+import { getAllActorInformation, getAllGenres } from "../tmdbAPI";
 import GraphHandler, { RepeatError } from "./graphHandler";
-import { ActorCreditGraph, getCreditUniqueString } from "./interfaces";
-import { getAllActorInformation, getAllGenres } from "./tmdbAPI";
 
 interface AllDBEntities {
   actors: ActorOrCategory[];
