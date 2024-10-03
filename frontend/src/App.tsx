@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 
 import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
@@ -45,7 +45,7 @@ function App() {
   const setSelectedCol = useSetAtom(selectedColAtom);
   const { addContentsToOverlay, resetOverlayContents } = useOverlayStack();
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
-  const usedAnswers = useAtomValue(usedAnswersAtom);
+  const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
   const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
 
@@ -66,8 +66,8 @@ function App() {
       if (gridId !== todayString) {
         console.log("Grid ID is not today's date, loading grid data");
 
-        // Clear all of local storage
-        localStorage.clear();
+        // Reset the game state
+        resetGame();
 
         // Load the grid named with today's date
         const jsonData = await getGridDataForDate(todayString);
@@ -83,9 +83,6 @@ function App() {
 
         // Set isNewGrid to true so we know to set up the initial grid display data
         setIsNewGrid(true);
-
-        // Set the number of guesses remaining to 9
-        setGuessesRemaining(9);
 
         setGridData(jsonData);
       }
@@ -182,6 +179,17 @@ function App() {
 
     // Insert inner grid into outer grid
     return insertInnerGridDisplayData(newGridDataWithGuesses, newInnerGridData);
+  }
+
+  function resetGame() {
+    setGridDisplayData([]);
+
+    setSelectedRow(-1);
+    setSelectedCol(-1);
+    setGuessesRemaining(9);
+    setGameOver(false);
+    setUsedAnswers({});
+    setFinalGameGridDisplayData([]);
   }
 
   function endGame(gridDisplayData: AnyGridDisplayData[][]) {
