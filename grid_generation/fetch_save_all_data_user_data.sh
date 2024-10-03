@@ -1,4 +1,7 @@
 #!/bin/bash
+### Record the starting time
+START_TIME=$(date +%s)
+
 ### Move to home directory
 cd ~
 
@@ -62,6 +65,10 @@ npx ts-node ./src/fetchAndSaveAllData.ts db
 ### Shutdown the instance using the metadata service V2
 # Get session token
 TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+
+# Log the total time taken
+END_TIME=$(date +%s)
+echo "Time elapsed: $((END_TIME - START_TIME)) seconds"
 
 # Shutdown the instance
 aws ec2 terminate-instances --instance-ids $(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-id) --region us-east-1
