@@ -16,18 +16,6 @@ sudo bash -c 'cat <<EOL > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch
       "files": {
         "collect_list": [
           {
-            "file_path": "/var/log/syslog",
-            "log_group_name": "/ec2-instance/syslog",
-            "log_stream_name": "{instance_id}",
-            "timestamp_format": "%b %d %H:%M:%S"
-          },
-          {
-            "file_path": "/var/log/cloud-init.log",
-            "log_group_name": "/ec2-instance/cloud-init",
-            "log_stream_name": "{instance_id}",
-            "timestamp_format": "%Y-%m-%d %H:%M:%S"
-          },
-          {
             "file_path": "/var/log/cloud-init-output.log",
             "log_group_name": "/ec2-instance/cloud-init-output",
             "log_stream_name": "{instance_id}",
