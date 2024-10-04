@@ -1,7 +1,8 @@
 import { EC2Client, RunInstancesCommand } from "@aws-sdk/client-ec2";
 import { APIGatewayProxyHandler } from "aws-lambda";
 
-const ec2Client = new EC2Client({ region: "your-region" });
+const region = process.env.AWS_REGION || "us-east-1";
+const ec2Client = new EC2Client({ region: region });
 
 export const populateDataStoreHandler: APIGatewayProxyHandler = async (event) => {
   try {
