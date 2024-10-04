@@ -71,7 +71,12 @@ TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metad
 
 # Log the total time taken
 END_TIME=$(date +%s)
-echo "Time elapsed: $((END_TIME - START_TIME)) seconds"
+ELAPSED_TIME=$((END_TIME - START_TIME))
+HOURS=$((ELAPSED_TIME / 3600))
+MINUTES=$(( (ELAPSED_TIME % 3600) / 60 ))
+SECONDS=$((ELAPSED_TIME % 60))
+ELAPSED_TIME_FORMATTED=$(printf "%02d:%02d:%02d" $HOURS $MINUTES $SECONDS)
+echo "Time elapsed: $ELAPSED_TIME_FORMATTED"
 
 # Shutdown the instance
 aws ec2 terminate-instances --instance-ids $(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-id) --region us-east-1
