@@ -26,7 +26,7 @@ async function main(args: fetchDataArgs) {
 function processCLIArgs(): fetchDataArgs {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    throw new Error("Usage: node fetchAndSaveAllData.js <graphMode>");
+    throw new Error("Usage: npx ts-node populateDataStore.ts <graphMode>");
   }
 
   if (args[0] !== "file" && args[0] !== "db") {
