@@ -1,0 +1,45 @@
+name: Update populate-data-store user data
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "grid_generation/src/lambdas/populate_data_user_data.sh"
+  workflow_dispatch:
+
+jobs:
+  update-user-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_TO_S3_ROLE }}
+          role-session-name: ${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Get the latest launch template version pre-update
+        id: get-launch-template-version-before-update
+        run: |
+          echo "version=$(aws ec2 describe-launch-template-versions --launch-template-name FetchAndSaveAllDataTemplate --query 'LaunchTemplateVersions[0].VersionNumber' --output text)" >> $GITHUB_OUTPUT
+
+      - name: Update launch template user data
+        run: |
+          aws ec2 create-launch-template-version --launch-template-name FetchAndSaveAllDataTemplate --source-version ${{ steps.get-launch-template-version-before-update.outputs.version }} --launch-template-data "UserData=$(base64 -w 0 grid_generation/src/lambdas/populate_data_user_data.sh)"
+
+      - name: Get the latest launch template version post-update
+        id: get-launch-template-version-after-update
+        run: |
+          echo "version=$(aws ec2 describe-launch-template-versions --launch-template-name FetchAndSaveAllDataTemplate --query 'LaunchTemplateVersions[0].VersionNumber' --output text)" >> $GITHUB_OUTPUT
+
+      - name: Update the launch template default version
+        run: |
+          aws ec2 modify-launch-template --launch-template-name FetchAndSaveAllDataTemplate --default-version ${{ steps.get-launch-template-version-after-update.outputs.version }}
