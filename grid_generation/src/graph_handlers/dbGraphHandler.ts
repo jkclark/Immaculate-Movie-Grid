@@ -141,6 +141,7 @@ export default class DBGraphHandler extends GraphHandler {
   }
 
   async writeActorsToDB(graph: ActorCreditGraph): Promise<void> {
+    console.log("Table: actors");
     const actorsNoCredits = Object.values(graph.actors).map((actor) => {
       return {
         id: parseInt(actor.id),
@@ -151,11 +152,13 @@ export default class DBGraphHandler extends GraphHandler {
     await this.batchWriteToDB(
       actorsNoCredits,
       AppDataSource.getRepository(ActorOrCategory),
-      this.WRITE_BATCH_SIZE
+      this.WRITE_BATCH_SIZE,
+      ["id"]
     );
   }
 
   async writeCreditsToDB(graph: ActorCreditGraph): Promise<void> {
+    console.log("Table: credits");
     const creditsNoActorsNoGenres = Object.values(graph.credits).map((credit) => {
       const { genre_ids, connections, ...rest } = credit;
       return {
@@ -167,7 +170,8 @@ export default class DBGraphHandler extends GraphHandler {
     await this.batchWriteToDB(
       creditsNoActorsNoGenres,
       AppDataSource.getRepository(Credit),
-      this.WRITE_BATCH_SIZE
+      this.WRITE_BATCH_SIZE,
+      ["id", "type"]
     );
   }
 
@@ -177,6 +181,7 @@ export default class DBGraphHandler extends GraphHandler {
    * @param graph the graph containing all actors and credits
    */
   async writeGenresToDB(graph: ActorCreditGraph): Promise<void> {
+    console.log("Table: genres");
     // Iterate over all credits, keeping track of all unique genre IDs
     const genreIds = new Set<number>();
     for (const credit of Object.values(graph.credits)) {
@@ -191,13 +196,14 @@ export default class DBGraphHandler extends GraphHandler {
       };
     });
 
-    await this.batchWriteToDB(genres, AppDataSource.getRepository(Genre), this.WRITE_BATCH_SIZE);
+    await this.batchWriteToDB(genres, AppDataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
   }
 
   /**
    * Hit the TMDB API to get all genres and write them to the database.
    */
   async fetchAndWriteGenresToDB(): Promise<void> {
+    console.log("Table: genres");
     const genres: { [id: number]: string } = await getAllGenres();
 
     const genresList = Object.entries(genres).map(([id, name]) => {
@@ -207,11 +213,13 @@ export default class DBGraphHandler extends GraphHandler {
       };
     });
 
-    await this.batchWriteToDB(genresList, AppDataSource.getRepository(Genre), this.WRITE_BATCH_SIZE);
+    await this.batchWriteToDB(genresList, AppDataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
   }
 
   async writeActorCreditRelationshipsToDB(graph: ActorCreditGraph): Promise<void> {
+    console.log("Table: actors_categories_credits_join");
     const actorCreditJoinRepo = AppDataSource.getRepository(ActorOrCategoryCreditJoin);
+    const batchToWrite: Partial<ActorOrCategoryCreditJoin>[] = [];
     for (const actor of Object.values(graph.actors)) {
       // For each actor, create all of the actor-credit relationships
       // and save them to the database
@@ -229,12 +237,28 @@ export default class DBGraphHandler extends GraphHandler {
         actorCreditRelationships.push(actorCreditRelationship);
       }
 
-      await this.batchWriteToDB(actorCreditRelationships, actorCreditJoinRepo, this.WRITE_BATCH_SIZE);
+      // Add the actor-credit relationships to the batch to write
+      batchToWrite.push(...actorCreditRelationships);
+
+      // Only write to the database once we have at least 1 batch size of items to write.
+      // If we don't do this, we end up going to the database writing < 3 items at a time,
+      // which is slow.
+      if (batchToWrite.length >= this.WRITE_BATCH_SIZE) {
+        await this.batchWriteToDB(batchToWrite, actorCreditJoinRepo, this.WRITE_BATCH_SIZE, [
+          "actor_category_id",
+          "credit_id",
+          "credit_type",
+        ]);
+
+        // Reset the unwritten batch list
+        batchToWrite.length = 0;
+      }
     }
   }
 
   async writeCreditGenreRelationshipsToDB(graph: ActorCreditGraph): Promise<void> {
     const creditGenreJoinRepo = AppDataSource.getRepository("CreditGenreJoin");
+    const batchToWrite: Partial<CreditGenreJoin>[] = [];
     for (const credit of Object.values(graph.credits)) {
       // For each credit, create all of the credit-genre relationships
       // and save them to the database
@@ -263,15 +287,37 @@ export default class DBGraphHandler extends GraphHandler {
         addedGenres.add(genreId);
       }
 
-      await this.batchWriteToDB(creditGenreRelationships, creditGenreJoinRepo, this.WRITE_BATCH_SIZE);
+      // Add the credit-genre relationships to the batch to write
+      batchToWrite.push(...creditGenreRelationships);
+
+      // Only write to the database once we have at least 1 batch size of items to write.
+      // If we don't do this, we end up going to the database writing < 3 items at a time,
+      // which is slow.
+      if (batchToWrite.length >= this.WRITE_BATCH_SIZE) {
+        await this.batchWriteToDB(batchToWrite, creditGenreJoinRepo, this.WRITE_BATCH_SIZE, [
+          "credit_id",
+          "credit_type",
+          "genre_id",
+        ]);
+
+        // Reset the unwritten batch list
+        batchToWrite.length = 0;
+      }
     }
   }
 
-  async batchWriteToDB<T>(items: T[], repository: any, batchSize: number): Promise<void> {
+  async batchWriteToDB<T>(
+    items: T[],
+    repository: any,
+    batchSize: number,
+    conflictPaths: string[]
+  ): Promise<void> {
     for (let i = 0; i < items.length; i += batchSize) {
       const batch = items.slice(i, i + batchSize);
-      await repository.save(batch);
+      await repository.upsert(batch, { conflictPaths });
     }
+
+    console.log(`Wrote ${items.length} items to the database`);
   }
 
   async getAllActors(): Promise<ActorOrCategory[]> {
