@@ -1,4 +1,7 @@
 #!/bin/bash
+# This file is in the 'lambdas' directory because it is used as the user data script for the EC2 instance that
+# is started by the 'populate data store' Lambda function.
+
 ### Record the starting time
 START_TIME=$(date +%s)
 
@@ -60,7 +63,7 @@ cd Immaculate-Movie-Grid/grid_generation
 npm install
 
 # Run the script
-npx ts-node ./src/fetchAndSaveAllData.ts db
+npx ts-node ./src/populateData.ts db
 
 ### Shutdown the instance using the metadata service V2
 # Get session token

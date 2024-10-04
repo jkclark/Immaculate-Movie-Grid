@@ -28,7 +28,7 @@ export default class DBGraphHandler extends GraphHandler {
   /**
    * Fetch all data from TMDB and save it to the database.
    */
-  async fetchAndSaveData(): Promise<void> {
+  async populateDataStore(): Promise<void> {
     // Get all data from TMDB in graph form
     const graph = await this.fetchData();
 
@@ -348,5 +348,5 @@ export default class DBGraphHandler extends GraphHandler {
 if (require.main === module) {
   const dbGraphHandler = new DBGraphHandler();
   dbGraphHandler.init();
-  dbGraphHandler.fetchAndSaveData();
+  dbGraphHandler.populateDataStore();
 }

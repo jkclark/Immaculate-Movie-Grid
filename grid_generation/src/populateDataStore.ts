@@ -20,7 +20,7 @@ async function main(args: fetchDataArgs) {
 
   await graphHandler.init();
 
-  await graphHandler.fetchAndSaveData();
+  await graphHandler.populateDataStore();
 }
 
 function processCLIArgs(): fetchDataArgs {

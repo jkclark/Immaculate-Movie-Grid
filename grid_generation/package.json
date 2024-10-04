@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-grid": "npx ts-node src/lambda.ts",
+    "generate-grid": "npx ts-node src/lambdas/generateGridLambda.ts",
     "build": "tsc && tsc-alias"
   },
   "repository": {
@@ -30,6 +30,7 @@
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
+    "@aws-sdk/client-ec2": "^3.664.0",
     "dotenv": "^16.4.5",
     "tsc-alias": "^1.8.10",
     "tsconfig-paths": "^4.2.0",

@@ -29,12 +29,12 @@ export default class FileGraphHandler extends GraphHandler {
   /**
    * Download actor data, credit data, and extra info about credits, and save them to files.
    */
-  async fetchAndSaveData(): Promise<void> {
+  async populateDataStore(): Promise<void> {
     // Get actor and credit data and write it to file
-    const graph = await this.fetchAndSaveActorsAndCreditsGraph();
+    const graph = await this.populateActorsAndCreditsGraph();
 
     // Get extra credit info and write it to file
-    await this.fetchAndSaveExtraCreditInfo(graph);
+    await this.populateExtraCreditInfo(graph);
   }
 
   /**
@@ -60,7 +60,7 @@ export default class FileGraphHandler extends GraphHandler {
    *
    * @returns A promise that resolves to a graph object
    */
-  async fetchAndSaveActorsAndCreditsGraph(): Promise<ActorCreditGraph> {
+  async populateActorsAndCreditsGraph(): Promise<ActorCreditGraph> {
     // Get all actor information
     const actorsWithCredits = await getAllActorInformation();
     console.log(`${actorsWithCredits.length} actors with credits:`);
@@ -81,7 +81,7 @@ export default class FileGraphHandler extends GraphHandler {
    *
    * @param graph the graph whose credits' extra information should be fetched and saved
    */
-  async fetchAndSaveExtraCreditInfo(graph: ActorCreditGraph): Promise<void> {
+  async populateExtraCreditInfo(graph: ActorCreditGraph): Promise<void> {
     const allCreditExtraInfo = await getAllCreditExtraInfo(graph.credits);
 
     this.writeAllCreditExtraInfoToFile(allCreditExtraInfo, this.creditExtraInfoPath);

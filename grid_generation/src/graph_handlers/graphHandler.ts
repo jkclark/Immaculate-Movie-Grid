@@ -4,7 +4,7 @@ import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUnique
 export default abstract class GraphHandler {
   abstract init(): Promise<void>;
 
-  abstract fetchAndSaveData(): Promise<void>;
+  abstract populateDataStore(): Promise<void>;
 
   abstract loadGraph(): Promise<ActorCreditGraph>;
 
