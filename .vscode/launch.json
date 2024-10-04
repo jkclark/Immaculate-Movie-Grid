@@ -19,5 +19,22 @@
             ],
             "console": "integratedTerminal",
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Compile & Populate Data Store",
+            "preLaunchTask": "npm: build & copy json files in", // run this task before launching the program
+            "postDebugTask": "copy json files out",
+            "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/populateDataStore.js", // the program to debug
+            "outFiles": [
+                "${workspaceFolder}/grid_generation/dist/**/*.js"
+            ], // the location of the compiled JavaScript files
+            "sourceMaps": true, // enable source maps to allow debugging of the original TypeScript files
+            "cwd": "${workspaceFolder}/grid_generation", // the current working directory for the debug process
+            "args": [
+                "db"
+            ],
+            "console": "integratedTerminal",
+        },
     ]
 }
