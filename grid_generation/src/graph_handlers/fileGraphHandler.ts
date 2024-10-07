@@ -1,5 +1,6 @@
 import fs from "fs";
 
+import { famousActorIds } from "src/famousActorIds";
 import { CreditExtraInfo, getAllCreditExtraInfo } from "../creditExtraInfo";
 import { ActorCreditGraph, actorNodeExport, creditNodeExport, getCreditUniqueString } from "../interfaces";
 import { getAllActorInformation } from "../tmdbAPI";
@@ -62,7 +63,11 @@ export default class FileGraphHandler extends GraphHandler {
    */
   async populateActorsAndCreditsGraph(): Promise<ActorCreditGraph> {
     // Get all actor information
-    const actorsWithCredits = await getAllActorInformation();
+    const famousActors = [];
+    for (let i = 0; i < famousActorIds.length; i++) {
+      famousActors.push({ id: famousActorIds[i].toString(), name: "" });
+    }
+    const actorsWithCredits = await getAllActorInformation(famousActors);
     console.log(`${actorsWithCredits.length} actors with credits:`);
 
     // Generate graph

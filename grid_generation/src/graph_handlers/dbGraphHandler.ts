@@ -5,8 +5,8 @@ import { Credit } from "common/src/db/models/Credit";
 import { CreditGenreJoin } from "common/src/db/models/CreditsGenresJoin";
 import { Genre } from "common/src/db/models/Genre";
 import { getAllCreditExtraInfo } from "../creditExtraInfo";
-import { ActorCreditGraph, getCreditUniqueString } from "../interfaces";
-import { getAllActorInformation, getAllGenres } from "../tmdbAPI";
+import { Actor, ActorCreditGraph, getCreditUniqueString } from "../interfaces";
+import { getAllActorInformation, getAllGenres, getPopularActors } from "../tmdbAPI";
 import GraphHandler, { RepeatError } from "./graphHandler";
 
 interface AllDBEntities {
@@ -50,8 +50,32 @@ export default class DBGraphHandler extends GraphHandler {
    * @returns a graph containing all actors and credits, including extra info
    */
   async fetchData(): Promise<ActorCreditGraph> {
+    // Get popular actors from TMDB
+    const popularActors = await getPopularActors();
+
+    // Get existing actors from our database
+    const existingActors = await this.getAllActors();
+
+    // Merge and deduplicate these lists
+    const allActors = new Map<string, Actor>();
+    for (const actor of popularActors) {
+      allActors.set(actor.id, actor);
+    }
+
+    for (const actor of existingActors) {
+      allActors.set(actor.id.toString(), {
+        id: actor.id.toString(),
+        name: actor.name,
+        credits: new Set(),
+      });
+    }
+
+    const allActorsList = Array.from(allActors.values());
+
+    console.log(`Found ${allActorsList.length - existingActors.length} new actors`);
+
     // Fetch all actors and credits from TMDB
-    const actorsWithCredits = await getAllActorInformation();
+    const actorsWithCredits = await getAllActorInformation(allActorsList);
 
     // Generate a graph object from the actors and credits
     const graph = super.generateActorCreditGraphFromTMDBData(actorsWithCredits);

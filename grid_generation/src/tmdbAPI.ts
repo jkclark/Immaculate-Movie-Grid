@@ -1,11 +1,55 @@
 import { getFromTMDBAPI, getFromTMDBAPIJson } from "common/src/api";
 import { Readable } from "node:stream";
-import { famousActorIds } from "./famousActorIds";
 import { ignoredTVShowIds } from "./ignoredTVShows";
 import { Actor, Credit, CreditRating } from "./interfaces";
 
 const BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_404_STATUS_CODE = 34;
+
+export async function getPopularActors(): Promise<Actor[]> {
+  const actors: Actor[] = [];
+  const MIN_PERSON_POPULARITY = 50;
+  const MIN_CREDIT_POPULARITY = 40;
+  const VALID_ORIGINAL_LANGUAGE = "en";
+
+  let page = 1;
+  while (page <= 500) {
+    const url = `${BASE_URL}/person/popular?page=${page}`;
+    const responseJson = await getFromTMDBAPIJson(url);
+
+    for (const responseActor of responseJson.results) {
+      if (responseActor.popularity >= MIN_PERSON_POPULARITY) {
+        for (const responseCredit of responseActor.known_for) {
+          if (
+            responseCredit.popularity >= MIN_CREDIT_POPULARITY &&
+            responseCredit.original_language === VALID_ORIGINAL_LANGUAGE
+          ) {
+            const actor: Actor = {
+              id: responseActor.id.toString(),
+              name: responseActor.name,
+              credits: new Set(),
+            };
+            actors.push(actor);
+
+            console.log(`Found qualifying actor ${actor.name}`);
+
+            break;
+          }
+        }
+      }
+
+      // Once we've gone below the minimum popularity threshold, we can break out of the loop
+      // because the results are sorted by popularity
+      else {
+        return actors;
+      }
+    }
+
+    page++;
+  }
+
+  return actors;
+}
 
 /**
  * Get actor and credit information for a list of actor IDs.
@@ -15,21 +59,23 @@ const TMDB_404_STATUS_CODE = 34;
  * @param actorIds the list of actor IDs to get information for
  * @returns A promise that resolves to a list of actors with their credits
  */
-export async function getAllActorInformation(): Promise<Actor[]> {
+export async function getAllActorInformation(actors: Actor[]): Promise<Actor[]> {
   const BATCH_SIZE = 10;
   const actorsWithCredits: Actor[] = [];
 
-  for (let i = 0; i < famousActorIds.length; i += BATCH_SIZE) {
-    const batch = famousActorIds.slice(i, i + BATCH_SIZE);
-    const batchPromises = batch.map(async (id) => {
-      const actor = await getActorWithCreditsById(id);
-      console.log(`Got actor ${actor.name} with ${actor.credits.size} credits`);
-      return actor;
+  for (let i = 0; i < actors.length; i += BATCH_SIZE) {
+    const batch = actors.slice(i, i + BATCH_SIZE);
+    const batchPromises = batch.map(async (inputActor) => {
+      const outputActor = await getActorWithCreditsById(parseInt(inputActor.id));
+      console.log(`Got actor ${outputActor.name} with ${outputActor.credits.size} credits`);
+      return outputActor;
     });
 
     const batchResults = await Promise.all(batchPromises);
     actorsWithCredits.push(...batchResults);
   }
+
+  console.log(`Got info for ${actorsWithCredits.length} actors`);
 
   return actorsWithCredits;
 }
