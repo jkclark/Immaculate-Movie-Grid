@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS grids (
 );
 
 CREATE TABLE IF NOT EXISTS scores (
+    id SERIAL PRIMARY KEY NOT NULL,
     grid_id INT NOT NULL,
     score INT NOT NULL,
     FOREIGN KEY (grid_id) REFERENCES grids(id)
