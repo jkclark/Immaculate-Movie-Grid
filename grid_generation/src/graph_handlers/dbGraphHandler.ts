@@ -1,4 +1,5 @@
 import { AppDataSource, initializeDataSource } from "common/src/db/connect";
+import { batchReadFromDB, batchWriteToDB } from "common/src/db/crud";
 import { ActorOrCategory } from "common/src/db/models/ActorOrCategory";
 import { ActorOrCategoryCreditJoin } from "common/src/db/models/ActorsCategoriesCreditsJoin";
 import { Credit } from "common/src/db/models/Credit";
@@ -173,7 +174,7 @@ export default class DBGraphHandler extends GraphHandler {
       };
     });
 
-    await this.batchWriteToDB(
+    await batchWriteToDB(
       actorsNoCredits,
       AppDataSource.getRepository(ActorOrCategory),
       this.WRITE_BATCH_SIZE,
@@ -191,7 +192,7 @@ export default class DBGraphHandler extends GraphHandler {
       };
     });
 
-    await this.batchWriteToDB(
+    await batchWriteToDB(
       creditsNoActorsNoGenres,
       AppDataSource.getRepository(Credit),
       this.WRITE_BATCH_SIZE,
@@ -220,7 +221,7 @@ export default class DBGraphHandler extends GraphHandler {
       };
     });
 
-    await this.batchWriteToDB(genres, AppDataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
+    await batchWriteToDB(genres, AppDataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
   }
 
   /**
@@ -237,7 +238,7 @@ export default class DBGraphHandler extends GraphHandler {
       };
     });
 
-    await this.batchWriteToDB(genresList, AppDataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
+    await batchWriteToDB(genresList, AppDataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
   }
 
   async writeActorCreditRelationshipsToDB(graph: ActorCreditGraph): Promise<void> {
@@ -268,7 +269,7 @@ export default class DBGraphHandler extends GraphHandler {
       // If we don't do this, we end up going to the database writing < 3 items at a time,
       // which is slow.
       if (batchToWrite.length >= this.WRITE_BATCH_SIZE) {
-        await this.batchWriteToDB(batchToWrite, actorCreditJoinRepo, this.WRITE_BATCH_SIZE, [
+        await batchWriteToDB(batchToWrite, actorCreditJoinRepo, this.WRITE_BATCH_SIZE, [
           "actor_category_id",
           "credit_id",
           "credit_type",
@@ -318,7 +319,7 @@ export default class DBGraphHandler extends GraphHandler {
       // If we don't do this, we end up going to the database writing < 3 items at a time,
       // which is slow.
       if (batchToWrite.length >= this.WRITE_BATCH_SIZE) {
-        await this.batchWriteToDB(batchToWrite, creditGenreJoinRepo, this.WRITE_BATCH_SIZE, [
+        await batchWriteToDB(batchToWrite, creditGenreJoinRepo, this.WRITE_BATCH_SIZE, [
           "credit_id",
           "credit_type",
           "genre_id",
@@ -330,22 +331,8 @@ export default class DBGraphHandler extends GraphHandler {
     }
   }
 
-  async batchWriteToDB<T>(
-    items: T[],
-    repository: any,
-    batchSize: number,
-    conflictPaths: string[]
-  ): Promise<void> {
-    for (let i = 0; i < items.length; i += batchSize) {
-      const batch = items.slice(i, i + batchSize);
-      await repository.upsert(batch, { conflictPaths });
-    }
-
-    console.log(`Wrote ${items.length} items to the database`);
-  }
-
   async getAllActors(): Promise<ActorOrCategory[]> {
-    return await this.batchLoadFromDB(
+    return await batchReadFromDB(
       AppDataSource.getRepository(ActorOrCategory),
       this.READ_BATCH_SIZE,
       ["id"],
@@ -354,7 +341,7 @@ export default class DBGraphHandler extends GraphHandler {
   }
 
   async getAllCredits(): Promise<Credit[]> {
-    return await this.batchLoadFromDB(
+    return await batchReadFromDB(
       AppDataSource.getRepository(Credit),
       this.READ_BATCH_SIZE,
       ["id", "type"],
@@ -363,11 +350,11 @@ export default class DBGraphHandler extends GraphHandler {
   }
 
   async getAllGenres(): Promise<Genre[]> {
-    return await this.batchLoadFromDB(AppDataSource.getRepository(Genre), this.READ_BATCH_SIZE, ["id"], []);
+    return await batchReadFromDB(AppDataSource.getRepository(Genre), this.READ_BATCH_SIZE, ["id"], []);
   }
 
   async getAllActorCreditRelationships(): Promise<ActorOrCategoryCreditJoin[]> {
-    return await this.batchLoadFromDB(
+    return await batchReadFromDB(
       AppDataSource.getRepository(ActorOrCategoryCreditJoin),
       this.READ_BATCH_SIZE,
       ["actor_category_id", "credit_id"],
@@ -376,42 +363,12 @@ export default class DBGraphHandler extends GraphHandler {
   }
 
   async getAllCreditGenreRelationships(): Promise<CreditGenreJoin[]> {
-    return await this.batchLoadFromDB(
+    return await batchReadFromDB(
       AppDataSource.getRepository(CreditGenreJoin),
       this.READ_BATCH_SIZE,
       ["credit_id", "credit_type", "genre_id"],
       ["credit", "genre"]
     );
-  }
-
-  async batchLoadFromDB<T>(
-    repository: any,
-    batchSize: number,
-    orderingFields: string[],
-    relations: string[]
-  ): Promise<T[]> {
-    const items: T[] = [];
-    const totalCount = await repository.count();
-    let skip = 0;
-
-    do {
-      const result = await repository.find({
-        skip,
-        take: batchSize,
-        relations,
-        order: orderingFields.reduce((acc, field) => {
-          acc[field] = "ASC";
-          return acc;
-        }, {}),
-      });
-
-      items.push(...result);
-      skip += result.length;
-    } while (items.length < totalCount);
-
-    console.log(`total fetched items: ${items.length}`);
-
-    return items;
   }
 }
 
