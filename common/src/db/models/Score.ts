@@ -7,7 +7,7 @@ export class Score {
   id!: number;
 
   @ManyToOne(() => Grid)
-  @JoinColumn({ name: "grid_id" })
+  @JoinColumn({ name: "grid_date" })
   grid!: Grid;
 
   @Column("int")

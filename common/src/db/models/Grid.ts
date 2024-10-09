@@ -1,11 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 import { ActorOrCategory } from "./ActorOrCategory";
 
 @Entity({ name: "grids" })
 export class Grid {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
   @Column("date")
   date!: Date;
 
