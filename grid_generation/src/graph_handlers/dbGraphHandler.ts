@@ -5,6 +5,8 @@ import { ActorOrCategoryCreditJoin } from "common/src/db/models/ActorsCategories
 import { Credit } from "common/src/db/models/Credit";
 import { CreditGenreJoin } from "common/src/db/models/CreditsGenresJoin";
 import { Genre } from "common/src/db/models/Genre";
+import { Grid } from "common/src/db/models/Grid";
+import { GridExport } from "common/src/interfaces";
 import { getAllCreditExtraInfo } from "../creditExtraInfo";
 import { Actor, ActorCreditGraph, getCreditUniqueString } from "../interfaces";
 import { getAllActorInformation, getAllGenres, getPopularActors } from "../tmdbAPI";
@@ -33,6 +35,8 @@ export default class DBGraphHandler extends GraphHandler {
     // Get all data from TMDB in graph form
     const graph = await this.fetchData();
 
+    // Add categories to the graph
+
     // Save data to DB
     await this.saveData(graph);
   }
@@ -43,6 +47,31 @@ export default class DBGraphHandler extends GraphHandler {
 
     // Build the graph
     return this.buildGraphFromDBEntities(allDBEntities);
+  }
+
+  async saveGrid(grid: GridExport): Promise<void> {
+    function axisStringToId(axisString: string): number {
+      // Actor
+      if (axisString.startsWith("actor")) {
+        return parseInt(axisString.split("-")[1]);
+      }
+
+      // Category
+      return -1 * parseInt(axisString.split("-")[1]);
+    }
+
+    const dbGrid: Grid = {
+      date: new Date(), // TODO: This should be the date of the grid
+      across1: axisStringToId(grid.axes[0]),
+      across2: axisStringToId(grid.axes[1]),
+      across3: axisStringToId(grid.axes[2]),
+      down1: axisStringToId(grid.axes[3]),
+      down2: axisStringToId(grid.axes[4]),
+      down3: axisStringToId(grid.axes[5]),
+    };
+
+    const gridRepo = AppDataSource.getRepository(Grid);
+    await gridRepo.save(dbGrid);
   }
 
   /**

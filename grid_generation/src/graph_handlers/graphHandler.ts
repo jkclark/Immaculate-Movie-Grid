@@ -1,3 +1,4 @@
+import { GridExport } from "common/src/interfaces";
 import { CreditExtraInfo } from "../creditExtraInfo";
 import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUniqueString } from "../interfaces";
 
@@ -7,6 +8,8 @@ export default abstract class GraphHandler {
   abstract populateDataStore(): Promise<void>;
 
   abstract loadGraph(): Promise<ActorCreditGraph>;
+
+  abstract saveGrid(grid: GridExport): Promise<void>;
 
   /**
    * Create a graph object from a list of actors with their credits.

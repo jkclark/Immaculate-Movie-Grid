@@ -43,23 +43,17 @@ CREATE TABLE IF NOT EXISTS credits_genres_join (
 CREATE TABLE IF NOT EXISTS grids (
     date DATE PRIMARY KEY NOT NULL,
     across_1 INT NOT NULL,
-    across_1_type VARCHAR(255) NOT NULL,
     across_2 INT NOT NULL,
-    across_2_type VARCHAR(255) NOT NULL,
     across_3 INT NOT NULL,
-    across_3_type VARCHAR(255) NOT NULL,
     down_1 INT NOT NULL,
-    down_1_type VARCHAR(255) NOT NULL,
     down_2 INT NOT NULL,
-    down_2_type VARCHAR(255) NOT NULL,
     down_3 INT NOT NULL,
-    down_3_type VARCHAR(255) NOT NULL,
-    FOREIGN KEY (across_1, across_1_type) REFERENCES credits(id, type),
-    FOREIGN KEY (across_2, across_2_type) REFERENCES credits(id, type),
-    FOREIGN KEY (across_3, across_3_type) REFERENCES credits(id, type),
-    FOREIGN KEY (down_1, down_1_type) REFERENCES credits(id, type),
-    FOREIGN KEY (down_2, down_2_type) REFERENCES credits(id, type),
-    FOREIGN KEY (down_3, down_3_type) REFERENCES credits(id, type)
+    FOREIGN KEY (across_1) REFERENCES actors_and_categories(id),
+    FOREIGN KEY (across_2) REFERENCES actors_and_categories(id),
+    FOREIGN KEY (across_3) REFERENCES actors_and_categories(id),
+    FOREIGN KEY (down_1) REFERENCES actors_and_categories(id),
+    FOREIGN KEY (down_2) REFERENCES actors_and_categories(id),
+    FOREIGN KEY (down_3) REFERENCES actors_and_categories(id)
 );
 
 CREATE TABLE IF NOT EXISTS scores (
@@ -70,10 +64,15 @@ CREATE TABLE IF NOT EXISTS scores (
 );
 
 CREATE TABLE IF NOT EXISTS answers (
+    id SERIAL PRIMARY KEY NOT NULL,
     grid_date DATE NOT NULL,
+    score_id INT NOT NULL,
     across_index INT NOT NULL,
     down_index INT NOT NULL,
     credit_id INT NOT NULL,
+    credit_type VARCHAR(255) NOT NULL,
     correct BOOLEAN NOT NULL,
-    FOREIGN KEY (grid_date) REFERENCES grids(date)
+    FOREIGN KEY (grid_date) REFERENCES grids(date),
+    FOREIGN KEY (score_id) REFERENCES scores(id),
+    FOREIGN KEY (credit_id, credit_type) REFERENCES credits(id, type)
 );

@@ -6,8 +6,11 @@ export class Score {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Grid)
-  @JoinColumn({ name: "grid_date" })
+  @Column({ type: "date" })
+  grid_date!: Date;
+
+  @ManyToOne(() => Grid, (grid) => grid.date)
+  @JoinColumn({ name: "grid_date", referencedColumnName: "date" })
   grid!: Grid;
 
   @Column("int")

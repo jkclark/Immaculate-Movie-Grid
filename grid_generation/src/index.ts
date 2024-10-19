@@ -33,7 +33,7 @@ export interface GridGenArgs {
   overwriteImages: boolean;
 }
 
-export async function main(args: GridGenArgs): Promise<void> {
+export async function main(args: GridGenArgs): Promise<GridExport> {
   if (!args.gridDate || !args.graphHandler) {
     console.error("Missing gridDate or graphHandler");
     return;
@@ -117,6 +117,8 @@ export async function main(args: GridGenArgs): Promise<void> {
 
   // Write grid to S3
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${args.gridDate}.json`);
+
+  return gridExport;
 }
 
 function prefilterGraph(

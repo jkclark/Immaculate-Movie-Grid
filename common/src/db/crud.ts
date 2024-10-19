@@ -38,7 +38,11 @@ export async function batchWriteToDB<T>(
 ): Promise<void> {
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
-    await repository.upsert(batch, { conflictPaths });
+    if (conflictPaths.length === 0) {
+      await repository.save(batch);
+    } else {
+      await repository.upsert(batch, { conflictPaths });
+    }
   }
 
   console.log(`Wrote ${items.length} items to the database`);

@@ -1,5 +1,6 @@
 import fs from "fs";
 
+import { GridExport } from "common/src/interfaces";
 import { famousActorIds } from "src/famousActorIds";
 import { CreditExtraInfo, getAllCreditExtraInfo } from "../creditExtraInfo";
 import { ActorCreditGraph, actorNodeExport, creditNodeExport, getCreditUniqueString } from "../interfaces";
@@ -55,6 +56,8 @@ export default class FileGraphHandler extends GraphHandler {
 
     return graph;
   }
+
+  async saveGrid(grid: GridExport): Promise<void> {}
 
   /**
    * Download the actor and credit data, generate the graph, and write it to file.

@@ -36,7 +36,9 @@ export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, 
     graphHandler,
   };
 
-  await main(gridGenArgs);
+  const gridExport = await main(gridGenArgs);
+
+  await graphHandler.saveGrid(gridExport);
 
   return {
     statusCode: 200,
