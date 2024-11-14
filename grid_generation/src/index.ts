@@ -298,12 +298,7 @@ function getCategoryGraphEntities(
       name: category.name,
       connections: {},
       entityType: "category",
-      incompatibleWith: [],
     };
-
-    if (category.incompatibleWith) {
-      categoryGraphEntity.incompatibleWith = category.incompatibleWith.map((id) => id.toString());
-    }
 
     // Iterate over all credits, adding to the connections object if they match the category
     for (const [creditUniqueString, credit] of Object.entries(graph.credits)) {

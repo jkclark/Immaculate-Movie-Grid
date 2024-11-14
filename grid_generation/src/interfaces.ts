@@ -45,6 +45,7 @@ export interface ActorCreditGraph {
   actors: { [key: string]: ActorNode };
   credits: { [key: string]: CreditNode };
 }
+
 export interface ActorNode extends GraphEntity {
   name: string;
   connections: { [key: string]: CreditNode };

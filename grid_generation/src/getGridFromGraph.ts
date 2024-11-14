@@ -2,7 +2,6 @@ export interface GraphEntity {
   id: string;
   connections: { [key: string]: Connection };
   entityType: string;
-  incompatibleWith?: string[]; // A list of axisEntity IDs with which this entity cannot be connected
   name?: string;
 }
 
@@ -251,11 +250,6 @@ function axisEntityWorksWithAxis(
 ): UsedConnectionsWithAxisEntities {
   const connections: UsedConnectionsWithAxisEntities = {};
   for (const otherAxisEntity of axis) {
-    // If the axis entities are incompatible, skip
-    if (axisEntity.incompatibleWith && axisEntity.incompatibleWith.includes(otherAxisEntity.id)) {
-      return null;
-    }
-
     const sharedConnection: string = axisEntitiesShareConnection(axisEntity, otherAxisEntity, {
       ...excludeConnections,
       ...connections,
