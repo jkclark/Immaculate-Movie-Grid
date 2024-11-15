@@ -8,6 +8,7 @@ import { Genre } from "common/src/db/models/Genre";
 import { Grid } from "common/src/db/models/Grid";
 import { GridExport } from "common/src/interfaces";
 import { allCategories } from "src/categories";
+import { MoreThan } from "typeorm";
 import { getAllCreditExtraInfo } from "../creditExtraInfo";
 import { ActorCreditGraph, getCreditUniqueString } from "../interfaces";
 import { getAllActorInformation, getAllGenres, getPopularActors } from "../tmdbAPI";
@@ -388,23 +389,21 @@ export default class DBGraphHandler extends GraphHandler {
     const actorsAndCategories: ActorOrCategory[] = await batchReadFromDB(
       AppDataSource.getRepository(ActorOrCategory),
       this.READ_BATCH_SIZE,
-      ["id"],
-      []
+      { id: "ASC" },
+      [],
+      { id: MoreThan(0) }
     );
 
-    // We would love to do this within the DB query, but TypeORM is being difficult so we're doing
-    // it this way for now
-    const actorsOnly = actorsAndCategories.filter((actorOrCategory) => actorOrCategory.id > 0);
-
-    return actorsOnly;
+    return actorsAndCategories;
   }
 
   async getAllActorsAndCategories(): Promise<ActorOrCategory[]> {
     return await batchReadFromDB(
       AppDataSource.getRepository(ActorOrCategory),
       this.READ_BATCH_SIZE,
-      ["id"],
-      []
+      { id: "ASC" },
+      [],
+      {}
     );
   }
 
@@ -412,21 +411,29 @@ export default class DBGraphHandler extends GraphHandler {
     return await batchReadFromDB(
       AppDataSource.getRepository(Credit),
       this.READ_BATCH_SIZE,
-      ["id", "type"],
-      []
+      { id: "ASC", type: "ASC" },
+      [],
+      {}
     );
   }
 
   async getAllGenres(): Promise<Genre[]> {
-    return await batchReadFromDB(AppDataSource.getRepository(Genre), this.READ_BATCH_SIZE, ["id"], []);
+    return await batchReadFromDB(
+      AppDataSource.getRepository(Genre),
+      this.READ_BATCH_SIZE,
+      { id: "ASC" },
+      [],
+      {}
+    );
   }
 
   async getAllActorCreditRelationships(): Promise<ActorOrCategoryCreditJoin[]> {
     return await batchReadFromDB(
       AppDataSource.getRepository(ActorOrCategoryCreditJoin),
       this.READ_BATCH_SIZE,
-      ["actor_category_id", "credit_id"],
-      ["actorOrCategory", "credit"]
+      { actor_category_id: "ASC", credit_id: "ASC" },
+      ["actorOrCategory", "credit"],
+      {}
     );
   }
 
@@ -434,8 +441,9 @@ export default class DBGraphHandler extends GraphHandler {
     return await batchReadFromDB(
       AppDataSource.getRepository(CreditGenreJoin),
       this.READ_BATCH_SIZE,
-      ["credit_id", "credit_type", "genre_id"],
-      ["credit", "genre"]
+      { credit_id: "ASC", credit_type: "ASC", genre_id: "ASC" },
+      ["credit", "genre"],
+      {}
     );
   }
 }

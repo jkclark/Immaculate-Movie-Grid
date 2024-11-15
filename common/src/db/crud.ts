@@ -1,29 +1,32 @@
-export async function batchReadFromDB<T>(
-  // Clearly, this should be of type Repository<T>, but it introduces all sorts
-  // of errors I don't want to deal with.
-  repository: any,
+import { FindOptionsOrder, FindOptionsWhere, ObjectLiteral, Repository } from "typeorm";
+
+export async function batchReadFromDB<T extends ObjectLiteral>(
+  repository: Repository<T>,
   batchSize: number,
-  orderingFields: string[],
-  relations: string[]
+  order: FindOptionsOrder<T>,
+  relations: string[],
+  where: FindOptionsWhere<T>
 ): Promise<T[]> {
   const items: T[] = [];
-  const totalCount = await repository.count();
   let skip = 0;
 
-  do {
+  while (true) {
     const result = await repository.find({
       skip,
       take: batchSize,
       relations,
-      order: orderingFields.reduce((acc: { [key: string]: "ASC" | "DESC" }, field) => {
-        acc[field] = "ASC";
-        return acc;
-      }, {}),
+      order,
+      where,
     });
 
     items.push(...result);
-    skip += result.length;
-  } while (items.length < totalCount);
+    skip += batchSize;
+
+    // Break the loop if fewer items were fetched than the batch size
+    if (result.length < batchSize) {
+      break;
+    }
+  }
 
   console.log(`total fetched items: ${items.length}`);
 
