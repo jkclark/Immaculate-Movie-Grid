@@ -3,7 +3,7 @@ import "node-fetch";
 import * as readline from "readline";
 
 import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
-import { allCategories, Category } from "./categories";
+import { Category } from "./categories";
 import {
   Connection,
   getGridFromGraph,
@@ -47,18 +47,6 @@ export async function main(args: GridGenArgs): Promise<GridExport> {
   // Get a generic graph from the actor credit graph
   const genericGraph: Graph = getGenericGraphFromActorCreditGraph(filteredGraph);
 
-  // Get filtered categories
-  // Here we pass the filteredGraph, and not the genericGraph, because the filteredGraph
-  // contains Credits, whereas the genericGraph contains Connections. We need the Credits
-  // to be able to filter the categories.
-  const filteredCategories: { [key: number]: GraphEntity } = getCategoryGraphEntities(
-    allCategories,
-    filteredGraph
-  );
-
-  // Add categories to generic graph
-  addCategoriesToGenericGraph(filteredCategories, genericGraph);
-
   // Set up readline interface
   const rl = readline.createInterface({
     input: process.stdin,
@@ -86,7 +74,7 @@ export async function main(args: GridGenArgs): Promise<GridExport> {
       throw new NoValidActorGroupsFoundError("No valid actor groups found");
     }
 
-    printGrid(grid, filteredGraph, filteredCategories);
+    printGrid(grid, filteredGraph);
 
     // If autoYes is true, skip asking the user for approval
     if (args.autoYes) {
@@ -102,11 +90,8 @@ export async function main(args: GridGenArgs): Promise<GridExport> {
     }
   } while (true);
 
-  // Get categories with all credits
-  const categories: { [key: number]: GraphEntity } = getCategoryGraphEntities(allCategories, graph);
-
   // Get GridExport from grid, graph, and categories
-  const gridExport = getGridExportFromGridGraphAndCategories(grid, graph, categories, args.gridDate);
+  const gridExport = getGridExportFromGridGraphAndCategories(grid, graph, args.gridDate);
 
   // Get images for actors and credits and save them to S3
   await getAndSaveAllImagesForGrid(gridExport, args.overwriteImages);
@@ -366,21 +351,17 @@ function getAxisEntityTypeWeights(): { [key: string]: number } {
   };
 }
 
-function printGrid(grid: Grid, graph: ActorCreditGraph, categories: { [key: number]: GraphEntity }): void {
+function printGrid(grid: Grid, graph: ActorCreditGraph): void {
   const [acrossIds, downIds] = [grid.across, grid.down];
-  const across = getOriginalGraphEntitiesFromIds(acrossIds, graph, categories);
-  const down = getOriginalGraphEntitiesFromIds(downIds, graph, categories);
+  const across = getOriginalGraphEntitiesFromIds(acrossIds, graph);
+  const down = getOriginalGraphEntitiesFromIds(downIds, graph);
   const fixedLength = 30;
 
   // Collect across entities into a single string
   let acrossLine = "".padEnd(fixedLength + 5);
   for (const axisEntity of across) {
     let entityString = "";
-    if (axisEntity.entityType === "category") {
-      entityString = categories[axisEntity.id].name;
-    } else {
-      entityString = graph.actors[axisEntity.id].name;
-    }
+    entityString = graph.actors[axisEntity.id].name;
     acrossLine += entityString.padEnd(fixedLength);
   }
 
@@ -393,11 +374,7 @@ function printGrid(grid: Grid, graph: ActorCreditGraph, categories: { [key: numb
 
     // Print the axis entity's name
     let entityString = "";
-    if (axisEntity.entityType === "category") {
-      entityString = categories[axisEntity.id].name;
-    } else {
-      entityString = graph.actors[axisEntity.id].name;
-    }
+    entityString = graph.actors[axisEntity.id].name;
 
     lineString += entityString.padEnd(fixedLength);
 
@@ -446,11 +423,10 @@ function findConnectionName(
 function getGridExportFromGridGraphAndCategories(
   grid: Grid,
   graph: ActorCreditGraph,
-  categories: { [key: number]: GraphEntity },
   id: string
 ): GridExport {
-  const originalGraphAcrossEntities = getOriginalGraphEntitiesFromIds(grid.across, graph, categories);
-  const originalGraphDownEntities = getOriginalGraphEntitiesFromIds(grid.down, graph, categories);
+  const originalGraphAcrossEntities = getOriginalGraphEntitiesFromIds(grid.across, graph);
+  const originalGraphDownEntities = getOriginalGraphEntitiesFromIds(grid.down, graph);
   const gridAxisEntities = originalGraphAcrossEntities.concat(originalGraphDownEntities);
 
   // Get the axes, actors, and categories
@@ -459,7 +435,7 @@ function getGridExportFromGridGraphAndCategories(
   const categoriesExport: CategoryExport[] = [];
   for (const axisEntity of gridAxisEntities) {
     if (axisEntity.entityType === "category") {
-      const category: GraphEntity = categories[axisEntity.id];
+      const category: GraphEntity = graph.actors[axisEntity.id];
       // Categories have negative IDs, so make it positive to
       // avoid having two dashes in the string.
       axes.push(`category-${-1 * parseInt(category.id)}`);
@@ -539,27 +515,15 @@ function sortAxisActorsFirst(axis: string[]): string[] {
   return actors.concat(categories);
 }
 
-function getOriginalGraphEntitiesFromIds(
-  axisEntityIds: string[],
-  graph: ActorCreditGraph,
-  allCategories: { [key: number]: GraphEntity }
-): GraphEntity[] {
+function getOriginalGraphEntitiesFromIds(axisEntityIds: string[], graph: ActorCreditGraph): GraphEntity[] {
   return axisEntityIds.map((id) => {
-    return getOriginalGraphEntityFromId(id, graph, allCategories);
+    return getOriginalGraphEntityFromId(id, graph);
   });
 }
 
-function getOriginalGraphEntityFromId(
-  id: string,
-  graph: ActorCreditGraph,
-  allCategories: { [key: number]: GraphEntity }
-): GraphEntity {
+function getOriginalGraphEntityFromId(id: string, graph: ActorCreditGraph): GraphEntity {
   const idNum = parseInt(id);
-  if (idNum < 0) {
-    return allCategories[idNum.toString()];
-  } else {
-    return graph.actors[idNum.toString()];
-  }
+  return graph.actors[idNum.toString()];
 }
 
 /**

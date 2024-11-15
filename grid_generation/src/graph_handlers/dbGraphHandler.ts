@@ -7,13 +7,14 @@ import { CreditGenreJoin } from "common/src/db/models/CreditsGenresJoin";
 import { Genre } from "common/src/db/models/Genre";
 import { Grid } from "common/src/db/models/Grid";
 import { GridExport } from "common/src/interfaces";
+import { allCategories } from "src/categories";
 import { getAllCreditExtraInfo } from "../creditExtraInfo";
-import { Actor, ActorCreditGraph, getCreditUniqueString } from "../interfaces";
+import { ActorCreditGraph, getCreditUniqueString } from "../interfaces";
 import { getAllActorInformation, getAllGenres, getPopularActors } from "../tmdbAPI";
 import GraphHandler, { RepeatError } from "./graphHandler";
 
 interface AllDBEntities {
-  actors: ActorOrCategory[];
+  actorsAndCategories: ActorOrCategory[];
   credits: Credit[];
   genres: Genre[];
   actorCreditRelationships: ActorOrCategoryCreditJoin[];
@@ -36,6 +37,7 @@ export default class DBGraphHandler extends GraphHandler {
     const graph = await this.fetchData();
 
     // Add categories to the graph
+    this.addCategoriesToGraph(graph);
 
     // Save data to DB
     await this.saveData(graph);
@@ -61,7 +63,8 @@ export default class DBGraphHandler extends GraphHandler {
     }
 
     const dbGrid: Grid = {
-      date: new Date(), // TODO: This should be the date of the grid
+      // Beware that this will use the local environment's timezone
+      date: new Date(grid.id),
       across1: axisStringToId(grid.axes[0]),
       across2: axisStringToId(grid.axes[1]),
       across3: axisStringToId(grid.axes[2]),
@@ -86,21 +89,17 @@ export default class DBGraphHandler extends GraphHandler {
     // Get existing actors from our database
     const existingActors = await this.getAllActors();
 
-    // Merge and deduplicate these lists
-    const allActors = new Map<string, Actor>();
+    // Merge and deduplicate these lists into IDs only
+    const allActors = new Set<number>();
     for (const actor of popularActors) {
-      allActors.set(actor.id, actor);
+      allActors.add(parseInt(actor.id));
     }
 
     for (const actor of existingActors) {
-      allActors.set(actor.id.toString(), {
-        id: actor.id.toString(),
-        name: actor.name,
-        credits: new Set(),
-      });
+      allActors.add(actor.id);
     }
 
-    const allActorsList = Array.from(allActors.values());
+    const allActorsList = Array.from(allActors);
 
     console.log(`Found ${allActorsList.length - existingActors.length} new actors`);
 
@@ -117,6 +116,27 @@ export default class DBGraphHandler extends GraphHandler {
     super.mergeGraphAndExtraInfo(graph, allCreditExtraInfo);
 
     return graph;
+  }
+
+  /**
+   * Add categories to the graph.
+   *
+   * NOTE: This method modifies the graph in place.
+   */
+  addCategoriesToGraph(graph: ActorCreditGraph): void {
+    // iterate over (id, category) key value pairs in allCategories
+    for (const [id, category] of Object.entries(allCategories)) {
+      // Add the category to the graph
+      super.addCategoryToGraph(graph, id, category.name);
+
+      // Iterate over all credits in the graph
+      for (const credit of Object.values(graph.credits)) {
+        if (category.creditFilter(credit)) {
+          // Add the category as a connection to the credit
+          super.addLinkToGraph(graph, id, credit);
+        }
+      }
+    }
   }
 
   async saveData(graph: ActorCreditGraph): Promise<void> {
@@ -144,7 +164,7 @@ export default class DBGraphHandler extends GraphHandler {
 
   async getAllDBEntities(): Promise<AllDBEntities> {
     return {
-      actors: await this.getAllActors(),
+      actorsAndCategories: await this.getAllActorsAndCategories(),
       credits: await this.getAllCredits(),
       genres: await this.getAllGenres(),
       actorCreditRelationships: await this.getAllActorCreditRelationships(),
@@ -156,9 +176,13 @@ export default class DBGraphHandler extends GraphHandler {
     // Create a graph object
     const graph: ActorCreditGraph = { actors: {}, credits: {} };
 
-    // Add all actors to graph
-    for (const actor of allDBEntities.actors) {
-      super.addActorToGraph(graph, actor.id.toString(), actor.name);
+    // Add all actors and categories to graph
+    for (const actorOrCategory of allDBEntities.actorsAndCategories) {
+      if (actorOrCategory.id < 0) {
+        super.addCategoryToGraph(graph, actorOrCategory.id.toString(), actorOrCategory.name);
+      } else {
+        super.addActorToGraph(graph, actorOrCategory.id.toString(), actorOrCategory.name);
+      }
     }
 
     // Add all credits to graph
@@ -361,6 +385,21 @@ export default class DBGraphHandler extends GraphHandler {
   }
 
   async getAllActors(): Promise<ActorOrCategory[]> {
+    const actorsAndCategories: ActorOrCategory[] = await batchReadFromDB(
+      AppDataSource.getRepository(ActorOrCategory),
+      this.READ_BATCH_SIZE,
+      ["id"],
+      []
+    );
+
+    // We would love to do this within the DB query, but TypeORM is being difficult so we're doing
+    // it this way for now
+    const actorsOnly = actorsAndCategories.filter((actorOrCategory) => actorOrCategory.id > 0);
+
+    return actorsOnly;
+  }
+
+  async getAllActorsAndCategories(): Promise<ActorOrCategory[]> {
     return await batchReadFromDB(
       AppDataSource.getRepository(ActorOrCategory),
       this.READ_BATCH_SIZE,

@@ -52,6 +52,12 @@ function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     gridDate = tomorrow.toISOString().split("T")[0];
+  } else {
+    // Validate date format
+    const date = new Date(gridDate);
+    if (isNaN(date.getTime())) {
+      throw new Error("Invalid date");
+    }
   }
 
   // All other arguments are required, enforce that here

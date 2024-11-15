@@ -51,6 +51,14 @@ export default abstract class GraphHandler {
     graph.actors[id] = { id, name, connections: {}, entityType: "actor" };
   }
 
+  addCategoryToGraph(graph: ActorCreditGraph, id: string, name: string): void {
+    if (graph.actors[id]) {
+      throw new RepeatError(`Category with id ${id} already exists: ${graph.actors[id].name}`);
+    }
+
+    graph.actors[id] = { id, name, connections: {}, entityType: "category" };
+  }
+
   addCreditToGraph(credit: Credit, graph: ActorCreditGraph): void {
     const creditUniqueString = getCreditUniqueString(credit);
     if (graph.credits[creditUniqueString]) {

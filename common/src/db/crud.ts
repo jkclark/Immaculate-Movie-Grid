@@ -1,9 +1,10 @@
 export async function batchReadFromDB<T>(
+  // Clearly, this should be of type Repository<T>, but it introduces all sorts
+  // of errors I don't want to deal with.
   repository: any,
   batchSize: number,
   orderingFields: string[],
-  relations: string[],
-  where: { [key: string]: any } = {}
+  relations: string[]
 ): Promise<T[]> {
   const items: T[] = [];
   const totalCount = await repository.count();
@@ -14,7 +15,6 @@ export async function batchReadFromDB<T>(
       skip,
       take: batchSize,
       relations,
-      where,
       order: orderingFields.reduce((acc: { [key: string]: "ASC" | "DESC" }, field) => {
         acc[field] = "ASC";
         return acc;

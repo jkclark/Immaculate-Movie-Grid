@@ -59,14 +59,14 @@ export async function getPopularActors(): Promise<Actor[]> {
  * @param actorIds the list of actor IDs to get information for
  * @returns A promise that resolves to a list of actors with their credits
  */
-export async function getAllActorInformation(actors: Actor[]): Promise<Actor[]> {
+export async function getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
   const BATCH_SIZE = 10;
   const actorsWithCredits: Actor[] = [];
 
-  for (let i = 0; i < actors.length; i += BATCH_SIZE) {
-    const batch = actors.slice(i, i + BATCH_SIZE);
+  for (let i = 0; i < actorIds.length; i += BATCH_SIZE) {
+    const batch = actorIds.slice(i, i + BATCH_SIZE);
     const batchPromises = batch.map(async (inputActor) => {
-      const outputActor = await getActorWithCreditsById(parseInt(inputActor.id));
+      const outputActor = await getActorWithCreditsById(inputActor);
       console.log(`Got actor ${outputActor.name} with ${outputActor.credits.size} credits`);
       return outputActor;
     });
