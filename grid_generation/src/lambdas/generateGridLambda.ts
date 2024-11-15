@@ -1,33 +1,25 @@
-import path from "path";
-
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
 import DBGraphHandler from "../graph_handlers/dbGraphHandler";
-import FileGraphHandler from "../graph_handlers/fileGraphHandler";
 import GraphHandler from "../graph_handlers/graphHandler";
 import { main } from "../index";
 
 interface EventGridGenArgs {
   gridDate: string;
-  graphMode: "file" | "db";
+  graphMode: "db";
   autoYes: boolean;
   autoRetry: boolean;
   overwriteImages: boolean;
 }
 
+type GraphModeType = EventGridGenArgs["graphMode"];
+
 interface EventWithGridGenArgs extends APIGatewayProxyEvent, EventGridGenArgs {}
 
 export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, context: Context) => {
   const eventArgs: EventGridGenArgs = getEventArgs(event);
-  let graphHandler: GraphHandler = null;
-  if (eventArgs.graphMode === "file") {
-    graphHandler = new FileGraphHandler(
-      path.join(__dirname, "complete_graph.json"),
-      path.join(__dirname, "complete_credit_extra_info.json")
-    );
-  } else if (eventArgs.graphMode === "db") {
-    graphHandler = new DBGraphHandler();
-  }
+
+  const graphHandler = getGraphHandler(eventArgs.graphMode);
 
   await graphHandler.init();
 
@@ -75,16 +67,22 @@ function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
   };
 }
 
+function getGraphHandler(graphMode: GraphModeType): GraphHandler {
+  if (graphMode === "db") {
+    return new DBGraphHandler();
+  }
+}
+
 /**
  *******************************************************
  * The code below exists for simulating the Lambda function locally
  *******************************************************
  */
 
-function processCLIArgs(): [string, "file" | "db" | null, boolean, boolean, boolean] {
+function processCLIArgs(): [string, GraphModeType, boolean, boolean, boolean] {
   const args = process.argv.slice(2);
   let gridDate = null;
-  let graphMode: "file" | "db" | null = null;
+  let graphMode: GraphModeType = null;
   let autoYes: boolean = false;
   let autoRetry: boolean = false;
   let overwriteImages = false;
@@ -103,13 +101,13 @@ function processCLIArgs(): [string, "file" | "db" | null, boolean, boolean, bool
     } else if (!gridDate) {
       gridDate = args[i];
     } else if (!graphMode) {
-      if (args[i] === "file" || args[i] === "db") {
-        graphMode = args[i] as "file" | "db";
+      if (args[i] === "db") {
+        graphMode = args[i] as GraphModeType;
       } else {
         console.error(
           "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--overwrite-images]\n" +
             "\ngrid-date should be supplied in the format YYYY-MM-DD\n" +
-            "graph-mode should be either 'file' or 'db'\n" +
+            "graph-mode should be 'db'\n" +
             "--overwrite-images will ignore existing images in S3\n"
         );
         return [null, null, null, null, null];

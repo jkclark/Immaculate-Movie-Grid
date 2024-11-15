@@ -1,26 +1,22 @@
-import path from "path";
 import DBGraphHandler from "./graph_handlers/dbGraphHandler";
-import FileGraphHandler from "./graph_handlers/fileGraphHandler";
 import GraphHandler from "./graph_handlers/graphHandler";
 
 interface fetchDataArgs {
-  graphMode: "file" | "db";
+  graphMode: "db";
 }
 
 async function main(args: fetchDataArgs) {
-  let graphHandler: GraphHandler = null;
-  if (args.graphMode === "file") {
-    graphHandler = new FileGraphHandler(
-      path.join(__dirname, "complete_graph.json"),
-      path.join(__dirname, "complete_credit_extra_info.json")
-    );
-  } else if (args.graphMode === "db") {
-    graphHandler = new DBGraphHandler();
-  }
+  const graphHandler = getGraphHandler(args);
 
   await graphHandler.init();
 
   await graphHandler.populateDataStore();
+}
+
+function getGraphHandler(args: fetchDataArgs): GraphHandler {
+  if (args.graphMode === "db") {
+    return new DBGraphHandler();
+  }
 }
 
 function processCLIArgs(): fetchDataArgs {
@@ -29,8 +25,8 @@ function processCLIArgs(): fetchDataArgs {
     throw new Error("Usage: npx ts-node populateDataStore.ts <graphMode>");
   }
 
-  if (args[0] !== "file" && args[0] !== "db") {
-    throw new Error("graphMode must be either 'file' or 'db'");
+  if (args[0] !== "db") {
+    throw new Error("graphMode must be 'db'");
   }
 
   const graphMode = args[0];
