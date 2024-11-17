@@ -1,4 +1,4 @@
-name: Deploy grid-generation Lambda
+name: Deploy grid-generation Lambdas
 
 on:
   push:
@@ -10,8 +10,8 @@ on:
 
 jobs:
   deploy:
-    uses: ./.github/workflows/deploy_lambda.yml
+    uses: ./.github/workflows/deploy_lambdas.yml
     with:
       npm-script: generate-grid-generation-lambda-zip
-      lambda-function-name: GenerateGrid
+      lambda-function-names: GenerateGrid PopulateDataStore
       zip-file-name: grid_generation_lambda_package.zip

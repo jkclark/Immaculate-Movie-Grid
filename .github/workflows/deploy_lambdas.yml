@@ -1,4 +1,4 @@
-name: Deploy Lambda
+name: Deploy Lambdas
 
 on:
   workflow_call:
@@ -7,8 +7,8 @@ on:
         description: "The npm script to run"
         required: true
         type: string
-      lambda-function-name:
-        description: "The name of the Lambda function to update"
+      lambda-function-names:
+        description: "A space-separated list of names of the Lambda functions to update"
         required: true
         type: string
       zip-file-name:
@@ -54,5 +54,10 @@ jobs:
           role-session-name: ${{ github.run_id }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Deploy Lambda function
-        run: aws lambda update-function-code --function-name ${{ inputs['lambda-function-name'] }} --zip-file fileb://${{ inputs['zip-file-name'] }}
+      # Note: The Lambda function names are passed as a string with space-separated values
+      - name: Deploy Lambda function(s)
+        run: |
+          IFS=' ' read -r -a lambda_name_array <<< "${{ inputs['lambda-function-names'] }}"
+          for function_name in "${lambda_name_array[@]}"; do
+            aws lambda update-function-code --function-name "$function_name" --zip-file fileb://${{ inputs['zip-file-name'] }}
+          done
