@@ -5,8 +5,7 @@
             "type": "node",
             "request": "launch",
             "name": "Compile & Generate Grid",
-            "preLaunchTask": "npm: build & copy json files in", // run this task before launching the program
-            "postDebugTask": "copy json files out",
+            "preLaunchTask": "npm: build", // run this task before launching the program
             "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/lambdas/generateGridLambda.js", // the program to debug
             "outFiles": [
                 "${workspaceFolder}/grid_generation/dist/**/*.js"
@@ -24,8 +23,7 @@
             "type": "node",
             "request": "launch",
             "name": "Compile & Populate Data Store",
-            "preLaunchTask": "npm: build & copy json files in", // run this task before launching the program
-            "postDebugTask": "copy json files out",
+            "preLaunchTask": "npm: build", // run this task before launching the program
             "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/populateDataStore.js", // the program to debug
             "outFiles": [
                 "${workspaceFolder}/grid_generation/dist/**/*.js"

@@ -1,4 +1,4 @@
-import { AppDataSource, initializeDataSource } from "common/src/db/connect";
+import { initializeDataSource } from "common/src/db/connect";
 import { batchReadFromDB, batchWriteToDB } from "common/src/db/crud";
 import { ActorOrCategory } from "common/src/db/models/ActorOrCategory";
 import { ActorOrCategoryCreditJoin } from "common/src/db/models/ActorsCategoriesCreditsJoin";
@@ -7,7 +7,7 @@ import { CreditGenreJoin } from "common/src/db/models/CreditsGenresJoin";
 import { Genre } from "common/src/db/models/Genre";
 import { Grid } from "common/src/db/models/Grid";
 import { GridExport } from "common/src/interfaces";
-import { MoreThan } from "typeorm";
+import { DataSource, MoreThan } from "typeorm";
 import { allCategories } from "../categories";
 import { getAllCreditExtraInfo } from "../creditExtraInfo";
 import { ActorCreditGraph, getCreditUniqueString } from "../interfaces";
@@ -25,9 +25,10 @@ interface AllDBEntities {
 export default class DBGraphHandler extends GraphHandler {
   private WRITE_BATCH_SIZE = 500;
   private READ_BATCH_SIZE = 500;
+  private dataSource: DataSource;
 
   async init(): Promise<void> {
-    await initializeDataSource();
+    this.dataSource = await initializeDataSource();
   }
 
   /**
@@ -74,7 +75,7 @@ export default class DBGraphHandler extends GraphHandler {
       down3: axisStringToId(grid.axes[5]),
     };
 
-    const gridRepo = AppDataSource.getRepository(Grid);
+    const gridRepo = this.dataSource.getRepository(Grid);
     await gridRepo.save(dbGrid);
   }
 
@@ -230,7 +231,7 @@ export default class DBGraphHandler extends GraphHandler {
 
     await batchWriteToDB(
       actorsNoCredits,
-      AppDataSource.getRepository(ActorOrCategory),
+      this.dataSource.getRepository(ActorOrCategory),
       this.WRITE_BATCH_SIZE,
       ["id"]
     );
@@ -248,7 +249,7 @@ export default class DBGraphHandler extends GraphHandler {
 
     await batchWriteToDB(
       creditsNoActorsNoGenres,
-      AppDataSource.getRepository(Credit),
+      this.dataSource.getRepository(Credit),
       this.WRITE_BATCH_SIZE,
       ["id", "type"]
     );
@@ -275,7 +276,7 @@ export default class DBGraphHandler extends GraphHandler {
       };
     });
 
-    await batchWriteToDB(genres, AppDataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
+    await batchWriteToDB(genres, this.dataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
   }
 
   /**
@@ -292,12 +293,12 @@ export default class DBGraphHandler extends GraphHandler {
       };
     });
 
-    await batchWriteToDB(genresList, AppDataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
+    await batchWriteToDB(genresList, this.dataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
   }
 
   async writeActorCreditRelationshipsToDB(graph: ActorCreditGraph): Promise<void> {
     console.log("Table: actors_categories_credits_join");
-    const actorCreditJoinRepo = AppDataSource.getRepository(ActorOrCategoryCreditJoin);
+    const actorCreditJoinRepo = this.dataSource.getRepository(ActorOrCategoryCreditJoin);
     const batchToWrite: Partial<ActorOrCategoryCreditJoin>[] = [];
     for (const actor of Object.values(graph.actors)) {
       // For each actor, create all of the actor-credit relationships
@@ -336,7 +337,7 @@ export default class DBGraphHandler extends GraphHandler {
   }
 
   async writeCreditGenreRelationshipsToDB(graph: ActorCreditGraph): Promise<void> {
-    const creditGenreJoinRepo = AppDataSource.getRepository("CreditGenreJoin");
+    const creditGenreJoinRepo = this.dataSource.getRepository("CreditGenreJoin");
     const batchToWrite: Partial<CreditGenreJoin>[] = [];
     for (const credit of Object.values(graph.credits)) {
       // For each credit, create all of the credit-genre relationships
@@ -387,7 +388,7 @@ export default class DBGraphHandler extends GraphHandler {
 
   async getAllActors(): Promise<ActorOrCategory[]> {
     const actorsAndCategories: ActorOrCategory[] = await batchReadFromDB(
-      AppDataSource.getRepository(ActorOrCategory),
+      this.dataSource.getRepository(ActorOrCategory),
       this.READ_BATCH_SIZE,
       { id: "ASC" },
       [],
@@ -399,7 +400,7 @@ export default class DBGraphHandler extends GraphHandler {
 
   async getAllActorsAndCategories(): Promise<ActorOrCategory[]> {
     return await batchReadFromDB(
-      AppDataSource.getRepository(ActorOrCategory),
+      this.dataSource.getRepository(ActorOrCategory),
       this.READ_BATCH_SIZE,
       { id: "ASC" },
       [],
@@ -409,7 +410,7 @@ export default class DBGraphHandler extends GraphHandler {
 
   async getAllCredits(): Promise<Credit[]> {
     return await batchReadFromDB(
-      AppDataSource.getRepository(Credit),
+      this.dataSource.getRepository(Credit),
       this.READ_BATCH_SIZE,
       { id: "ASC", type: "ASC" },
       [],
@@ -419,7 +420,7 @@ export default class DBGraphHandler extends GraphHandler {
 
   async getAllGenres(): Promise<Genre[]> {
     return await batchReadFromDB(
-      AppDataSource.getRepository(Genre),
+      this.dataSource.getRepository(Genre),
       this.READ_BATCH_SIZE,
       { id: "ASC" },
       [],
@@ -429,7 +430,7 @@ export default class DBGraphHandler extends GraphHandler {
 
   async getAllActorCreditRelationships(): Promise<ActorOrCategoryCreditJoin[]> {
     return await batchReadFromDB(
-      AppDataSource.getRepository(ActorOrCategoryCreditJoin),
+      this.dataSource.getRepository(ActorOrCategoryCreditJoin),
       this.READ_BATCH_SIZE,
       { actor_category_id: "ASC", credit_id: "ASC" },
       ["actorOrCategory", "credit"],
@@ -439,7 +440,7 @@ export default class DBGraphHandler extends GraphHandler {
 
   async getAllCreditGenreRelationships(): Promise<CreditGenreJoin[]> {
     return await batchReadFromDB(
-      AppDataSource.getRepository(CreditGenreJoin),
+      this.dataSource.getRepository(CreditGenreJoin),
       this.READ_BATCH_SIZE,
       { credit_id: "ASC", credit_type: "ASC", genre_id: "ASC" },
       ["credit", "genre"],

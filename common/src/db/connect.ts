@@ -53,11 +53,15 @@ export const AppDataSource = new DataSource({
   },
 });
 
-let dataSourceInitialized = false;
+/* The code below exists to allow us to only connect to the database once.
+ * This is useful for reusing the connection across multiple Lambda invocations.
+ */
+let connectionPromise: Promise<DataSource> | null = null;
 
-export const initializeDataSource = async () => {
-  if (!dataSourceInitialized) {
-    await AppDataSource.initialize();
-    dataSourceInitialized = true;
+export const initializeDataSource = (): Promise<DataSource> => {
+  if (!connectionPromise) {
+    connectionPromise = AppDataSource.initialize();
   }
+
+  return connectionPromise;
 };
