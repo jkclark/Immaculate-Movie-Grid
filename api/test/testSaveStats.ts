@@ -10,7 +10,6 @@ async function main() {
       body: JSON.stringify({
         answers: [
           {
-            grid_date: gridDate,
             across_index: 0,
             down_index: 0,
             credit_id: 2088,
@@ -18,7 +17,6 @@ async function main() {
             correct: true,
           },
           {
-            grid_date: gridDate,
             across_index: 0,
             down_index: 0,
             credit_id: 155,

@@ -11,20 +11,21 @@ import { batchReadFromDB, batchWriteToDB } from "./crud";
 import { Answer } from "./models/Answer";
 import { Score } from "./models/Score";
 
-interface Stats {
+export interface Stats {
   numGames: number;
 }
 
 interface AnswerNoIdNoEntities extends Omit<Answer, "id" | "grid" | "score" | "credit"> {}
 
-interface AnswerNoIdNoScoreNoEntities extends Omit<Answer, "id" | "score_id" | "grid" | "score" | "credit"> {}
+interface AnswerNoIdNoScoreNoEntities
+  extends Omit<Answer, "id" | "score_id" | "grid" | "score" | "credit" | "grid_date"> {}
 
 export interface SingleGameAnswers {
   gridDate: Date;
   answers: AnswerNoIdNoScoreNoEntities[];
 }
 
-async function getStatsForGrid(gridDate: string): Promise<Stats> {
+export async function getStatsForGrid(gridDate: string): Promise<Stats> {
   // Establish a connection to the database
   await initializeDataSource();
 
@@ -62,7 +63,7 @@ export async function writeGameStats(dataSource: DataSource, answers: SingleGame
   const answerRepo = dataSource.getRepository(Answer);
   // Add the score's ID to each answer
   const answersWithScoreId: AnswerNoIdNoEntities[] = answers.answers.map((answer) => {
-    return { ...answer, score_id: savedScore.id };
+    return { ...answer, grid_date: answers.gridDate, score_id: savedScore.id };
   });
   await batchWriteToDB(answersWithScoreId, answerRepo, 1000, []);
 }
