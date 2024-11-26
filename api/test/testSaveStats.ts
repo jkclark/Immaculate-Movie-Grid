@@ -1,12 +1,13 @@
 import { handler as saveStatsHandler } from "../src/saveStats";
 
 async function main() {
-  // const gridDate = new Date("9999-01-01:00:00:00Z");
-  const gridDate = new Date("9998-12-31:12:00:00Z");
+  const gridDate = new Date("9998-12-31:12:00:00Z").toISOString();
   const response = await saveStatsHandler(
     {
-      body: JSON.stringify({
+      pathParameters: {
         gridDate: gridDate,
+      },
+      body: JSON.stringify({
         answers: [
           {
             grid_date: gridDate,
