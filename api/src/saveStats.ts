@@ -1,21 +1,21 @@
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
 import { initializeDataSource } from "common/src/db/connect";
-import { ActorOrCategory } from "common/src/db/models/ActorOrCategory";
+import { SingleGameAnswers, writeGameStats } from "common/src/db/stats";
 
 export const handler: Handler = async (event: APIGatewayProxyEvent, context: Context) => {
   console.log("EVENT: \n" + JSON.stringify(event, null, 2));
 
   const dataSource = await initializeDataSource();
 
-  const actor = new ActorOrCategory();
-  actor.id = 500;
-  actor.name = "Tom Cruise";
+  const body = JSON.parse(event.body);
 
-  const actorsAndCategoriesRepository = dataSource.getRepository(ActorOrCategory);
+  const answers: SingleGameAnswers = {
+    gridDate: new Date(body.gridDate),
+    answers: body.answers,
+  };
 
-  await actorsAndCategoriesRepository.save(actor);
-  console.log("Actor saved");
+  await writeGameStats(dataSource, answers);
 
   return {
     statusCode: 200,
