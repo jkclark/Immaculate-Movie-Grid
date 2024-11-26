@@ -21,7 +21,6 @@ const SearchBar: React.FC = () => {
         fetch(`https://api.immaculatemoviegrid.com/dev/search?query=${encodeURIComponent(query)}`)
           .then((response) => response.json())
           .then((data) => {
-            console.log("RESULTS:" + data.searchResults);
             setSearchResults(data.searchResults);
             setPreviousInputText(query);
             setIsLoading(false);

@@ -11,7 +11,7 @@ import { Answer } from "./models/Answer";
 import { Score } from "./models/Score";
 
 export interface Stats {
-  numGames: number;
+  numGames?: number;
 }
 
 interface AnswerNoIdNoEntities extends Omit<Answer, "id" | "grid" | "score" | "credit"> {}

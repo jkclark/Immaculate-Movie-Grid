@@ -26,11 +26,13 @@ import {
   getRowColKey,
   gridDataAtom,
   gridIdAtom,
+  gridStatsAtom,
   guessesRemainingAtom,
   selectedColAtom,
   selectedRowAtom,
   usedAnswersAtom,
 } from "./state";
+import { getStatsForGrid } from "./stats";
 
 function App() {
   const [activeTab, setActiveTab] = useAtom(activeTabAtom);
@@ -49,6 +51,7 @@ function App() {
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
   const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
+  const [gridStats, setGridStats] = useAtom(gridStatsAtom);
 
   // On page load, load the grid data
   useEffect(() => {
@@ -115,6 +118,26 @@ function App() {
       endGame(gridDisplayData);
     }
   }, [guessesRemaining]);
+
+  // Get the grid's stats now, and then periodically
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!gridId) {
+        return;
+      }
+
+      setGridStats(await getStatsForGrid(gridId));
+    };
+
+    // Fetch stats immediately
+    fetchStats();
+
+    // Set up interval to fetch stats periodically
+    const GET_STATS_INTERVAL = 30000;
+    const interval = setInterval(fetchStats, GET_STATS_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [gridId]);
 
   async function getGridDataForDate(dateString: string): Promise<GridExport> {
     // Load the grid named with today's date
@@ -191,6 +214,7 @@ function App() {
     setGameOver(false);
     setUsedAnswers({});
     setFinalGameGridDisplayData([]);
+    setGridStats({});
   }
 
   function endGame(gridDisplayData: AnyGridDisplayData[][]) {
@@ -251,7 +275,17 @@ function App() {
   }
 
   function getStatsGridDisplayData(): AnyGridDisplayData[][] {
-    return getBlankGridDisplayData(gridData.axes.length / 2);
+    const statsGridDisplayData = getBlankGridDisplayData(gridData.axes.length / 2);
+    // Iterate over the stat (key,value) pairs and populate the grid
+    Object.entries(gridStats).forEach(([statName, statValue], index) => {
+      const rowIndex = Math.floor(index / 4);
+      const colIndex = index % 4;
+      statsGridDisplayData[rowIndex][colIndex] = {
+        mainText: statValue.toString(),
+        subText: statName,
+      };
+    });
+    return statsGridDisplayData;
   }
 
   // TODO: This is copy-pasted from another file. Also we should just refactor the gridExport to be

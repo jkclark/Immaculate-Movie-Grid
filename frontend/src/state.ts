@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
+import { Stats } from "common/src/db/stats";
 import { GridExport } from "common/src/interfaces";
 import { YOUR_ANSWERS_TAB_TEXT } from "./constants";
 import { AnyGridDisplayData } from "./gridDisplayData";
@@ -20,6 +21,7 @@ export const finalGameGridDisplayDataAtom = getAtomWithStorageInit<AnyGridDispla
   "finalGameGridDisplayData",
   [[]]
 );
+export const gridStatsAtom = atom<Stats>({});
 
 export const usedAnswersAtom = getAtomWithStorageInit<
   Record<string, { type: "movie" | "tv"; id: number; name: string }>
