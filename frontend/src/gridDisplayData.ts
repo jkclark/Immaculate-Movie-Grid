@@ -22,12 +22,15 @@ export interface ImageGridDisplayData extends GridDisplayData {
 
 export type AnyGridDisplayData = GridDisplayData | TextGridDisplayData | ImageGridDisplayData;
 
+export function getBlankGridDisplayData(gridSize: number): AnyGridDisplayData[][] {
+  return Array.from({ length: gridSize + 1 }, () => Array.from({ length: gridSize + 1 }, () => ({})));
+}
+
 export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayData[][] {
   const gridSize = gridData.axes.length / 2;
-  const displayData: AnyGridDisplayData[][] = [];
+  const displayData: AnyGridDisplayData[][] = getBlankGridDisplayData(gridSize);
   // +1 because of the axis
   for (let rowIndex = 0; rowIndex < gridSize + 1; rowIndex++) {
-    displayData.push([]);
     // +1 because of the axis
     for (let colIndex = 0; colIndex < gridSize + 1; colIndex++) {
       if (rowIndex === 0 && colIndex !== 0) {
@@ -35,38 +38,36 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
         const [axisEntityType, axisEntityId] = gridData.axes[axisEntityIndex].split("-");
         if (axisEntityType === "actor") {
           const axisEntity = getAxisEntityFromListById(gridData.actors, parseInt(axisEntityId));
-          displayData[rowIndex].push({
+          displayData[rowIndex][colIndex] = {
             hoverText: axisEntity.name,
             imageURL: getS3ImageURLForType("actor", axisEntity.id),
             backupImageURL: getS3BackupImageURLForType("actor"),
-          });
+          };
         } else {
           // Remember, categories have negative IDs
           const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
-          displayData[rowIndex].push({
+          displayData[rowIndex][colIndex] = {
             mainText: axisEntity.name,
-          });
+          };
         }
       } else if (colIndex === 0 && rowIndex !== 0) {
         const axisEntityIndex = gridSize + rowIndex - 1;
         const [axisEntityType, axisEntityId] = gridData.axes[axisEntityIndex].split("-");
         if (axisEntityType === "actor") {
           const axisEntity = getAxisEntityFromListById(gridData.actors, parseInt(axisEntityId));
-          displayData[rowIndex].push({
+          displayData[rowIndex][colIndex] = {
             hoverText: axisEntity.name,
             // The below line will break for categories at this point, but that's ok
             imageURL: getS3ImageURLForType("actor", axisEntity.id),
             backupImageURL: getS3BackupImageURLForType("actor"),
-          });
+          };
         } else {
           // Remember, categories have negative IDs
           const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
-          displayData[rowIndex].push({
+          displayData[rowIndex][colIndex] = {
             mainText: axisEntity.name,
-          });
+          };
         }
-      } else {
-        displayData[rowIndex].push({});
       }
     }
   }
