@@ -1,8 +1,8 @@
-import { handler as saveStatsHandler } from "../src/saveStats";
+import { handler as writeGameStatsHandler } from "../src/writeGameStats";
 
 async function main() {
   const gridDate = new Date("9998-12-31:12:00:00Z").toISOString();
-  const response = await saveStatsHandler(
+  const response = await writeGameStatsHandler(
     {
       pathParameters: {
         gridDate: gridDate,
