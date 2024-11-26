@@ -53,7 +53,6 @@ const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, clickHandler
   );
 
   let responsiveMainTextClass = `${smallScreenMainTextClass} sm:${largeScreenMainTextClass}`;
-  console.log(`Setting ${mainText} to ${responsiveMainTextClass}`);
 
   return (
     <div

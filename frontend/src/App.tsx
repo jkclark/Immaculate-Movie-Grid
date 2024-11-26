@@ -7,10 +7,11 @@ import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
 import Overlay, { useOverlayStack } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
-import { ALL_ANSWERS_TAB_TEXT, YOUR_ANSWERS_TAB_TEXT } from "./constants";
+import { ALL_ANSWERS_TAB_TEXT, OVERALL_STATS_TAB_TEXT, YOUR_ANSWERS_TAB_TEXT } from "./constants";
 import {
   AnyGridDisplayData,
   TextGridDisplayData,
+  getBlankGridDisplayData,
   getGuessesRemainingGridDatum,
   getInitialGridDisplayData,
   gridDisplayDataAtom,
@@ -249,6 +250,10 @@ function App() {
     return insertInnerGridDisplayData(newGridDataWithTotal, newInnerGridData);
   }
 
+  function getStatsGridDisplayData(): AnyGridDisplayData[][] {
+    return getBlankGridDisplayData(gridData.axes.length / 2);
+  }
+
   // TODO: This is copy-pasted from another file. Also we should just refactor the gridExport to be
   // objects not lists
   function getAxisEntityFromListById(
@@ -329,6 +334,15 @@ function App() {
               className={`${activeTab === ALL_ANSWERS_TAB_TEXT ? "bg-blue-700" : ""}`}
             >
               {ALL_ANSWERS_TAB_TEXT}
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab(OVERALL_STATS_TAB_TEXT);
+                setGridDisplayData(getStatsGridDisplayData());
+              }}
+              className={`${activeTab === OVERALL_STATS_TAB_TEXT ? "bg-blue-700" : ""}`}
+            >
+              {OVERALL_STATS_TAB_TEXT}
             </button>
           </div>
         )}
