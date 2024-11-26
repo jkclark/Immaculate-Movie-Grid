@@ -6,7 +6,6 @@
  * database functions. I think this is tech debt I can live with for now.
  */
 import { DataSource } from "typeorm";
-import { AppDataSource, initializeDataSource } from "./connect";
 import { batchReadFromDB, batchWriteToDB } from "./crud";
 import { Answer } from "./models/Answer";
 import { Score } from "./models/Score";
@@ -25,12 +24,9 @@ export interface SingleGameAnswers {
   answers: AnswerNoIdNoScoreNoEntities[];
 }
 
-export async function getStatsForGrid(gridDate: string): Promise<Stats> {
-  // Establish a connection to the database
-  await initializeDataSource();
-
+export async function getStatsForGrid(dataSource: DataSource, gridDate: string): Promise<Stats> {
   // Get all of the scores for the given date
-  const scores = await getAllScores(gridDate);
+  const scores = await getAllScores(dataSource, gridDate);
 
   const stats = {
     numGames: scores.length,
@@ -41,8 +37,8 @@ export async function getStatsForGrid(gridDate: string): Promise<Stats> {
   return stats;
 }
 
-async function getAllScores(gridDate: string): Promise<Score[]> {
-  const scores: Score[] = await batchReadFromDB(AppDataSource.getRepository(Score), 1000, { id: "ASC" }, [], {
+async function getAllScores(dataSource: DataSource, gridDate: string): Promise<Score[]> {
+  const scores: Score[] = await batchReadFromDB(dataSource.getRepository(Score), 1000, { id: "ASC" }, [], {
     grid: { date: new Date(gridDate) },
   });
   return scores;
