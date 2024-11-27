@@ -24,7 +24,7 @@
     "create-frontend-dist-dir": "mkdir frontend_dist",
     "npm-init-frontend-dist": "cd frontend_dist && npm init -y",
     "merge-frontend-dist-jsons": "cd frontend_dist && jq -s '.[0] * .[1]' ../frontend/package.json ../common/package.json > package.json",
-    "install-frontend-dist-dependencies": "cd frontend_dist && npm install --loglevel=info",
+    "install-frontend-dist-dependencies": "cd frontend_dist && npm install",
     "install-vite-for-gh-actions": "cd frontend_dist && npm install vite && npm install @vitejs/plugin-react-swc",
     "copy-frontend-and-common-files": "cd frontend_dist && mkdir frontend && mkdir common && cp -r ../frontend/* ./frontend && cp -r ../common/* ./common",
     "type-check-frontend-dist": "cd frontend_dist && tsc --project ./frontend/tsconfig.json",

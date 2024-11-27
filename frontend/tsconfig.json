@@ -30,6 +30,10 @@
         "src/*"
       ]
     },
+    // The following two options are required for TypeORM's decorators,
+    // which is imported in the common package
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
   },
   "include": [
     "src"
