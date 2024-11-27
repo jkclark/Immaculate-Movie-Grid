@@ -280,7 +280,7 @@ function App() {
       const rowIndex = Math.floor(index / 4);
       const colIndex = index % 4;
       statsGridDisplayData[rowIndex][colIndex] = {
-        mainText: stat.value,
+        mainText: stat.value.toString(),
         subText: stat.displayName,
       };
     });
