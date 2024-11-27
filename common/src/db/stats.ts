@@ -38,6 +38,10 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
       value: scores.length,
       displayName: "Games played",
     },
+    avgScore: {
+      value: scores.reduce((acc, score) => acc + score.score, 0) / scores.length || 0,
+      displayName: "Average score",
+    },
   };
 
   console.log(stats);
