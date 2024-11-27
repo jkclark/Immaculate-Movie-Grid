@@ -10,8 +10,13 @@ import { batchReadFromDB, batchWriteToDB } from "./crud";
 import { Answer } from "./models/Answer";
 import { Score } from "./models/Score";
 
+interface Stat {
+  value: number;
+  displayName: string;
+}
+
 export interface Stats {
-  numGames?: number;
+  numGames?: Stat;
 }
 
 interface AnswerNoIdNoEntities extends Omit<Answer, "id" | "grid" | "score" | "credit"> {}
@@ -29,7 +34,10 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
   const scores = await getAllScores(dataSource, gridDate);
 
   const stats = {
-    numGames: scores.length,
+    numGames: {
+      value: scores.length,
+      displayName: "Games played",
+    },
   };
 
   console.log(stats);

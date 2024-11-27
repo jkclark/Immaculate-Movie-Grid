@@ -276,13 +276,12 @@ function App() {
 
   function getStatsGridDisplayData(): AnyGridDisplayData[][] {
     const statsGridDisplayData = getBlankGridDisplayData(gridData.axes.length / 2);
-    // Iterate over the stat (key,value) pairs and populate the grid
-    Object.entries(gridStats).forEach(([statName, statValue], index) => {
+    Object.values(gridStats).forEach((stat, index) => {
       const rowIndex = Math.floor(index / 4);
       const colIndex = index % 4;
       statsGridDisplayData[rowIndex][colIndex] = {
-        mainText: statValue.toString(),
-        subText: statName,
+        mainText: stat.value,
+        subText: stat.displayName,
       };
     });
     return statsGridDisplayData;
