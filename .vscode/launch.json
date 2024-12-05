@@ -13,7 +13,7 @@
             "sourceMaps": true, // enable source maps to allow debugging of the original TypeScript files
             "cwd": "${workspaceFolder}/grid_generation", // the current working directory for the debug process
             "args": [
-                "9999-01-01",
+                "9999-01-01T12:00:00.000Z",
                 "db",
                 "--auto-retry"
             ],

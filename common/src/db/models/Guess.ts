@@ -3,8 +3,8 @@ import { Credit } from "./Credit";
 import { Grid } from "./Grid";
 import { Score } from "./Score";
 
-@Entity({ name: "answers" })
-export class Answer {
+@Entity({ name: "guesses" })
+export class Guess {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -15,12 +15,12 @@ export class Answer {
   @JoinColumn({ name: "grid_date", referencedColumnName: "date" })
   grid!: Grid;
 
-  @Column("int")
-  score_id!: number;
+  @Column("int", { nullable: true })
+  score_id?: number;
 
-  @ManyToOne(() => Score)
+  @ManyToOne(() => Score, { nullable: true })
   @JoinColumn({ name: "score_id", referencedColumnName: "id" })
-  score!: Score;
+  score?: Score;
 
   @Column("int")
   across_index!: number;

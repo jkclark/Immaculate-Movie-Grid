@@ -1,19 +1,19 @@
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
 import { initializeDataSource } from "common/src/db/connect";
-import { SingleGameAnswers, writeGameStats } from "common/src/db/stats";
+import { SingleGameGuesses, writeGame } from "common/src/db/stats";
 
 export const handler: Handler = async (event: APIGatewayProxyEvent, context: Context) => {
   const dataSource = await initializeDataSource();
 
   const body = JSON.parse(event.body);
 
-  const answers: SingleGameAnswers = {
+  const guesses: SingleGameGuesses = {
     gridDate: new Date(event.pathParameters.gridDate),
-    answers: body.answers,
+    guessIds: body.guessIds,
   };
 
-  await writeGameStats(dataSource, answers);
+  await writeGame(dataSource, guesses);
 
   return {
     statusCode: 200,

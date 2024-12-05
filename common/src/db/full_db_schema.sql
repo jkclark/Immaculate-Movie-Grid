@@ -63,10 +63,10 @@ CREATE TABLE IF NOT EXISTS scores (
     FOREIGN KEY (grid_date) REFERENCES grids(date)
 );
 
-CREATE TABLE IF NOT EXISTS answers (
+CREATE TABLE IF NOT EXISTS guesses (
     id SERIAL PRIMARY KEY NOT NULL,
     grid_date DATE NOT NULL,
-    score_id INT NOT NULL,
+    score_id INT,
     across_index INT NOT NULL,
     down_index INT NOT NULL,
     credit_id INT NOT NULL,

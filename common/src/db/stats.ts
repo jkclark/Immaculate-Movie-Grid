@@ -5,9 +5,9 @@
  * In a perfect world, we'd have them be separated and use dependency injection to pass in the
  * database functions. I think this is tech debt I can live with for now.
  */
-import { DataSource } from "typeorm";
-import { batchReadFromDB, batchWriteToDB } from "./crud";
-import { Answer } from "./models/Answer";
+import { DataSource, In } from "typeorm";
+import { batchReadFromDB } from "./crud";
+import { Guess } from "./models/Guess";
 import { Score } from "./models/Score";
 
 interface Stat {
@@ -19,14 +19,17 @@ export interface Stats {
   numGames?: Stat;
 }
 
-interface AnswerNoIdNoEntities extends Omit<Answer, "id" | "grid" | "score" | "credit"> {}
+interface IncomingGuess {
+  across_index: number;
+  down_index: number;
+  credit_id: number;
+  credit_type: string;
+  correct: boolean;
+}
 
-interface AnswerNoIdNoScoreNoEntities
-  extends Omit<Answer, "id" | "score_id" | "grid" | "score" | "credit" | "grid_date"> {}
-
-export interface SingleGameAnswers {
+export interface SingleGameGuesses {
   gridDate: Date;
-  answers: AnswerNoIdNoScoreNoEntities[];
+  guessIds: number[];
 }
 
 export async function getStatsForGrid(dataSource: DataSource, gridDate: string): Promise<Stats> {
@@ -44,8 +47,6 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
     },
   };
 
-  console.log(stats);
-
   return stats;
 }
 
@@ -56,22 +57,56 @@ async function getAllScores(dataSource: DataSource, gridDate: string): Promise<S
   return scores;
 }
 
-export async function writeGameStats(dataSource: DataSource, answers: SingleGameAnswers): Promise<void> {
-  // Calculate this game's score
-  const points = answers.answers.reduce((acc, answer) => (answer.correct ? acc + 1 : acc), 0);
+/**
+ * Save a single guess to the database.
+ *
+ * @param dataSource the database connection
+ * @param gridDate the date of the grid the guess is for
+ * @param guess the guess to write to the database
+ * @returns the ID of the guess that was written
+ */
+export async function writeSingleGuess(
+  dataSource: DataSource,
+  gridDate: Date,
+  guess: IncomingGuess
+): Promise<number> {
+  const guessRepo = dataSource.getRepository(Guess);
+  const guessWithGridDate = { ...guess, grid_date: gridDate };
+  const dbGuess = await guessRepo.save(guessWithGridDate);
+  return dbGuess.id;
+}
 
-  /* Write score to the database */
+/**
+ * Save a game's score to the database and link the guesses to the score.
+ *
+ * @param dataSource the database connection
+ * @param guesses the IDs of this game's guesses along with the grid's date
+ */
+export async function writeGame(dataSource: DataSource, guesses: SingleGameGuesses): Promise<void> {
+  // Get all guesses from the DB
+  const guessRepo = dataSource.getRepository(Guess);
+  const guessesFromDB = await guessRepo.find({
+    where: {
+      id: In(guesses.guessIds),
+    },
+  });
+
+  // Calculate the score for this game
+  const points = guessesFromDB.reduce((acc, guess) => (guess.correct ? acc + 1 : acc), 0);
+
+  // Write the score to the database
   const scoreRepo = dataSource.getRepository(Score);
   const score = new Score();
-  score.grid_date = answers.gridDate;
+  score.grid_date = guesses.gridDate;
   score.score = points;
-  const savedScore = await scoreRepo.save(score);
+  const savedScoreId = (await scoreRepo.save(score)).id;
 
-  /* Write answers to the database */
-  const answerRepo = dataSource.getRepository(Answer);
-  // Add the score's ID to each answer
-  const answersWithScoreId: AnswerNoIdNoEntities[] = answers.answers.map((answer) => {
-    return { ...answer, grid_date: answers.gridDate, score_id: savedScore.id };
+  // Add the score's ID to each guess
+  const guessesWithScoreId = guessesFromDB.map((guess) => {
+    guess.score_id = savedScoreId;
+    return guess;
   });
-  await batchWriteToDB(answersWithScoreId, answerRepo, 1000, []);
+
+  // Write the updated guesses to the database
+  await guessRepo.save(guessesWithScoreId);
 }

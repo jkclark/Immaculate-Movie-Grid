@@ -2,11 +2,11 @@ import dotenv from "dotenv";
 import { DataSource } from "typeorm";
 import { ActorOrCategory } from "./models/ActorOrCategory";
 import { ActorOrCategoryCreditJoin } from "./models/ActorsCategoriesCreditsJoin";
-import { Answer } from "./models/Answer";
 import { Credit } from "./models/Credit";
 import { CreditGenreJoin } from "./models/CreditsGenresJoin";
 import { Genre } from "./models/Genre";
 import { Grid } from "./models/Grid";
+import { Guess } from "./models/Guess";
 import { Score } from "./models/Score";
 
 dotenv.config();
@@ -19,7 +19,7 @@ const allEntities = [
   CreditGenreJoin,
   Grid,
   Score,
-  Answer,
+  Guess,
 ];
 
 // NOTE: We would really like to use the values from Secrets Manger to access the database.
