@@ -1,7 +1,8 @@
 import { Stats } from "common/src/db/stats";
+import { hitAPIGet } from "./api";
 
-const API_URL = "https://api.immaculatemoviegrid.com/dev";
+const STATS_API_PATH = "stats";
 
 export async function getStatsForGrid(gridDate: string): Promise<Stats> {
-  return fetch(`${API_URL}/stats/${gridDate}`).then((response) => response.json());
+  return hitAPIGet(`${STATS_API_PATH}/${gridDate}`);
 }
