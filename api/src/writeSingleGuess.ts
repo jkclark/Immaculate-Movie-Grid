@@ -21,7 +21,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
       // I'm not sure if there's a better way to do this, but for now it's fine.
       "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Allow-Origin": "*",
-      "Acess-Control-Allow-Methods": "POST",
+      "Access-Control-Allow-Methods": "POST",
     },
     body: JSON.stringify({ guessId: guessId }),
   };
