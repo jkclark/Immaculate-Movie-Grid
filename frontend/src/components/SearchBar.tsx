@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PiFilmSlate } from "react-icons/pi";
 
 import { SearchResult as SearchResultData } from "common/src/interfaces";
+import { hitAPIGet } from "../api";
 import { usedAnswersAtom } from "../state";
 import SearchResult from "./SearchResult";
 
@@ -18,8 +19,7 @@ const SearchBar: React.FC = () => {
     debounce((query) => {
       if (query.length > 0) {
         setIsLoading(true);
-        fetch(`https://api.immaculatemoviegrid.com/dev/search?query=${encodeURIComponent(query)}`)
-          .then((response) => response.json())
+        hitAPIGet(`search?query=${encodeURIComponent(query)}`)
           .then((data) => {
             setSearchResults(data.searchResults);
             setPreviousInputText(query);
