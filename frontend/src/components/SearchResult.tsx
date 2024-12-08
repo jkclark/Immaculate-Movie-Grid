@@ -21,6 +21,7 @@ import {
   selectedRowAtom,
   usedAnswersAtom,
 } from "../state";
+import { recordGuessForGrid } from "../stats";
 import { useOverlayStack } from "./Overlay";
 
 interface SearchResultProps extends SearchResultData {
@@ -46,9 +47,9 @@ const SearchResult: React.FC<SearchResultProps> = ({
   const { resetOverlayContents } = useOverlayStack();
   const [isWrong, setIsWrong] = useState(false);
 
-  function handleClick(event: React.MouseEvent) {
+  async function handleClick(event: React.MouseEvent) {
     event.preventDefault(); // For whatever reason the button refreshes the page without this
-    if (checkAnswer(media_type, id, gridData)) {
+    if (await checkAnswer(media_type, id, gridData)) {
       addAnswerToGridDisplayData(media_type, id, title);
       resetOverlayContents();
     } else {
@@ -56,7 +57,7 @@ const SearchResult: React.FC<SearchResultProps> = ({
     }
   }
 
-  function checkAnswer(type: "movie" | "tv", id: number, gridData: GridData): boolean {
+  async function checkAnswer(type: "movie" | "tv", id: number, gridData: GridData): Promise<boolean> {
     if (selectedRow === -1 || selectedCol === -1) {
       throw new Error("Selected row or column is -1");
     }
@@ -88,7 +89,18 @@ const SearchResult: React.FC<SearchResultProps> = ({
     // -1 guesses remaining
     updateGuessesRemaining(guessesRemaining - 1);
 
-    if (acrossCorrect && downCorrect) {
+    const correct = acrossCorrect && downCorrect;
+
+    // Send this guess to the API
+    await recordGuessForGrid(gridData.id, {
+      across_index: dataCol,
+      down_index: dataRow,
+      credit_id: id,
+      credit_type: type,
+      correct,
+    });
+
+    if (correct) {
       console.log("Correct!");
       // Add this answer to used answers
       setUsedAnswers({ ...usedAnswers, [getRowColKey(dataRow, dataCol)]: { type, id, name: title } });

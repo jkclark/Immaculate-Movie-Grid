@@ -19,7 +19,7 @@ export interface Stats {
   numGames?: Stat;
 }
 
-interface IncomingGuess {
+export interface IncomingGuess {
   across_index: number;
   down_index: number;
   credit_id: number;
