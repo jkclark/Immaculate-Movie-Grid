@@ -1,4 +1,4 @@
-import { handler } from "../src/writeSingleGuess";
+import { handler } from "../src/writeSingleGuessOrEndGame";
 
 async function main() {
   const event = {
