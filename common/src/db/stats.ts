@@ -1,11 +1,7 @@
 /**
  * This file contains functions for getting and writing statistics about the games played.
- *
- * The structure of this code isn't ideal because the logic is tied in with the database code.
- * In a perfect world, we'd have them be separated and use dependency injection to pass in the
- * database functions. I think this is tech debt I can live with for now.
  */
-import { DataSource, In } from "typeorm";
+import { DataSource } from "typeorm";
 import { batchReadFromDB } from "./crud";
 import { Guess } from "./models/Guess";
 import { Score } from "./models/Score";
@@ -25,6 +21,7 @@ export interface IncomingGuess {
   credit_id: number;
   credit_type: string;
   correct: boolean;
+  score_id?: number;
 }
 
 export interface SingleGameGuesses {
@@ -57,56 +54,68 @@ async function getAllScores(dataSource: DataSource, gridDate: string): Promise<S
   return scores;
 }
 
+export async function getSingleScore(dataSource: DataSource, scoreId: number): Promise<Score> {
+  const scoreRepo = dataSource.getRepository(Score);
+  return await scoreRepo.findOneOrFail({ where: { id: scoreId } });
+}
+
+export async function writeSingleGuessForNewGame(
+  dataSource: DataSource,
+  gridDate: Date,
+  guess: IncomingGuess
+): Promise<number> {
+  const score = await createNewScore(dataSource, gridDate);
+  await writeSingleGuess(dataSource, gridDate, guess, score.id);
+  return score.id;
+}
+
+export async function createNewScore(dataSource: DataSource, gridDate: Date): Promise<Score> {
+  const scoreRepo = dataSource.getRepository(Score);
+  const score = new Score();
+  score.grid_date = gridDate;
+  score.score = 0;
+  score.game_over = false;
+  return await scoreRepo.save(score);
+}
+
 /**
- * Save a single guess to the database.
+ * Save a single guess to the database. This includes updating the score if the guess was correct.
  *
  * @param dataSource the database connection
  * @param gridDate the date of the grid the guess is for
  * @param guess the guess to write to the database
+ * @param scoreId the ID of the score this guess is associated with
  * @returns the ID of the guess that was written
  */
 export async function writeSingleGuess(
   dataSource: DataSource,
   gridDate: Date,
-  guess: IncomingGuess
+  guess: IncomingGuess,
+  scoreId: number
 ): Promise<number> {
   const guessRepo = dataSource.getRepository(Guess);
-  const guessWithGridDate = { ...guess, grid_date: gridDate };
-  const dbGuess = await guessRepo.save(guessWithGridDate);
-  return dbGuess.id;
+  const guessWithGridDateAndScoreId = { ...guess, grid_date: gridDate, score_id: scoreId };
+  const guessEntity = await guessRepo.save(guessWithGridDateAndScoreId);
+
+  // Update the score if the guess was correct
+  if (guess.correct) {
+    const scoreRepo = dataSource.getRepository(Score);
+    const score = await scoreRepo.findOneOrFail({ where: { id: scoreId } });
+    score.score += 1;
+    await scoreRepo.save(score);
+  }
+
+  return guessEntity.id;
 }
 
-/**
- * Save a game's score to the database and link the guesses to the score.
- *
- * @param dataSource the database connection
- * @param guesses the IDs of this game's guesses along with the grid's date
- */
-export async function writeGame(dataSource: DataSource, guesses: SingleGameGuesses): Promise<void> {
-  // Get all guesses from the DB
+export async function countGuessesForScore(dataSource: DataSource, scoreId: number): Promise<number> {
   const guessRepo = dataSource.getRepository(Guess);
-  const guessesFromDB = await guessRepo.find({
-    where: {
-      id: In(guesses.guessIds),
-    },
-  });
+  return await guessRepo.count({ where: { score_id: scoreId } });
+}
 
-  // Calculate the score for this game
-  const points = guessesFromDB.reduce((acc, guess) => (guess.correct ? acc + 1 : acc), 0);
-
-  // Write the score to the database
+export async function endGame(dataSource: DataSource, scoreId: number): Promise<void> {
   const scoreRepo = dataSource.getRepository(Score);
-  const score = new Score();
-  score.grid_date = guesses.gridDate;
-  score.score = points;
-  const savedScoreId = (await scoreRepo.save(score)).id;
-
-  // Add the score's ID to each guess
-  const guessesWithScoreId = guessesFromDB.map((guess) => {
-    guess.score_id = savedScoreId;
-    return guess;
-  });
-
-  // Write the updated guesses to the database
-  await guessRepo.save(guessesWithScoreId);
+  const score = await scoreRepo.findOneOrFail({ where: { id: scoreId } });
+  score.game_over = true;
+  await scoreRepo.save(score);
 }
