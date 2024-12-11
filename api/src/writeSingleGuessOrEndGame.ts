@@ -9,6 +9,7 @@ import {
   writeSingleGuess,
   writeSingleGuessForNewGame,
 } from "common/src/db/stats";
+import { EntityNotFoundError } from "typeorm";
 
 const responseHeaders = {
   "Content-Type": "application/json",
@@ -84,7 +85,22 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
 
   // Just to be safe, check if this score is already marked as game over
   // If so, return an error
-  const existingScore = await getSingleScore(dataSource, scoreId);
+  let existingScore = null;
+  try {
+    existingScore = await getSingleScore(dataSource, scoreId);
+  } catch (e) {
+    if (e instanceof EntityNotFoundError) {
+      console.log(`No score found with ID ${scoreId}`);
+      return {
+        statusCode: 400,
+        headers: responseHeaders,
+        body: JSON.stringify({ error: `No score found with ID ${scoreId}` }),
+      };
+    } else {
+      throw e;
+    }
+  }
+
   if (existingScore.game_over) {
     console.log(`Cannot guess; game with score ID ${scoreId} is already over`);
     return {
