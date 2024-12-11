@@ -60,7 +60,21 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
 
   /* 2. User gives up after having guessed at least once */
   if (gaveUp) {
-    await endGame(dataSource, scoreId);
+    try {
+      await endGame(dataSource, scoreId);
+    } catch (e) {
+      if (e instanceof EntityNotFoundError) {
+        console.log(`No score found with ID ${scoreId}`);
+        return {
+          statusCode: 400,
+          headers: responseHeaders,
+          body: JSON.stringify({ error: `No score found with ID ${scoreId}` }),
+        };
+      } else {
+        throw e;
+      }
+    }
+
     console.log(`Ended game with score ID ${scoreId}`);
     return {
       statusCode: 200,
@@ -89,6 +103,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
   try {
     existingScore = await getSingleScore(dataSource, scoreId);
   } catch (e) {
+    // This exception-catching code is repeated above, but I don't think it's worth refactoring
     if (e instanceof EntityNotFoundError) {
       console.log(`No score found with ID ${scoreId}`);
       return {
