@@ -110,4 +110,10 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     await endGame(dataSource, scoreId);
     console.log(`Ended game with score ID ${scoreId}`);
   }
+
+  return {
+    statusCode: 200,
+    headers: responseHeaders,
+    body: JSON.stringify({ score_id: scoreId }),
+  };
 };
