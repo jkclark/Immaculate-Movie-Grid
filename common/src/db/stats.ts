@@ -47,9 +47,17 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
   return stats;
 }
 
+/**
+ * Get all scores for a given grid date. Only scores for games that have ended are returned.
+ *
+ * @param dataSource the database connection
+ * @param gridDate the date of the grid to get scores for
+ * @returns a list of all scores for the given grid date
+ */
 async function getAllScores(dataSource: DataSource, gridDate: string): Promise<Score[]> {
   const scores: Score[] = await batchReadFromDB(dataSource.getRepository(Score), 1000, { id: "ASC" }, [], {
     grid: { date: new Date(gridDate) },
+    game_over: true,
   });
   return scores;
 }
