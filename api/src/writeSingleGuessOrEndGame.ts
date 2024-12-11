@@ -41,7 +41,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     correct: body.correct,
     score_id: body.score_id,
   };
-  const scoreId = guess.score_id;
+  const scoreId = body.score_id;
   const gaveUp = body.give_up;
 
   /* 1. User gives up without ever having guessed */
