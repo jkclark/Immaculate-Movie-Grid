@@ -16,7 +16,7 @@ export class Guess {
   grid!: Grid;
 
   @Column("int", { nullable: true })
-  score_id?: number;
+  score_id!: number;
 
   @ManyToOne(() => Score, { nullable: true })
   @JoinColumn({ name: "score_id", referencedColumnName: "id" })

@@ -15,4 +15,7 @@ export class Score {
 
   @Column("int")
   score!: number;
+
+  @Column("boolean")
+  game_over!: boolean;
 }

@@ -60,13 +60,14 @@ CREATE TABLE IF NOT EXISTS scores (
     id SERIAL PRIMARY KEY NOT NULL,
     grid_date DATE NOT NULL,
     score INT NOT NULL,
+    game_over BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (grid_date) REFERENCES grids(date)
 );
 
 CREATE TABLE IF NOT EXISTS guesses (
     id SERIAL PRIMARY KEY NOT NULL,
     grid_date DATE NOT NULL,
-    score_id INT,
+    score_id INT NOT NULL,
     across_index INT NOT NULL,
     down_index INT NOT NULL,
     credit_id INT NOT NULL,
