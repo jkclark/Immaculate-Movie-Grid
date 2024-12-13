@@ -17,6 +17,7 @@ import {
   getRowColKey,
   gridDataAtom,
   guessesRemainingAtom,
+  scoreIdAtom,
   selectedColAtom,
   selectedRowAtom,
   usedAnswersAtom,
@@ -43,6 +44,7 @@ const SearchResult: React.FC<SearchResultProps> = ({
   const [selectedCol, setSelectedCol] = useAtom(selectedColAtom);
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
+  const [scoreId, setScoreId] = useAtom(scoreIdAtom);
   const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
   const { resetOverlayContents } = useOverlayStack();
   const [isWrong, setIsWrong] = useState(false);
@@ -92,13 +94,18 @@ const SearchResult: React.FC<SearchResultProps> = ({
     const correct = acrossCorrect && downCorrect;
 
     // Send this guess to the API
-    await recordGuessForGrid(gridData.id, {
+    const guessResponse = await recordGuessForGrid(gridData.id, {
       across_index: dataCol,
       down_index: dataRow,
       credit_id: id,
       credit_type: type,
       correct,
+      score_id: scoreId,
     });
+
+    if (!scoreId) {
+      setScoreId(guessResponse.score_id);
+    }
 
     if (correct) {
       console.log("Correct!");

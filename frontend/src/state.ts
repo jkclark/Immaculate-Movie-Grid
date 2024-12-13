@@ -27,6 +27,9 @@ export const usedAnswersAtom = getAtomWithStorageInit<
   Record<string, { type: "movie" | "tv"; id: number; name: string }>
 >("usedAnswers", {});
 
+// Holds the ID of the score for the current game
+export const scoreIdAtom = getAtomWithStorageInit("scoreId", undefined);
+
 export function getRowColKey(row: number, col: number) {
   return `row:${row},col:${col}`;
 }
