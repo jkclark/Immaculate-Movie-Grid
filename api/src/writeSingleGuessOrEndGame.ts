@@ -4,7 +4,6 @@ import { initializeDataSource } from "common/src/db/connect";
 import {
   countGuessesForScore,
   createNewScore,
-  endGame,
   getSingleScore,
   writeSingleGuess,
   writeSingleGuessForNewGame,
@@ -43,11 +42,11 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     score_id: body.score_id,
   };
   const scoreId = body.score_id;
-  const gaveUp = body.give_up;
+  const endGame = body.end_game;
 
   /* 1. User gives up without ever having guessed */
   // Create a score for them and mark it as game over
-  if (gaveUp && !scoreId) {
+  if (endGame && !scoreId) {
     const newScore = await createNewScore(dataSource, gridDate);
     await endGame(dataSource, newScore.id);
     console.log(`Created new score with ID ${newScore.id} and marked it as game over immediately`);
@@ -59,7 +58,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
   }
 
   /* 2. User gives up after having guessed at least once */
-  if (gaveUp) {
+  if (endGame) {
     try {
       await endGame(dataSource, scoreId);
     } catch (e) {
