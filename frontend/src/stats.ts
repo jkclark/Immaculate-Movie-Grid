@@ -11,3 +11,7 @@ export async function getStatsForGrid(gridDate: string): Promise<Stats> {
 export async function recordGuessForGrid(gridDate: string, guess: IncomingGuess): Promise<any> {
   return hitAPIPost(`${GUESS_API_PATH}/${gridDate}`, guess);
 }
+
+export async function endGameForGrid(gridDate: string, scoreId: number | undefined): Promise<any> {
+  return hitAPIPost(`${GUESS_API_PATH}/${gridDate}`, { score_id: scoreId, end_game: true });
+}

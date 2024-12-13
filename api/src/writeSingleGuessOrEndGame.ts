@@ -23,6 +23,10 @@ const responseHeaders = {
 /**
  * This function handles the following situations, in order:
  *
+ * It's important to remember that we never pass a guess (across_index, etc.)
+ * and end_game in the same request. Either we're guessing, or we're intentionally
+ * ending the game, not both.
+ *
  * 1. User gives up without ever having guessed
  * 2. User gives up after having guessed at least once
  * 3. User guesses correctly or incorrectly for the first time

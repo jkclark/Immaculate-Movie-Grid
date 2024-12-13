@@ -28,11 +28,12 @@ import {
   gridIdAtom,
   gridStatsAtom,
   guessesRemainingAtom,
+  scoreIdAtom,
   selectedColAtom,
   selectedRowAtom,
   usedAnswersAtom,
 } from "./state";
-import { getStatsForGrid } from "./stats";
+import { endGameForGrid, getStatsForGrid } from "./stats";
 
 function App() {
   const [activeTab, setActiveTab] = useAtom(activeTabAtom);
@@ -47,6 +48,7 @@ function App() {
   const setSelectedRow = useSetAtom(selectedRowAtom);
   const setSelectedCol = useSetAtom(selectedColAtom);
   const { addContentsToOverlay, resetOverlayContents } = useOverlayStack();
+  const [scoreId, setScoreId] = useAtom(scoreIdAtom);
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
@@ -115,6 +117,9 @@ function App() {
   // End the game if there are no guesses remaining
   useEffect(() => {
     if (guessesRemaining <= 0) {
+      // Remember, the backend is notified of the game being over
+      // by receiving the 9th guess, which is the maximum number of guesses
+      // allowed
       endGame(gridDisplayData);
     }
   }, [guessesRemaining]);
@@ -222,6 +227,7 @@ function App() {
     setGameOver(true);
     setSelectedRow(-1);
     setSelectedCol(-1);
+
     // Make sure to hide the search bar and search results if the last guess
     // is an incorrect one
     resetOverlayContents();
@@ -341,6 +347,10 @@ function App() {
         {!gridLoadError && !isLoading && !gameOver && (
           <button
             onClick={() => {
+              // Tell the backend this game is over
+              endGameForGrid(gridId, scoreId);
+
+              // End the game locally
               endGame(gridDisplayData);
             }}
           >
