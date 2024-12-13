@@ -274,7 +274,8 @@ function App() {
       const rowIndex = Math.floor(index / 4);
       const colIndex = index % 4;
       statsGridDisplayData[rowIndex][colIndex] = {
-        mainText: stat.value.toString(),
+        // Round to 2 decimal places if neccessary
+        mainText: stat.value % 1 === 0 ? stat.value.toString() : stat.value.toFixed(2),
         subText: stat.displayName,
       };
     });
