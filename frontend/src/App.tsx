@@ -124,25 +124,13 @@ function App() {
     }
   }, [guessesRemaining]);
 
-  // Get the grid's stats now, and then periodically
+  // When gridStats gets updated, if we're on the "Stats" tab,
+  // update the grid display data
   useEffect(() => {
-    const fetchStats = async () => {
-      if (!gridId) {
-        return;
-      }
-
-      setGridStats(await getStatsForGrid(gridId));
-    };
-
-    // Fetch stats immediately
-    fetchStats();
-
-    // Set up interval to fetch stats periodically
-    const GET_STATS_INTERVAL = 30000;
-    const interval = setInterval(fetchStats, GET_STATS_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [gridId]);
+    if (activeTab === OVERALL_STATS_TAB_TEXT) {
+      setGridDisplayData(getStatsGridDisplayData());
+    }
+  }, [activeTab, gridStats]);
 
   async function getGridDataForDate(dateString: string): Promise<GridExport> {
     // Load the grid named with today's date
@@ -379,7 +367,8 @@ function App() {
               {ALL_ANSWERS_TAB_TEXT}
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
+                setGridStats(await getStatsForGrid(gridId));
                 setActiveTab(OVERALL_STATS_TAB_TEXT);
                 setGridDisplayData(getStatsGridDisplayData());
               }}
