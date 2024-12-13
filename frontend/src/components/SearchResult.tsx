@@ -1,6 +1,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
 
+import { IncomingGuess } from "common/src/db/stats";
 import {
   ActorExport,
   CategoryExport,
@@ -94,18 +95,20 @@ const SearchResult: React.FC<SearchResultProps> = ({
     const correct = acrossCorrect && downCorrect;
 
     // Send this guess to the API
-    const guessResponse = await recordGuessForGrid(gridData.id, {
+    const guessBody = {
       across_index: dataCol,
       down_index: dataRow,
       credit_id: id,
       credit_type: type,
       correct,
       score_id: scoreId,
-    });
+    };
 
-    if (!scoreId) {
-      setScoreId(guessResponse.score_id);
-    }
+    // NOTE: We do not await here. We only care about the response from the API
+    // when we need to get the new score ID, so we do that within this function only
+    // when necessary. If we await here, we end up with a couple of seconds between guessing
+    // and the UI updating, which obviously we don't want.
+    recordGuessAndSaveScoreId(guessBody);
 
     if (correct) {
       console.log("Correct!");
@@ -119,6 +122,15 @@ const SearchResult: React.FC<SearchResultProps> = ({
     } else {
       console.log("Wrong!");
       return false;
+    }
+  }
+
+  async function recordGuessAndSaveScoreId(guess: IncomingGuess): Promise<void> {
+    if (!scoreId) {
+      const guessResponse = await recordGuessForGrid(gridData.id, guess);
+      setScoreId(guessResponse.score_id);
+    } else {
+      recordGuessForGrid(gridData.id, guess);
     }
   }
 
