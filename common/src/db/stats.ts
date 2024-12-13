@@ -121,7 +121,7 @@ export async function countGuessesForScore(dataSource: DataSource, scoreId: numb
   return await guessRepo.count({ where: { score_id: scoreId } });
 }
 
-export async function endGame(dataSource: DataSource, scoreId: number): Promise<void> {
+export async function markGameAsOver(dataSource: DataSource, scoreId: number): Promise<void> {
   const scoreRepo = dataSource.getRepository(Score);
   const score = await scoreRepo.findOneOrFail({ where: { id: scoreId } });
   score.game_over = true;

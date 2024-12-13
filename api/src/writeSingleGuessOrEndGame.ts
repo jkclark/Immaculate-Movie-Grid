@@ -5,6 +5,7 @@ import {
   countGuessesForScore,
   createNewScore,
   getSingleScore,
+  markGameAsOver,
   writeSingleGuess,
   writeSingleGuessForNewGame,
 } from "common/src/db/stats";
@@ -48,7 +49,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
   // Create a score for them and mark it as game over
   if (endGame && !scoreId) {
     const newScore = await createNewScore(dataSource, gridDate);
-    await endGame(dataSource, newScore.id);
+    await markGameAsOver(dataSource, newScore.id);
     console.log(`Created new score with ID ${newScore.id} and marked it as game over immediately`);
     return {
       statusCode: 200,
@@ -60,7 +61,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
   /* 2. User gives up after having guessed at least once */
   if (endGame) {
     try {
-      await endGame(dataSource, scoreId);
+      await markGameAsOver(dataSource, scoreId);
     } catch (e) {
       if (e instanceof EntityNotFoundError) {
         console.log(`No score found with ID ${scoreId}`);
@@ -137,7 +138,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
   const MAX_GUESSES = 9;
   const outOfGuesses = previousGuessCount >= MAX_GUESSES - 1;
   if (outOfGuesses) {
-    await endGame(dataSource, scoreId);
+    await markGameAsOver(dataSource, scoreId);
     console.log(`Ended game with score ID ${scoreId}`);
   }
 
