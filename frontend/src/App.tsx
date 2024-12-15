@@ -1,4 +1,4 @@
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 
 import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
@@ -48,7 +48,7 @@ function App() {
   const setSelectedRow = useSetAtom(selectedRowAtom);
   const setSelectedCol = useSetAtom(selectedColAtom);
   const { addContentsToOverlay, resetOverlayContents } = useOverlayStack();
-  const [scoreId, setScoreId] = useAtom(scoreIdAtom);
+  const scoreId = useAtomValue(scoreIdAtom);
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
