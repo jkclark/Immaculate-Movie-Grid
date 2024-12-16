@@ -3,7 +3,7 @@ import EmptyGameSquare from "./EmptyGameSquare";
 import ImageSquare from "./ImageSquare";
 import TextSquare from "./TextSquare";
 
-interface GridSquare {
+interface GridSquareProps {
   imageURL?: string;
   hoverText?: string;
   backupImageURL?: string;
@@ -14,7 +14,7 @@ interface GridSquare {
   col: number;
 }
 
-const GridSquare: React.FC<GridSquare> = ({
+const GridSquare: React.FC<GridSquareProps> = ({
   imageURL,
   hoverText,
   backupImageURL,
