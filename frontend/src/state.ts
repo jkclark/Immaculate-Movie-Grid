@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
+import { Stats } from "common/src/db/stats";
 import { GridExport } from "common/src/interfaces";
 
 function getAtomWithStorageInit<T>(key: string, initialValue: T) {
@@ -20,6 +21,8 @@ export const usedAnswersAtom = getAtomWithStorageInit<
 
 // Holds the ID of the score for the current game
 export const scoreIdAtom = getAtomWithStorageInit("scoreId", undefined);
+
+export const gridStatsAtom = atom<Stats>({});
 
 export function getRowColKey(row: number, col: number) {
   return `row:${row},col:${col}`;

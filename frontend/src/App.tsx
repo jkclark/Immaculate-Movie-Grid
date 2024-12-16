@@ -21,13 +21,14 @@ import {
   getRowColKey,
   gridDataAtom,
   gridIdAtom,
+  gridStatsAtom,
   guessesRemainingAtom,
   scoreIdAtom,
   selectedColAtom,
   selectedRowAtom,
   usedAnswersAtom,
 } from "./state";
-import { endGameForGrid } from "./stats";
+import { endGameForGrid, getStatsForGrid } from "./stats";
 
 function App() {
   const [gridId, setGridId] = useAtom(gridIdAtom);
@@ -45,6 +46,7 @@ function App() {
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
+  const setGridStats = useSetAtom(gridStatsAtom);
 
   // On page load, load the grid data
   useEffect(() => {
@@ -92,6 +94,20 @@ function App() {
     }
     fetchData();
   }, []);
+
+  // Whenever we're seeing a new grid ID (e.g., the page is loading for the first time)
+  // get the stats for the grid
+  useEffect(() => {
+    async function fetchStats() {
+      if (gridId === "") {
+        return;
+      }
+
+      const stats = await getStatsForGrid(gridId);
+      setGridStats(stats);
+    }
+    fetchStats();
+  }, [gridId]);
 
   // Once we've loaded the grid data, populate the grid display data
   useEffect(() => {
