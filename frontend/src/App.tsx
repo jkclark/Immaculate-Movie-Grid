@@ -252,7 +252,9 @@ function App() {
           </button>
         )}
 
-        {!gridLoadError && !isLoading && <Grid size={4} gridDisplayData={gridDisplayData} />}
+        {!gridLoadError && !isLoading && (
+          <Grid size={4} gridDisplayData={gridDisplayData} style={{ marginTop: "calc(2vh + 20px" }} />
+        )}
       </div>
     </div>
   );
