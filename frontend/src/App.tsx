@@ -1,17 +1,13 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 
-import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
-import CorrectCreditsSummary from "./components/CorrectCreditsSummary";
+import { GridExport } from "common/src/interfaces";
 import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
 import Overlay, { useOverlayStack } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
-import { ALL_ANSWERS_TAB_TEXT, OVERALL_STATS_TAB_TEXT, YOUR_ANSWERS_TAB_TEXT } from "./constants";
 import {
   AnyGridDisplayData,
-  TextGridDisplayData,
-  getBlankGridDisplayData,
   getGuessesRemainingGridDatum,
   getInitialGridDisplayData,
   gridDisplayDataAtom,
@@ -20,23 +16,19 @@ import {
 } from "./gridDisplayData";
 import { getGridDataFromS3, getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 import {
-  activeTabAtom,
-  finalGameGridDisplayDataAtom,
   gameOverAtom,
   getRowColKey,
   gridDataAtom,
   gridIdAtom,
-  gridStatsAtom,
   guessesRemainingAtom,
   scoreIdAtom,
   selectedColAtom,
   selectedRowAtom,
   usedAnswersAtom,
 } from "./state";
-import { endGameForGrid, getStatsForGrid } from "./stats";
+import { endGameForGrid } from "./stats";
 
 function App() {
-  const [activeTab, setActiveTab] = useAtom(activeTabAtom);
   const [gridId, setGridId] = useAtom(gridIdAtom);
   const [isNewGrid, setIsNewGrid] = useState(false);
   const [gridData, setGridData] = useAtom(gridDataAtom);
@@ -52,8 +44,6 @@ function App() {
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
-  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
-  const [gridStats, setGridStats] = useAtom(gridStatsAtom);
 
   // On page load, load the grid data
   useEffect(() => {
@@ -120,17 +110,9 @@ function App() {
       // Remember, the backend is notified of the game being over
       // by receiving the 9th guess, which is the maximum number of guesses
       // allowed
-      endGame(gridDisplayData);
+      endGame();
     }
   }, [guessesRemaining]);
-
-  // When gridStats gets updated, if we're on the "Stats" tab,
-  // update the grid display data
-  useEffect(() => {
-    if (activeTab === OVERALL_STATS_TAB_TEXT) {
-      setGridDisplayData(getStatsGridDisplayData());
-    }
-  }, [activeTab, gridStats]);
 
   async function getGridDataForDate(dateString: string): Promise<GridExport> {
     // Load the grid named with today's date
@@ -206,12 +188,9 @@ function App() {
     setGuessesRemaining(9);
     setGameOver(false);
     setUsedAnswers({});
-    setFinalGameGridDisplayData([]);
-    setGridStats({});
   }
 
-  function endGame(gridDisplayData: AnyGridDisplayData[][]) {
-    setFinalGameGridDisplayData(gridDisplayData);
+  function endGame() {
     setGameOver(true);
     setSelectedRow(-1);
     setSelectedCol(-1);
@@ -219,110 +198,6 @@ function App() {
     // Make sure to hide the search bar and search results if the last guess
     // is an incorrect one
     resetOverlayContents();
-  }
-
-  function getAllAnswerGridDisplayData(): AnyGridDisplayData[][] {
-    const newInnerGridData: TextGridDisplayData[][] = [];
-    const acrossAxisEntities = gridData.axes.slice(0, gridData.axes.length / 2);
-    const downAxisEntities = gridData.axes.slice(gridData.axes.length / 2);
-    for (const downAxisEntityString of downAxisEntities) {
-      const innerGridRow: TextGridDisplayData[] = [];
-      for (const acrossAxisEntityString of acrossAxisEntities) {
-        const [acrossAxisEntityType, acrossAxisEntityId] = acrossAxisEntityString.split("-");
-        const acrossAxisEntity =
-          acrossAxisEntityType === "actor"
-            ? getAxisEntityFromListById(gridData.actors, parseInt(acrossAxisEntityId))
-            : getAxisEntityFromListById(gridData.categories, -1 * parseInt(acrossAxisEntityId));
-
-        const [downAxisEntityType, downAxisEntityId] = downAxisEntityString.split("-");
-        const downAxisEntity =
-          downAxisEntityType === "actor"
-            ? getAxisEntityFromListById(gridData.actors, parseInt(downAxisEntityId))
-            : getAxisEntityFromListById(gridData.categories, -1 * parseInt(downAxisEntityId));
-
-        const answers = getAnswersForPair(acrossAxisEntity.id, downAxisEntity.id);
-        const answerText = `${answers.length}`;
-        innerGridRow.push({
-          mainText: answerText,
-          clickHandler: () => {
-            addContentsToOverlay(<CorrectCreditsSummary credits={answers} />);
-          },
-        });
-      }
-      newInnerGridData.push(innerGridRow);
-    }
-
-    // Get grid data with axes populated
-    const newGridData: AnyGridDisplayData[][] = getInitialGridDisplayData(gridData);
-
-    // Replace "guesses left" with total number of answers
-    const newGridDataWithTotal = insertGridDisplayDatumAtRowCol(
-      {
-        mainText: `${gridData.credits.length}`,
-        subText: "total",
-      },
-      0,
-      0,
-      newGridData
-    );
-    return insertInnerGridDisplayData(newGridDataWithTotal, newInnerGridData);
-  }
-
-  function getStatsGridDisplayData(): AnyGridDisplayData[][] {
-    const statsGridDisplayData = getBlankGridDisplayData(gridData.axes.length / 2);
-    Object.values(gridStats).forEach((stat, index) => {
-      const rowIndex = Math.floor(index / 4);
-      const colIndex = index % 4;
-      statsGridDisplayData[rowIndex][colIndex] = {
-        // Round to 2 decimal places if neccessary
-        mainText: stat.value % 1 === 0 ? stat.value.toString() : stat.value.toFixed(2),
-        subText: stat.displayName,
-      };
-    });
-    return statsGridDisplayData;
-  }
-
-  // TODO: This is copy-pasted from another file. Also we should just refactor the gridExport to be
-  // objects not lists
-  function getAxisEntityFromListById(
-    axisEntities: (ActorExport | CategoryExport)[],
-    axisEntityId: number
-  ): ActorExport | CategoryExport {
-    const foundAxisEntity = axisEntities.find((axisEntity) => axisEntity.id === axisEntityId);
-    if (!foundAxisEntity) {
-      throw new Error(`Could not find axis entity with ID ${axisEntityId}`);
-    }
-    return foundAxisEntity;
-  }
-
-  function getAnswersForPair(axisEntity1Id: number, axisEntity2Id: number): CreditExport[] {
-    const usedTypesAndIds = new Set<string>();
-    const answers: CreditExport[] = [];
-    const actor1Answers = gridData.answers[axisEntity1Id];
-    const actor2Answers = gridData.answers[axisEntity2Id];
-
-    for (const actor1Answer of actor1Answers) {
-      for (const actor2Answer of actor2Answers) {
-        if (actor1Answer.type === actor2Answer.type && actor1Answer.id === actor2Answer.id) {
-          // Skip if we've already added this credit to the answers
-          if (usedTypesAndIds.has(`${actor1Answer.type}-${actor1Answer.id}`)) {
-            continue;
-          }
-
-          // Look up this credit's title in the credits array
-          const answer = gridData.credits.find((credit) => credit.id === actor1Answer.id);
-          if (answer) {
-            // Add to used set
-            usedTypesAndIds.add(`${actor1Answer.type}-${actor1Answer.id}`);
-
-            // Add to answers
-            answers.push(answer);
-          }
-        }
-      }
-    }
-
-    return answers;
   }
 
   return (
@@ -340,7 +215,7 @@ function App() {
               endGameForGrid(gridId, scoreId);
 
               // End the game locally
-              endGame(gridDisplayData);
+              endGame();
             }}
           >
             Give up
@@ -348,36 +223,13 @@ function App() {
         )}
 
         {!gridLoadError && !isLoading && gameOver && (
-          <div className="flex space-x-4">
-            <button
-              onClick={() => {
-                setActiveTab(YOUR_ANSWERS_TAB_TEXT);
-                setGridDisplayData(finalGameGridDisplayData);
-              }}
-              className={`${activeTab === YOUR_ANSWERS_TAB_TEXT ? "bg-blue-700" : ""}`}
-            >
-              {YOUR_ANSWERS_TAB_TEXT}
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab(ALL_ANSWERS_TAB_TEXT);
-                setGridDisplayData(getAllAnswerGridDisplayData());
-              }}
-              className={`${activeTab === ALL_ANSWERS_TAB_TEXT ? "bg-blue-700" : ""}`}
-            >
-              {ALL_ANSWERS_TAB_TEXT}
-            </button>
-            <button
-              onClick={async () => {
-                setGridStats(await getStatsForGrid(gridId));
-                setActiveTab(OVERALL_STATS_TAB_TEXT);
-                setGridDisplayData(getStatsGridDisplayData());
-              }}
-              className={`${activeTab === OVERALL_STATS_TAB_TEXT ? "bg-blue-700" : ""}`}
-            >
-              {OVERALL_STATS_TAB_TEXT}
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              console.log("Showing summary");
+            }}
+          >
+            Summary
+          </button>
         )}
 
         {!gridLoadError && !isLoading && <Grid gridDisplayData={gridDisplayData} />}
