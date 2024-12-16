@@ -2,6 +2,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 
 import { GridExport } from "common/src/interfaces";
+import GameSummary from "./components/GameSummary";
 import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
 import Overlay, { useOverlayStack } from "./components/Overlay";
@@ -198,6 +199,9 @@ function App() {
     // Make sure to hide the search bar and search results if the last guess
     // is an incorrect one
     resetOverlayContents();
+
+    // Show the summary component
+    addContentsToOverlay(<GameSummary />);
   }
 
   return (
@@ -225,7 +229,7 @@ function App() {
         {!gridLoadError && !isLoading && gameOver && (
           <button
             onClick={() => {
-              console.log("Showing summary");
+              addContentsToOverlay(<GameSummary />);
             }}
           >
             Summary
