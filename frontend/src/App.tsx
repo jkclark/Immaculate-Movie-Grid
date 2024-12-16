@@ -252,7 +252,7 @@ function App() {
           </button>
         )}
 
-        {!gridLoadError && !isLoading && <Grid gridDisplayData={gridDisplayData} />}
+        {!gridLoadError && !isLoading && <Grid size={4} gridDisplayData={gridDisplayData} />}
       </div>
     </div>
   );

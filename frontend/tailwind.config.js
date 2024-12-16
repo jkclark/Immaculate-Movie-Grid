@@ -16,6 +16,10 @@ export default {
     "sm:text-5xl",
     "sm:text-6xl",
     "sm:text-7xl",
+    "grid-rows-3", // for showing grids in the summary that are 3x3
+    "grid-cols-3",
+    "grid-rows-4", // for the actual game grid
+    "grid-cols-4",
   ],
   theme: {
     extend: {
