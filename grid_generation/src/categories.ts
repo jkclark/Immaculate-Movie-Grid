@@ -58,8 +58,15 @@ const dramaCategory: Category = {
 
 const fantasyCategory: Category = {
   id: -8,
-  name: "Fantasy",
-  creditFilter: (credit) => credit.genre_ids.includes(14),
+  name: "Sci-Fi/Fantasy",
+  creditFilter: (credit) => {
+    // 14 is the genre ID for fantasy
+    // 878 is the genre ID for science fiction
+    // 10765 is the genre ID for sci-fi & fantasy
+    return (
+      credit.genre_ids.includes(14) || credit.genre_ids.includes(878) || credit.genre_ids.includes(10765)
+    );
+  },
 };
 
 const mysteryCategory: Category = {

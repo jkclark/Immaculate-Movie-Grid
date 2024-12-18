@@ -3,7 +3,6 @@ import "node-fetch";
 import * as readline from "readline";
 
 import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
-import { Category } from "./categories";
 import {
   Connection,
   getGridFromGraph,
@@ -269,56 +268,6 @@ function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {
   }
 
   return genericGraph;
-}
-
-function getCategoryGraphEntities(
-  categories: { [key: number]: Category },
-  graph: ActorCreditGraph
-): { [key: number]: GraphEntity } {
-  const categoryGraphEntities: { [key: number]: GraphEntity } = {};
-  for (const [categoryId, category] of Object.entries(categories)) {
-    // Create the base object
-    const categoryGraphEntity = {
-      id: categoryId.toString(), // This is already a string, because object keys are always strings
-      name: category.name,
-      connections: {},
-      entityType: "category",
-    };
-
-    // Iterate over all credits, adding to the connections object if they match the category
-    for (const [creditUniqueString, credit] of Object.entries(graph.credits)) {
-      if (category.creditFilter(credit)) {
-        categoryGraphEntity.connections[creditUniqueString] = graph.credits[creditUniqueString];
-      }
-    }
-
-    // Add this category to the output object
-    categoryGraphEntities[categoryId] = categoryGraphEntity;
-  }
-
-  return categoryGraphEntities;
-}
-
-function addCategoriesToGenericGraph(categories: { [key: number]: GraphEntity }, genericGraph: Graph): void {
-  for (const category of Object.values(categories)) {
-    const genericGraphCategory = {
-      ...category,
-      connections: {},
-    };
-
-    // Add the category to the axisEntities object
-    genericGraph.axisEntities[category.id] = genericGraphCategory;
-
-    // Point category connections at the generic graph connections
-    for (const creditUniqueString in category.connections) {
-      genericGraphCategory.connections[creditUniqueString] = genericGraph.connections[creditUniqueString];
-    }
-
-    // Add the category to all connections that match it
-    for (const creditUniqueString in category.connections) {
-      genericGraph.connections[creditUniqueString].connections[category.id] = genericGraphCategory;
-    }
-  }
 }
 
 /**
