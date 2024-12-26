@@ -26,7 +26,7 @@ const ImageSquare: React.FC<ImageSquareProps> = ({ imageURL, hoverText, backupIm
   return (
     <div
       onClick={handleClick}
-      className="w-full h-full aspect-[2/3] flex items-center justify-center relative group"
+      className="h-full aspect-[2/3] flex items-center justify-center relative group"
     >
       <ImageWithBackup
         imageURL={imageURL}
