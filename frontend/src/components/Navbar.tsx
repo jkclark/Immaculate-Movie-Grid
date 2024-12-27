@@ -7,7 +7,7 @@ const Navbar: React.FC = () => {
   const { addContentsToOverlay } = useOverlayStack();
 
   return (
-    <nav className="relative flex items-center justify-between flex-wrap bg-gray-100 dark:bg-gray-700 px-4 py-2 w-full">
+    <nav className="relative flex items-center justify-between flex-wrap bg-gray-100 dark:bg-gray-700 px-4 py-2 w-full z-10">
       <div className="flex items-center flex-shrink-0 text-gray-900 dark:text-white mr-6">
         <span className="font-semibold text-xl tracking-tight">Immaculate Movie Grid</span>
       </div>
