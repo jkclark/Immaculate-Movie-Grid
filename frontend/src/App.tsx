@@ -58,7 +58,8 @@ function App() {
       if (today.getHours() < 6) {
         today.setDate(today.getDate() - 1);
       }
-      const todayString = today.toLocaleDateString("en-CA");
+      // const todayString = today.toLocaleDateString("en-CA");
+      const todayString = "2024-12-26";
 
       // If gridId is not set to the current puzzle's date, there is (supposed to be)
       // a different grid available
@@ -221,12 +222,13 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col h-dvh dark:bg-gray-800 dark:text-white relative">
+    <div className="flex flex-col h-dvh dark:bg-gray-800 dark:text-white items-center">
       <Navbar />
 
       <Overlay />
 
-      <div className="w-full flex flex-col flex-grow items-center justify-center">
+      <div className="w-full max-w-[800px] flex flex-col flex-grow items-center justify-center">
+        {/* <div className="w-full flex flex-col flex-grow items-center justify-center"> */}
         {gridLoadError && <div>There was an error loading the grid data. Please try again later.</div>}
         {!gridLoadError && !isLoading && !gameOver && (
           <button
@@ -244,6 +246,7 @@ function App() {
 
         {!gridLoadError && !isLoading && gameOver && (
           <button
+            className="shrink"
             onClick={() => {
               addContentsToOverlay(<GameSummary />);
             }}
@@ -253,7 +256,9 @@ function App() {
         )}
 
         {!gridLoadError && !isLoading && (
-          <Grid size={4} gridDisplayData={gridDisplayData} style={{ marginTop: "calc(2vh + 20px" }} />
+          <div className="grid-parent w-full grow p-4">
+            <Grid size={4} gridDisplayData={gridDisplayData} />
+          </div>
         )}
       </div>
     </div>

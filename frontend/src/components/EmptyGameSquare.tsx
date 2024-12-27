@@ -23,7 +23,7 @@ const EmptyGameSquare: React.FC<EmptyGameSquare> = ({ row, col, clickHandler }) 
   return (
     <div
       onClick={gameOver ? undefined : handleClick}
-      className={`w-full h-full ${row === selectedRow && col === selectedCol && "bg-sky-100"} ${!gameOver ? "hover:bg-sky-100 hover:cursor-pointer" : "hover:cursor-default"}`}
+      className={`w-full h-full  ${row === selectedRow && col === selectedCol && "bg-sky-100"} ${!gameOver ? "hover:bg-sky-100 hover:cursor-pointer" : "hover:cursor-default"}`}
     ></div>
   );
 };
