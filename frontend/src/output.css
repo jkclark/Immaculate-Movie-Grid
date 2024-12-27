@@ -732,6 +732,10 @@ video {
   height: 100%;
 }
 
+.h-\[75\%\] {
+  height: 75%;
+}
+
 .max-h-72 {
   max-height: 18rem;
 }
@@ -740,8 +744,24 @@ video {
   max-height: desiredHeight;
 }
 
+.max-h-full {
+  max-height: 100%;
+}
+
 .min-h-full {
   min-height: 100%;
+}
+
+.min-h-\[150\%\] {
+  min-height: 150%;
+}
+
+.min-h-\[3\/4\] {
+  min-height: 3/4;
+}
+
+.min-h-\[75\%\] {
+  min-height: 75%;
 }
 
 .w-3 {
@@ -770,6 +790,10 @@ video {
 
 .max-w-screen-lg {
   max-width: 1024px;
+}
+
+.max-w-\[600px\] {
+  max-width: 600px;
 }
 
 .flex-1 {
@@ -875,6 +899,10 @@ video {
   overflow: hidden;
 }
 
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
 .truncate {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -976,6 +1004,10 @@ video {
 
 .p-4 {
   padding: 1rem;
+}
+
+.p-6 {
+  padding: 1.5rem;
 }
 
 .px-10 {

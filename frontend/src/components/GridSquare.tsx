@@ -37,15 +37,12 @@ const GridSquare: React.FC<GridSquareProps> = ({
 
   if (mainText) {
     inner = <TextSquare {...{ mainText, subText, clickHandler }} />;
-    inner = <EmptyGameSquare clickHandler={stopPropClickHandler} {...{ row, col }} />;
   } else if (imageURL) {
     if (backupImageURL) {
       inner = <ImageSquare {...{ imageURL, backupImageURL }} hoverText={hoverText || ""} />;
-      inner = <EmptyGameSquare clickHandler={stopPropClickHandler} {...{ row, col }} />;
     } else {
       console.error("This should not be allowed. I really need to better define my types...");
       inner = <ImageSquare {...{ imageURL }} hoverText={hoverText || ""} backupImageURL="" />;
-      inner = <EmptyGameSquare clickHandler={stopPropClickHandler} {...{ row, col }} />;
     }
   } else {
     inner = <EmptyGameSquare clickHandler={stopPropClickHandler} {...{ row, col }} />;
