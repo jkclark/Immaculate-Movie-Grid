@@ -115,7 +115,7 @@ const GameSummary: React.FC = () => {
       <div className="text-2xl pb-3">
         <strong>Total possible answers</strong>
       </div>
-      <div className="grid-parent w-full min-h-full">
+      <div className="grid-parent w-full h-full px-4">
         <Grid size={3} gridDisplayData={getAllAnswerGridDisplayData()}></Grid>
       </div>
     </div>
