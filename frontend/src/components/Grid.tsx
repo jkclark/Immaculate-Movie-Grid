@@ -16,7 +16,7 @@ interface GridProps {
 const Grid: React.FC<GridProps> = ({ gridDisplayData, size, style }) => {
   return (
     <div
-      className={`grid-container aspect-[2/3] grid grid-cols-${size} grid-rows-${size} gap-0`}
+      className={`grid-container aspect-[2/3] grid grid-cols-${size} grid-rows-${size} mx-auto`}
       style={style}
     >
       {gridDisplayData.flat().map((square, index) => (
