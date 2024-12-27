@@ -48,7 +48,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
     inner = <EmptyGameSquare clickHandler={stopPropClickHandler} {...{ row, col }} />;
   }
 
-  return <div className="border border-slate-900">{inner}</div>;
+  return <div className="aspect-[2/3] border border-slate-900">{inner}</div>;
 };
 
 export default GridSquare;

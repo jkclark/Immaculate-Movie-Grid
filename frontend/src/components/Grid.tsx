@@ -13,7 +13,7 @@ interface GridProps {
 // classes to tailwind.config.js in the safelist.
 const Grid: React.FC<GridProps> = ({ gridDisplayData, size, style }) => {
   return (
-    <div className={`grid grid-cols-${size} grid-rows-${size} max-w-[60vh] px-4`} style={style}>
+    <div className={`grid grid-cols-${size} grid-rows-${size} max-w-[60vh] w-full px-4`} style={style}>
       {gridDisplayData.flat().map((square, index) => (
         <GridSquare key={index} {...square} row={Math.floor(index / size)} col={index % size} />
       ))}

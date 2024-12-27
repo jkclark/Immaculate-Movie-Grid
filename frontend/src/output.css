@@ -707,6 +707,10 @@ video {
   height: 0.75rem;
 }
 
+.h-3\/4 {
+  height: 75%;
+}
+
 .h-4 {
   height: 1rem;
 }
@@ -723,16 +727,16 @@ video {
   height: 100%;
 }
 
-.h-3\/4 {
-  height: 75%;
-}
-
 .max-h-72 {
   max-height: 18rem;
 }
 
 .max-h-\[desiredHeight\] {
   max-height: desiredHeight;
+}
+
+.min-h-full {
+  min-height: 100%;
 }
 
 .w-3 {
@@ -1216,10 +1220,6 @@ button:hover {
 }
 
 @media (min-width: 640px) {
-  .sm\:h-3\/4 {
-    height: 75%;
-  }
-
   .sm\:text-2xl {
     font-size: 1.5rem;
     line-height: 2rem;
@@ -1257,10 +1257,6 @@ button:hover {
 }
 
 @media (min-width: 768px) {
-  .md\:h-1\/2 {
-    height: 50%;
-  }
-
   .md\:w-1\/2 {
     width: 50%;
   }
