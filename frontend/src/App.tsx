@@ -232,6 +232,7 @@ function App() {
         {gridLoadError && <div>There was an error loading the grid data. Please try again later.</div>}
         {!gridLoadError && !isLoading && !gameOver && (
           <button
+            className="mt-4"
             onClick={() => {
               // Tell the backend this game is over
               endGameForGrid(gridId, scoreId);
@@ -246,7 +247,7 @@ function App() {
 
         {!gridLoadError && !isLoading && gameOver && (
           <button
-            className="shrink"
+            className="mt-4"
             onClick={() => {
               addContentsToOverlay(<GameSummary />);
             }}
