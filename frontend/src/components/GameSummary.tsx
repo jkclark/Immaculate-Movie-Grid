@@ -98,17 +98,24 @@ const GameSummary: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center w-4/5 max-w-[800px] h-[75%] rounded-lg shadow-lg bg-white dark:bg-gray-800 overflow-y-auto">
+    <div className="flex flex-col items-center w-4/5 max-w-[800px] h-[75%] rounded-lg shadow-lg bg-white dark:bg-gray-800 overflow-y-auto py-5">
       {/* Show the "basic" stats */}
-      {Object.entries(gridStats).map(([key, stat]) => (
-        <div key={key}>
-          <strong>{stat.displayName}:</strong> {stat.value}
+      <div className="flex flex-col items-center pb-6">
+        <div className="text-2xl">
+          <strong>Today's numbers</strong>
         </div>
-      ))}
+        {Object.entries(gridStats).map(([key, stat]) => (
+          <div key={key} className="pt-2">
+            {stat.displayName}: {stat.value}
+          </div>
+        ))}
+      </div>
 
       {/* Show the total number of possible answers for each square */}
-      <div>Total possible answers</div>
-      <div className="grid-parent w-full min-h-full p-4">
+      <div className="text-2xl pb-3">
+        <strong>Total possible answers</strong>
+      </div>
+      <div className="grid-parent w-full min-h-full">
         <Grid size={3} gridDisplayData={getAllAnswerGridDisplayData()}></Grid>
       </div>
     </div>
