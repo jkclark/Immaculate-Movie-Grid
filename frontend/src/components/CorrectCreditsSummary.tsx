@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { CreditExport } from "common/src/interfaces";
 import CreditDetails from "./CreditDetails";
@@ -8,11 +8,12 @@ interface CorrectCreditsSummaryProps {
   credits: CreditExport[];
 }
 
+const ITEMS_PER_LOAD = 50;
+
 const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }) => {
   const { popOverlayContents } = useOverlayStack();
 
-  const movies = credits.filter((credit) => credit.type === "movie");
-  const tvShows = credits.filter((credit) => credit.type === "tv");
+  const { movies, tvShows } = getCreditsSplit(credits);
 
   return (
     <div
@@ -35,6 +36,21 @@ const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }
   );
 };
 
+function getCreditsSplit(credits: CreditExport[]): { movies: CreditExport[]; tvShows: CreditExport[] } {
+  const movies: CreditExport[] = [];
+  const tvShows: CreditExport[] = [];
+
+  for (const credit of credits) {
+    if (credit.type === "movie") {
+      movies.push(credit);
+    } else if (credit.type === "tv") {
+      tvShows.push(credit);
+    }
+  }
+
+  return { movies, tvShows };
+}
+
 interface CreditListProps {
   title: string;
   credits: CreditExport[];
@@ -42,14 +58,35 @@ interface CreditListProps {
 
 const CreditList: React.FC<CreditListProps> = ({ title, credits }) => {
   const { addContentsToOverlay } = useOverlayStack();
+  const [visibleCredits, setVisibleCredits] = useState<CreditExport[]>([]);
+  const [loadMore, setLoadMore] = useState(true);
+
+  useEffect(() => {
+    if (loadMore) {
+      console.log("Loading more...");
+      const nextCredits = credits.slice(visibleCredits.length, visibleCredits.length + ITEMS_PER_LOAD);
+      setVisibleCredits((prevCredits) => [...prevCredits, ...nextCredits]);
+      setLoadMore(false);
+    }
+  }, [loadMore, credits, visibleCredits.length]);
+
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+    if (scrollTop + clientHeight >= scrollHeight - 10) {
+      setLoadMore(true);
+    }
+  };
 
   return (
-    <div className="flex flex-col w-full md:w-1/2 text-center overflow-auto max-h-[desiredHeight]">
+    <div
+      className="flex flex-col w-full md:w-1/2 text-center overflow-auto max-h-[desiredHeight]"
+      onScroll={handleScroll}
+    >
       <h2 className="text-xl font-bold mb-4">{title}</h2>
       <ul className="mb-8 flex flex-col">
-        {credits.map((credit) => (
+        {visibleCredits.map((credit, index) => (
           <li
-            key={credit.id}
+            key={`${credit.type}-${credit.id}-${index}`}
             onClick={() => addContentsToOverlay(<CreditDetails credit={credit} />)}
             className="text-gray-700 dark:text-gray-300 flex items-center justify-between cursor-pointer mb-2"
           >
