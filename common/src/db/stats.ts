@@ -1,18 +1,24 @@
 /**
  * This file contains functions for getting and writing statistics about the games played.
  */
-import { DataSource } from "typeorm";
+import { DataSource, In } from "typeorm";
 import { batchReadFromDB } from "./crud";
 import { Guess } from "./models/Guess";
 import { Score } from "./models/Score";
 
-interface Stat {
+interface BasicStat {
   value: number;
   displayName: string;
 }
 
+/* Right now these all have to be optional because
+ * we want to define the Stats state atom on the frontend as {}
+ * when it's initialized.
+ */
 export interface Stats {
-  numGames?: Stat;
+  numGames?: BasicStat;
+  avgScore?: BasicStat;
+  squarePercentages?: { [key: string]: number };
 }
 
 export interface IncomingGuess {
@@ -32,6 +38,7 @@ export interface SingleGameGuesses {
 export async function getStatsForGrid(dataSource: DataSource, gridDate: string): Promise<Stats> {
   // Get all of the scores for the given date
   const scores = await getAllScores(dataSource, gridDate);
+  const squarePercentages = await getSquarePercentages(dataSource, gridDate);
 
   const stats = {
     numGames: {
@@ -42,6 +49,7 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
       value: scores.reduce((acc, score) => acc + score.score, 0) / scores.length || 0,
       displayName: "Average score",
     },
+    squarePercentages: squarePercentages,
   };
 
   return stats;
@@ -60,6 +68,56 @@ async function getAllScores(dataSource: DataSource, gridDate: string): Promise<S
     game_over: true,
   });
   return scores;
+}
+
+/**
+ * For each square in the grid, get the percentage of players who have answered correctly.
+ *
+ * @param dataSource the database connection
+ * @param gridDate the date of the grid to get square percentages for
+ * @returns an object mapping (square coordinates) to (the percentage of players who have answered correctly)
+ */
+async function getSquarePercentages(
+  dataSource: DataSource,
+  gridDate: string
+): Promise<{ [key: string]: number }> {
+  const guessRepository = dataSource.getRepository(Guess);
+  const scoreRepository = dataSource.getRepository(Score);
+
+  // Get all scores with game_over = true for the given grid date
+  const scores = await scoreRepository.find({
+    where: {
+      grid: { date: new Date(gridDate) },
+      game_over: true,
+    },
+  });
+
+  // Extract score IDs
+  const scoreIds = scores.map((score) => score.id);
+
+  // Get all correct guesses with the corresponding score IDs
+  const correctGuesses = await guessRepository.find({
+    where: {
+      score: { id: In(scoreIds) },
+      correct: true,
+    },
+  });
+
+  // Count up the number of correct guesses for each square
+  const squareCorrectCounts: { [key: string]: number } = {};
+  for (const guess of correctGuesses) {
+    const square = `${guess.across_index}-${guess.down_index}`;
+    squareCorrectCounts[square] = (squareCorrectCounts[square] || 0) + 1;
+  }
+
+  // Calculate the percentage of correct guesses for each square
+  // (Dividing by the total number of complete games)
+  const squarePercentages: { [key: string]: number } = {};
+  for (const square in squareCorrectCounts) {
+    squarePercentages[square] = (squareCorrectCounts[square] || 0) / scoreIds.length;
+  }
+
+  return squarePercentages;
 }
 
 export async function getSingleScore(dataSource: DataSource, scoreId: number): Promise<Score> {
