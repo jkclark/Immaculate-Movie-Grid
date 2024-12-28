@@ -2,7 +2,7 @@ import { ActorExport, CategoryExport, CreditExport } from "common/src/interfaces
 import { useAtom, useAtomValue } from "jotai";
 import { useEffect } from "react";
 
-import { AnyGridDisplayData, TextGridDisplayData } from "../gridDisplayData";
+import { AnyGridDisplayData, getBlankGridDisplayData, TextGridDisplayData } from "../gridDisplayData";
 import { gridDataAtom, gridIdAtom, gridStatsAtom } from "../state";
 import { getStatsForGrid } from "../stats";
 import CorrectCreditsSummary from "./CorrectCreditsSummary";
@@ -97,22 +97,50 @@ const GameSummary: React.FC = () => {
     return answers;
   }
 
+  function getAccuracyGridDisplayData(): AnyGridDisplayData[][] {
+    const gridSize = 3;
+    // We subtract 1 because the getBlankGridDisplayData function adds an extra row and column
+    // for the axes
+    const newGridData: AnyGridDisplayData[][] = getBlankGridDisplayData(gridSize - 1);
+    const indexArray = Array.from({ length: gridSize }, (_, i) => i);
+    if (gridStats.squarePercentages) {
+      for (const downIndex of indexArray) {
+        for (const acrossIndex of indexArray) {
+          const percentage = gridStats.squarePercentages[`${acrossIndex}-${downIndex}`] || 0;
+          newGridData[downIndex][acrossIndex] = {
+            mainText: `${roundToNearestInteger(percentage)}%`,
+          };
+        }
+      }
+    }
+
+    return newGridData;
+  }
+
+  function roundToNearestInteger(num: number): string {
+    return (Math.round(num * 100) / 100).toFixed(0);
+  }
+
   return (
     <div
       className="grid-grandparent w-4/5 max-w-[800px] h-[75%] rounded-lg shadow-lg bg-white dark:bg-gray-800 overflow-y-auto py-5"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Show the "basic" stats */}
-      <div className="flex flex-col items-center pb-6">
-        <div className="text-2xl">
-          <strong>Today's numbers</strong>
-        </div>
-        {Object.entries(gridStats).map(([key, stat]) => (
-          <div key={key} className="pt-2">
-            {stat.displayName}: {stat.value}
+      {gridStats.basicStats && (
+        <>
+          <div className="flex flex-col items-center pb-6">
+            <div className="text-2xl">
+              <strong>Today's numbers</strong>
+            </div>
+            {Object.entries(gridStats.basicStats).map(([key, stat]) => (
+              <div key={key} className="pt-2">
+                {stat.displayName}: {stat.value}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
       {/* Show the total number of possible answers for each square */}
       <div className="text-2xl pb-3 text-center">
@@ -121,6 +149,18 @@ const GameSummary: React.FC = () => {
       <div className="grid-parent px-4 mx-auto">
         <Grid size={3} gridDisplayData={getAllAnswerGridDisplayData()}></Grid>
       </div>
+
+      {/* Show players' accuracy for each square */}
+      {gridStats.squarePercentages && (
+        <>
+          <div className="text-2xl pb-3 text-center">
+            <strong>Accuracy</strong>
+          </div>
+          <div className="grid-parent px-4 mx-auto">
+            <Grid size={3} gridDisplayData={getAccuracyGridDisplayData()}></Grid>
+          </div>
+        </>
+      )}
     </div>
   );
 };

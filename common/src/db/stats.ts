@@ -18,6 +18,7 @@ interface BasicStat {
 export interface Stats {
   numGames?: BasicStat;
   avgScore?: BasicStat;
+  basicStats?: { [key: string]: BasicStat };
   squarePercentages?: { [key: string]: number };
 }
 
@@ -41,13 +42,15 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
   const squarePercentages = await getSquarePercentages(dataSource, gridDate);
 
   const stats = {
-    numGames: {
-      value: scores.length,
-      displayName: "Games played",
-    },
-    avgScore: {
-      value: scores.reduce((acc, score) => acc + score.score, 0) / scores.length || 0,
-      displayName: "Average score",
+    basicStats: {
+      numGames: {
+        value: scores.length,
+        displayName: "Games played",
+      },
+      avgScore: {
+        value: scores.reduce((acc, score) => acc + score.score, 0) / scores.length || 0,
+        displayName: "Average score",
+      },
     },
     squarePercentages: squarePercentages,
   };
@@ -114,7 +117,7 @@ async function getSquarePercentages(
   // (Dividing by the total number of complete games)
   const squarePercentages: { [key: string]: number } = {};
   for (const square in squareCorrectCounts) {
-    squarePercentages[square] = (squareCorrectCounts[square] || 0) / scoreIds.length;
+    squarePercentages[square] = 100 * ((squareCorrectCounts[square] || 0) / scoreIds.length);
   }
 
   return squarePercentages;
