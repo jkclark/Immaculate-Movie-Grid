@@ -58,8 +58,7 @@ function App() {
       if (today.getHours() < 6) {
         today.setDate(today.getDate() - 1);
       }
-      // const todayString = today.toLocaleDateString("en-CA");
-      const todayString = "2024-12-26";
+      const todayString = today.toLocaleDateString("en-CA");
 
       // If gridId is not set to the current puzzle's date, there is (supposed to be)
       // a different grid available
