@@ -98,7 +98,10 @@ const GameSummary: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center w-4/5 max-w-[800px] h-[75%] rounded-lg shadow-lg bg-white dark:bg-gray-800 overflow-y-auto py-5">
+    <div
+      className="flex flex-col items-center w-4/5 max-w-[800px] h-[75%] rounded-lg shadow-lg bg-white dark:bg-gray-800 overflow-y-auto py-5"
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* Show the "basic" stats */}
       <div className="flex flex-col items-center pb-6">
         <div className="text-2xl">
