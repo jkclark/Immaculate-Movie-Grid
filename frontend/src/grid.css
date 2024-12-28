@@ -1,15 +1,32 @@
-.grid-parent {
+.grid-grandparent {
   container-type: size;
 }
 
-.grid-container {
+.grid-parent {
   container-type: size;
 
+  /* The grid-parent always needs a height
+   * so either we set the height to 100%
+   * or we set the aspect-ratio. Without a height
+   * the grid-parent doesn't seem to sit in the layout
+   * properly.
+   */
+  aspect-ratio: 2/3;
+}
+
+.grid-container {
   width: 100%;
   height: auto;
 }
 
 @container (aspect-ratio >= 2/3) {
+  .grid-parent {
+    height: 100%;
+    width: auto;
+
+    aspect-ratio: auto;
+  }
+
   .grid-container {
     width: auto;
     height: 100%;

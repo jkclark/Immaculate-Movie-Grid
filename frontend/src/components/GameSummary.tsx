@@ -99,7 +99,7 @@ const GameSummary: React.FC = () => {
 
   return (
     <div
-      className="flex flex-col items-center w-4/5 max-w-[800px] h-[75%] rounded-lg shadow-lg bg-white dark:bg-gray-800 overflow-y-auto py-5"
+      className="grid-grandparent w-4/5 max-w-[800px] h-[75%] rounded-lg shadow-lg bg-white dark:bg-gray-800 overflow-y-auto py-5"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Show the "basic" stats */}
@@ -115,10 +115,10 @@ const GameSummary: React.FC = () => {
       </div>
 
       {/* Show the total number of possible answers for each square */}
-      <div className="text-2xl pb-3">
+      <div className="text-2xl pb-3 text-center">
         <strong>Total possible answers</strong>
       </div>
-      <div className="grid-parent w-full h-full px-4">
+      <div className="grid-parent px-4 mx-auto">
         <Grid size={3} gridDisplayData={getAllAnswerGridDisplayData()}></Grid>
       </div>
     </div>
