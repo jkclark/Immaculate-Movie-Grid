@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 
 import { GridExport } from "common/src/interfaces";
@@ -42,7 +42,7 @@ function App() {
   const setSelectedRow = useSetAtom(selectedRowAtom);
   const setSelectedCol = useSetAtom(selectedColAtom);
   const { addContentsToOverlay, resetOverlayContents } = useOverlayStack();
-  const scoreId = useAtomValue(scoreIdAtom);
+  const [scoreId, setScoreId] = useAtom(scoreIdAtom);
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
@@ -199,12 +199,13 @@ function App() {
 
   function resetGame() {
     setGridDisplayData([]);
-
     setSelectedRow(-1);
     setSelectedCol(-1);
     setGuessesRemaining(9);
     setGameOver(false);
     setUsedAnswers({});
+    setScoreId(undefined);
+    setGridStats({});
   }
 
   function endGame() {
