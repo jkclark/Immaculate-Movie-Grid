@@ -75,9 +75,7 @@ const SearchResult: React.FC<SearchResultProps> = ({
       acrossAxisEntityType === "actor"
         ? getAxisEntityFromListById(gridData.actors, acrossAxisEntityId)
         : getAxisEntityFromListById(gridData.categories, -1 * acrossAxisEntityId);
-    const acrossCorrect = gridData.answers[acrossAxisEntity.id].some(
-      (answer) => answer.type === type && answer.id === id
-    );
+    const acrossCorrect = gridData.answers[acrossAxisEntity.id].has(`${type}-${id}`);
 
     const downAxisEntityType = gridData.axes[3 + dataRow].split("-")[0];
     const downAxisEntityId = parseInt(gridData.axes[3 + dataRow].split("-")[1]);
@@ -85,9 +83,7 @@ const SearchResult: React.FC<SearchResultProps> = ({
       downAxisEntityType === "actor"
         ? getAxisEntityFromListById(gridData.actors, downAxisEntityId)
         : getAxisEntityFromListById(gridData.categories, -1 * downAxisEntityId);
-    const downCorrect = gridData.answers[downAxisEntity.id].some(
-      (answer) => answer.type === type && answer.id === id
-    );
+    const downCorrect = gridData.answers[downAxisEntity.id].has(`${type}-${id}`);
 
     // -1 guesses remaining
     updateGuessesRemaining(guessesRemaining - 1);

@@ -2,7 +2,13 @@ import * as dotenv from "dotenv";
 import "node-fetch";
 import * as readline from "readline";
 
-import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
+import {
+  ActorExport,
+  CategoryExport,
+  CreditExport,
+  GridExport,
+  serializeGridExport,
+} from "common/src/interfaces";
 import {
   Connection,
   getGridFromGraph,
@@ -96,8 +102,7 @@ export async function main(args: GridGenArgs): Promise<GridExport> {
   await getAndSaveAllImagesForGrid(gridExport, args.overwriteImages);
 
   // Convert to JSON
-  const jsonGrid = convertGridToJSON(gridExport);
-  console.log(jsonGrid);
+  const jsonGrid = serializeGridExport(gridExport);
 
   // Write grid to S3
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${args.gridDate}.json`);
@@ -403,14 +408,15 @@ function getGridExportFromGridGraphAndCategories(
   const sortedDown = sortAxisActorsFirst(down);
   const axesActorsFirst = sortedAcross.concat(sortedDown);
 
-  // Create empty answer lists for each axis entity
-  const answers: { [key: number]: { type: "movie" | "tv"; id: number }[] } = {};
+  // Create empty answer Set for each axis entity
+  const answers: { [key: number]: Set<string> } = {};
   for (const axisEntity of gridAxisEntities) {
-    answers[axisEntity.id] = [];
+    answers[axisEntity.id] = new Set();
   }
 
   // Create empty credits list
-  const credits: CreditExport[] = [];
+  // const credits: CreditExport[] = [];
+  const credits: { [key: string]: CreditExport } = {};
 
   // Add all credits that are shared by across and down pairs
   for (const acrossAxisEntity of originalGraphAcrossEntities) {
@@ -431,18 +437,13 @@ function getGridExportFromGridGraphAndCategories(
             id: creditIdNum,
             name: credit.name,
           };
-          if (
-            !credits.find(
-              (existingCredit) => existingCredit.id === creditIdNum && existingCredit.type === credit.type
-            )
-          ) {
-            credits.push(creditExport);
+          if (!credits[creditUniqueString]) {
+            credits[creditUniqueString] = creditExport;
           }
 
           // Add this credit to both axis entities' answers
-          const answer = { type: creditExport.type, id: creditExport.id };
-          answers[acrossAxisEntity.id].push(answer);
-          answers[downAxisEntity.id].push(answer);
+          answers[acrossAxisEntity.id].add(creditUniqueString);
+          answers[downAxisEntity.id].add(creditUniqueString);
         }
       }
     }
@@ -473,16 +474,6 @@ function getOriginalGraphEntitiesFromIds(axisEntityIds: string[], graph: ActorCr
 function getOriginalGraphEntityFromId(id: string, graph: ActorCreditGraph): GraphEntity {
   const idNum = parseInt(id);
   return graph.actors[idNum.toString()];
-}
-
-/**
- * Convert a Grid object to a JSON string.
- *
- * @param grid The Grid object to convert to JSON
- * @returns The JSON string representation of the Grid object
- */
-function convertGridToJSON(grid: GridExport): string {
-  return JSON.stringify(grid);
 }
 
 class NoValidActorGroupsFoundError extends Error {

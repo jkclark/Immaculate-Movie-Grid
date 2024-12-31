@@ -68,28 +68,25 @@ const GameSummary: React.FC = () => {
   }
 
   function getAnswersForPair(axisEntity1Id: number, axisEntity2Id: number): CreditExport[] {
-    const usedTypesAndIds = new Set<string>();
     const answers: CreditExport[] = [];
-    const actor1Answers = gridData.answers[axisEntity1Id];
-    const actor2Answers = gridData.answers[axisEntity2Id];
 
-    for (const actor1Answer of actor1Answers) {
-      for (const actor2Answer of actor2Answers) {
-        if (actor1Answer.type === actor2Answer.type && actor1Answer.id === actor2Answer.id) {
-          // Skip if we've already added this credit to the answers
-          if (usedTypesAndIds.has(`${actor1Answer.type}-${actor1Answer.id}`)) {
-            continue;
-          }
+    const entity1Answers = gridData.answers[axisEntity1Id];
+    const entity2Answers = gridData.answers[axisEntity2Id];
 
-          // Look up this credit's title in the credits array
-          const answer = gridData.credits.find((credit) => credit.id === actor1Answer.id);
-          if (answer) {
-            // Add to used set
-            usedTypesAndIds.add(`${actor1Answer.type}-${actor1Answer.id}`);
+    // Only iterate over the smaller set of answers
+    const entity1HasMoreAnswers = entity1Answers.size > entity2Answers.size;
+    const [entityWithMoreAnswersAnswers, entityWithFewerAnswersAnswers] = entity1HasMoreAnswers
+      ? [entity1Answers, entity2Answers]
+      : [entity2Answers, entity1Answers];
 
-            // Add to answers
-            answers.push(answer);
-          }
+    for (const potentialAnswer of entityWithFewerAnswersAnswers) {
+      if (entityWithMoreAnswersAnswers.has(potentialAnswer)) {
+        const answer = gridData.credits[potentialAnswer];
+        if (answer) {
+          // Add to answers
+          answers.push(answer);
+        } else {
+          console.error(`Error: could not find credit for credit unique string ${potentialAnswer}`);
         }
       }
     }

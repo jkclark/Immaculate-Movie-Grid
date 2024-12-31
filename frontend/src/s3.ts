@@ -2,7 +2,7 @@ import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
 
-import { GridExport } from "common/src/interfaces";
+import { deserializeGridExport, GridExport } from "common/src/interfaces";
 
 const BASE_S3_IMAGE_URL = "https://immaculate-movie-grid-images.s3.amazonaws.com";
 const typesToS3Prefixes = {
@@ -49,21 +49,22 @@ async function streamToString(stream: ReadableStream): Promise<string> {
   }
 }
 
-export async function getS3Object(bucket: string, key: string): Promise<any> {
+async function getS3Object(bucket: string, key: string): Promise<string> {
   const command = new GetObjectCommand({ Bucket: bucket, Key: key });
   const response = await client.send(command);
   const body = await streamToString(response.Body as ReadableStream);
-  return JSON.parse(body);
+  return body;
 }
 
 export async function getGridDataFromS3(bucket: string, key: string): Promise<GridExport> {
-  let jsonData = {} as GridExport;
+  let jsonData: string;
 
   try {
     jsonData = await getS3Object(bucket, key);
   } catch (error) {
     console.error(`Error getting grid data from S3: ${error}`);
+    throw error;
   }
 
-  return jsonData;
+  return deserializeGridExport(jsonData);
 }

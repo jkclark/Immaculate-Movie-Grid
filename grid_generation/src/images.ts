@@ -23,8 +23,16 @@ const TV_S3_PREFIX = "tv-shows";
 export async function getAndSaveAllImagesForGrid(grid: GridExport, overwrite: boolean): Promise<void> {
   // Convert actors and credits (movies and tv shows separately) in the grid into sets of IDs
   let actorIds = new Set(grid.actors.map((actor) => actor.id));
-  let movieIds = new Set(grid.credits.filter((credit) => credit.type === "movie").map((credit) => credit.id));
-  let tvIds = new Set(grid.credits.filter((credit) => credit.type === "tv").map((credit) => credit.id));
+  let movieIds = new Set(
+    Object.values(grid.credits)
+      .filter((credit) => credit.type === "movie")
+      .map((credit) => credit.id)
+  );
+  let tvIds = new Set(
+    Object.values(grid.credits)
+      .filter((credit) => credit.type === "tv")
+      .map((credit) => credit.id)
+  );
 
   // If we're not overwriting images, we need to know which ones we already have
   if (!overwrite) {
