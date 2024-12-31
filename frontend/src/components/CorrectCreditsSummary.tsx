@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { CreditExport } from "common/src/interfaces";
 import CreditDetails from "./CreditDetails";
@@ -60,15 +60,19 @@ const CreditList: React.FC<CreditListProps> = ({ title, credits }) => {
   const { addContentsToOverlay } = useOverlayStack();
   const [visibleCredits, setVisibleCredits] = useState<CreditExport[]>([]);
   const [loadMore, setLoadMore] = useState(true);
+  const visibleCreditsLengthRef = useRef(0);
 
   useEffect(() => {
     if (loadMore) {
-      console.log("Loading more...");
-      const nextCredits = credits.slice(visibleCredits.length, visibleCredits.length + ITEMS_PER_LOAD);
+      const nextCredits = credits.slice(
+        visibleCreditsLengthRef.current,
+        visibleCreditsLengthRef.current + ITEMS_PER_LOAD
+      );
       setVisibleCredits((prevCredits) => [...prevCredits, ...nextCredits]);
+      visibleCreditsLengthRef.current += nextCredits.length;
       setLoadMore(false);
     }
-  }, [loadMore, credits, visibleCredits.length]);
+  }, [loadMore, credits]);
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
