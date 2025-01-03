@@ -27,7 +27,7 @@
     "install-frontend-dist-dependencies": "cd frontend_dist && npm install",
     "install-vite-for-gh-actions": "cd frontend_dist && npm install vite && npm install @vitejs/plugin-react-swc",
     "copy-frontend-and-common-files": "cd frontend_dist && mkdir frontend && mkdir common && cp -r ../frontend/* ./frontend && cp -r ../common/* ./common",
-    "type-check-frontend-dist": "cd frontend_dist && tsc --project ./frontend/tsconfig.json",
+    "type-check-frontend-dist": "cd frontend_dist && tsc --project ./frontend/tsconfig.deploy.json",
     "vite-build-frontend-dist": "cd frontend_dist/frontend && vite build",
     "generate-frontend-dist": "npm run create-frontend-dist-dir && npm run npm-init-frontend-dist && npm run merge-frontend-dist-jsons && npm run install-frontend-dist-dependencies && npm run install-vite-for-gh-actions && npm run copy-frontend-and-common-files && npm run type-check-frontend-dist && npm run vite-build-frontend-dist"
   },

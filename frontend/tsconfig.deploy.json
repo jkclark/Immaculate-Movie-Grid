@@ -1,0 +1,13 @@
+// This file is used to build the frontend package.
+{
+    "extends": "./tsconfig",
+    "compilerOptions": {
+        "baseUrl": "../frontend_dist/node_modules/",
+        "outDir": "../frontend_dist",
+        "paths": {
+            "common/*": [
+                "../../common/*"
+            ],
+        },
+    },
+}
