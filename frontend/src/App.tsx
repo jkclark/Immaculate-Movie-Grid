@@ -15,7 +15,7 @@ import {
   insertGridDisplayDatumAtRowCol,
   insertInnerGridDisplayData,
 } from "./gridDisplayData";
-import { getGridDataFromS3, getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
+import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 import {
   gameOverAtom,
   getRowColKey,
@@ -132,14 +132,40 @@ function App() {
   }, [guessesRemaining]);
 
   async function getGridDataForDate(dateString: string): Promise<GridExport> {
+    console.log("Getting grid data for date", dateString);
+    return {
+      id: "abc",
+      axes: ["actor-1", "actor-2", "actor-3", "category-1", "category-2", "category-3"],
+      actors: [
+        { id: 1, name: "Actor 1" },
+        { id: 2, name: "Actor 2" },
+        { id: 3, name: "Actor 3" },
+        { id: 4, name: "Actor 4" },
+      ],
+      categories: [
+        { id: 1, name: "Category 1" },
+        { id: 2, name: "Category 2" },
+        { id: 3, name: "Category 3" },
+        { id: 4, name: "Category 4" },
+      ],
+      credits: {
+        "movie-123": { type: "movie", id: 123, name: "test-movie" },
+      },
+      answers: {
+        1: new Set(["movie-123"]),
+        2: new Set(["movie-123"]),
+        3: new Set(["movie-123"]),
+        4: new Set(["movie-123"]),
+      },
+    };
     // Load the grid named with today's date
-    let jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", `${dateString}.json`);
+    // let jsonData = await getGridDataFromS3("immaculate-movie-grid-daily-grids", `${dateString}.json`);
 
-    if (Object.keys(jsonData).length === 0) {
-      console.error("No grid data found for today...");
-    }
+    // if (Object.keys(jsonData).length === 0) {
+    //   console.error("No grid data found for today...");
+    // }
 
-    return jsonData;
+    // return jsonData;
   }
 
   /**
