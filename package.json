@@ -29,7 +29,7 @@
     "copy-frontend-and-common-files": "cd frontend_dist && mkdir frontend && mkdir common && cp -r ../frontend/* ./frontend && cp -r ../common/* ./common",
     "type-check-frontend-dist": "cd frontend_dist && tsc --project ./frontend/tsconfig.json",
     "vite-build-frontend-dist": "cd frontend_dist/frontend && vite build",
-    "generate-frontend-dist": "npm run create-frontend-dist-dir && npm run npm-init-frontend-dist && npm run merge-frontend-dist-jsons && npm run install-frontend-dist-dependencies && npm run install-vite-for-gh-actions && npm run copy-frontend-and-common-files && npm run type-check-frontend-dist && npm run vite-build-frontend-dist"
+    "generate-frontend-dist": "npm run create-frontend-dist-dir && npm run npm-init-frontend-dist && npm run merge-frontend-dist-jsons && npm run install-frontend-dist-dependencies && npm run install-vite-for-gh-actions && npm run copy-frontend-and-common-files && npm run type-check-frontend-dist && ls -la ./frontend_dist && ls -la ./frontend_dist/frontend && cat ./frontend_dist/frontend/vite.config.ts && npm run vite-build-frontend-dist"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.574.0",
