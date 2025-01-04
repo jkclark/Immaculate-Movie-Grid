@@ -126,7 +126,7 @@ const GameSummary: React.FC = () => {
       {/* Show the "basic" stats */}
       {gridStats.basicStats && (
         <>
-          <div className="flex flex-col items-center pb-6">
+          <div className="flex flex-col items-center mb-10">
             <div className="text-2xl">
               <strong>Today's numbers</strong>
             </div>
@@ -143,7 +143,7 @@ const GameSummary: React.FC = () => {
       <div className="text-2xl pb-3 text-center">
         <strong>Total possible answers</strong>
       </div>
-      <div className="grid-parent px-4 mx-auto">
+      <div className="grid-parent max-h-[80%] px-4 mb-10 mx-auto">
         <Grid size={3} gridDisplayData={getAllAnswerGridDisplayData()}></Grid>
       </div>
 
@@ -153,7 +153,7 @@ const GameSummary: React.FC = () => {
           <div className="text-2xl pb-3 text-center">
             <strong>Accuracy</strong>
           </div>
-          <div className="grid-parent px-4 mx-auto">
+          <div className="grid-parent max-h-[80%] px-4 mx-auto">
             <Grid size={3} gridDisplayData={getAccuracyGridDisplayData()}></Grid>
           </div>
         </>
