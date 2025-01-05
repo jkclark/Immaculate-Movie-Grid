@@ -75,6 +75,12 @@ const mysteryCategory: Category = {
   creditFilter: (credit) => credit.genre_ids.includes(9648),
 };
 
+const TitleHasAtLeast3WordsCategory: Category = {
+  id: -10,
+  name: "3+ words in title",
+  creditFilter: (credit) => credit.name.split(/[\s/]+/).length >= 3,
+};
+
 export const allCategories: { [key: number]: Category } = {
   [ratedRCategory.id]: ratedRCategory,
   [releasedIn21stCenturyCategory.id]: releasedIn21stCenturyCategory,
@@ -85,4 +91,5 @@ export const allCategories: { [key: number]: Category } = {
   [dramaCategory.id]: dramaCategory,
   [fantasyCategory.id]: fantasyCategory,
   [mysteryCategory.id]: mysteryCategory,
+  [TitleHasAtLeast3WordsCategory.id]: TitleHasAtLeast3WordsCategory,
 };
