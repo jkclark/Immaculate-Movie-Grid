@@ -2,6 +2,7 @@ import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 
 import { GridExport } from "common/src/interfaces";
+import { hitAPIGet } from "./api";
 import GameSummary from "./components/GameSummary";
 import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
@@ -47,6 +48,11 @@ function App() {
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
   const setGridStats = useSetAtom(gridStatsAtom);
+
+  // On page load, hit the search Lambda function to warm it up
+  useEffect(() => {
+    hitAPIGet("search?query=immaculate-movie-grid-search-warm-up");
+  }, []);
 
   // On page load, load the grid data
   useEffect(() => {
