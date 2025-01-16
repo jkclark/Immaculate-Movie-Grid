@@ -47,7 +47,7 @@ const AboutDisplay: React.FC = () => {
           <a href="https://ko-fi.com/G2G71940FL" target="_blank">
             <img
               style={{ border: 0, height: "36px" }}
-              src="https://storage.ko-fi.com/cdn/kofi1.png?v=6"
+              src="https://storage.ko-fi.com/cdn/kofi2.png?v=6"
               alt="Buy Me a Coffee at ko-fi.com"
             />
           </a>
