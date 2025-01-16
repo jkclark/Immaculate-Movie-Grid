@@ -37,6 +37,8 @@ const AboutDisplay: React.FC = () => {
             .
           </p>
           <br />
+
+          {/* Support me */}
           <h1 className="text-3xl font-bold">Support me</h1>
           <br />
           <p>

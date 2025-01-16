@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import AboutDisplay from "./AboutDisplay";
+import HowToPlayDisplay from "./HowToPlayDisplay";
 import { useOverlayStack } from "./Overlay";
 
 const Navbar: React.FC = () => {
@@ -30,7 +31,10 @@ const Navbar: React.FC = () => {
             href="#responsive-header"
             className="block mt-4 lg:inline-block lg:mt-0 text-gray-900 dark:text-white hover:text-blue-500 mr-4 pl-4 lg:pl-0"
             // e.preventDefault prevents the URL from changing
-            onClick={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.preventDefault();
+              addContentsToOverlay(<HowToPlayDisplay />);
+            }}
           >
             How to play
           </a>
