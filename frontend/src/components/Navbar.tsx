@@ -29,13 +29,19 @@ const Navbar: React.FC = () => {
           <a
             href="#responsive-header"
             className="block mt-4 lg:inline-block lg:mt-0 text-gray-900 dark:text-white hover:text-blue-500 mr-4 pl-4 lg:pl-0"
+            // e.preventDefault prevents the URL from changing
+            onClick={(e) => e.preventDefault()}
           >
             How to play
           </a>
           <a
             href="#responsive-header"
             className="block mt-4 lg:inline-block lg:mt-0 text-gray-900 dark:text-white hover:text-blue-500 pl-4 lg:pl-0 mb-3 lg:mb-0"
-            onClick={() => addContentsToOverlay(<AboutDisplay />)}
+            // e.preventDefault prevents the URL from changing
+            onClick={(e) => {
+              e.preventDefault();
+              addContentsToOverlay(<AboutDisplay />);
+            }}
           >
             About
           </a>
