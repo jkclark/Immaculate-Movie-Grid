@@ -570,10 +570,6 @@ video {
   pointer-events: none;
 }
 
-.visible {
-  visibility: visible;
-}
-
 .invisible {
   visibility: hidden;
 }
@@ -650,6 +646,10 @@ video {
 
 .-ml-4 {
   margin-left: -1rem;
+}
+
+.mb-10 {
+  margin-bottom: 2.5rem;
 }
 
 .mb-2 {
@@ -746,6 +746,10 @@ video {
 
 .max-h-72 {
   max-height: 18rem;
+}
+
+.max-h-\[80\%\] {
+  max-height: 80%;
 }
 
 .max-h-\[desiredHeight\] {
@@ -1009,10 +1013,6 @@ video {
 
 .pb-3 {
   padding-bottom: 0.75rem;
-}
-
-.pb-6 {
-  padding-bottom: 1.5rem;
 }
 
 .pl-4 {
