@@ -20,6 +20,7 @@ export interface Stats {
   avgScore?: BasicStat;
   basicStats?: { [key: string]: BasicStat };
   squarePercentages?: { [key: string]: number };
+  allAnswers?: { [key: string]: AllGivenAnswersForSquare };
 }
 
 export interface IncomingGuess {
@@ -36,10 +37,15 @@ export interface SingleGameGuesses {
   guessIds: number[];
 }
 
+interface AllGivenAnswersForSquare {
+  [key: string]: number;
+}
+
 export async function getStatsForGrid(dataSource: DataSource, gridDate: string): Promise<Stats> {
   // Get all of the scores for the given date
   const scores = await getAllScores(dataSource, gridDate);
   const squarePercentages = await getSquarePercentages(dataSource, gridDate);
+  const allGivenAnswers = await getAllGivenAnswers(dataSource, gridDate);
 
   const stats = {
     basicStats: {
@@ -53,6 +59,7 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
       },
     },
     squarePercentages: squarePercentages,
+    allAnswers: allGivenAnswers,
   };
 
   return stats;
@@ -98,6 +105,7 @@ async function getSquarePercentages(
   // Extract score IDs
   const scoreIds = scores.map((score) => score.id);
 
+  // TODO: Use batch read instead of this
   // Get all correct guesses with the corresponding score IDs
   const correctGuesses = await guessRepository.find({
     where: {
@@ -121,6 +129,44 @@ async function getSquarePercentages(
   }
 
   return squarePercentages;
+}
+
+async function getAllGivenAnswers(
+  dataSource: DataSource,
+  gridDate: string
+): Promise<{ [key: string]: AllGivenAnswersForSquare }> {
+  const guessRepository = dataSource.getRepository(Guess);
+
+  // TODO: Use batch read instead of this
+  const allCorrectGuesses = await guessRepository.find({
+    where: {
+      score: {
+        grid: {
+          date: new Date(gridDate),
+        },
+      },
+      correct: true,
+    },
+  });
+
+  const allGivenAnswers: { [key: string]: AllGivenAnswersForSquare } = {};
+
+  for (const guess of allCorrectGuesses) {
+    const square = `${guess.across_index}-${guess.down_index}`;
+    if (!allGivenAnswers[square]) {
+      const allGivenAnswersForSquare: AllGivenAnswersForSquare = {};
+      allGivenAnswers[square] = allGivenAnswersForSquare;
+    }
+
+    const creditUniqueString = `${guess.credit_type}-${guess.credit_id}`;
+    if (!allGivenAnswers[square][creditUniqueString]) {
+      allGivenAnswers[square][creditUniqueString] = 0;
+    }
+
+    allGivenAnswers[square][creditUniqueString] += 1;
+  }
+
+  return allGivenAnswers;
 }
 
 export async function getSingleScore(dataSource: DataSource, scoreId: number): Promise<Score> {
