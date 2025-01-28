@@ -80,11 +80,9 @@ async function getSquarePercentages(
   const scoreRepository = dataSource.getRepository(Score);
 
   // Get all scores with game_over = true for the given grid date
-  const scores = await scoreRepository.find({
-    where: {
-      grid: { date: new Date(gridDate) },
-      game_over: true,
-    },
+  const scores = await batchReadFromDB(scoreRepository, 1000, { id: "ASC" }, [], {
+    grid: { date: new Date(gridDate) },
+    game_over: true,
   });
 
   // Extract score IDs
