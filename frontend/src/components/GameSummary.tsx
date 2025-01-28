@@ -3,6 +3,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useEffect } from "react";
 
 import { AnyGridDisplayData, getBlankGridDisplayData, TextGridDisplayData } from "../gridDisplayData";
+import { getS3BackupImageURLForType, getS3ImageURLForType } from "../s3";
 import { gridDataAtom, gridIdAtom, gridStatsAtom } from "../state";
 import { getStatsForGrid } from "../stats";
 import CorrectCreditsSummary from "./CorrectCreditsSummary";
@@ -114,6 +115,36 @@ const GameSummary: React.FC = () => {
     return newGridData;
   }
 
+  function getMostCommonGridDisplayData(): AnyGridDisplayData[][] {
+    const gridSize = 3;
+    // We subtract 1 because the getBlankGridDisplayData function adds an extra row and column
+    // for the axes
+    const newGridData: AnyGridDisplayData[][] = getBlankGridDisplayData(gridSize - 1);
+    if (gridStats.allAnswers) {
+      for (const [rowCol, answers] of Object.entries(gridStats.allAnswers)) {
+        // Get get row, col for the square
+        const [acrossIndex, downIndex] = rowCol.split("-").map((num) => parseInt(num));
+
+        // Find the answer used the most times
+        const [maxAnswerCreditUniqueString, maxAnswerInfo] = Object.entries(answers).reduce((a, b) =>
+          a[1].timesUsed > b[1].timesUsed ? a : b
+        );
+
+        // Split the key into type and id
+        let [type, id] = maxAnswerCreditUniqueString.split("-") as ["movie" | "tv", string];
+
+        // Insert the data into the grid
+        newGridData[downIndex][acrossIndex] = {
+          hoverText: maxAnswerInfo.name,
+          imageURL: getS3ImageURLForType(type, parseInt(id)),
+          backupImageURL: getS3BackupImageURLForType(type),
+        };
+      }
+    }
+
+    return newGridData;
+  }
+
   function roundToNearestInteger(num: number): string {
     return (Math.round(num * 100) / 100).toFixed(0);
   }
@@ -153,8 +184,21 @@ const GameSummary: React.FC = () => {
           <div className="text-2xl pb-3 text-center">
             <strong>Accuracy</strong>
           </div>
-          <div className="grid-parent max-h-[80%] px-4 mx-auto">
+          <div className="grid-parent max-h-[80%] px-4 mb-10 mx-auto">
             <Grid size={3} gridDisplayData={getAccuracyGridDisplayData()}></Grid>
+          </div>
+        </>
+      )}
+
+      {/* Show most popular answers */}
+      {gridStats.allAnswers && (
+        <>
+          <div className="text-2xl pb-3 text-center">
+            <strong>Most common answers</strong>
+          </div>
+          {/* <div className="text-md pb-3 text-center">Click on a square for more information</div> */}
+          <div className="grid-parent max-h-[80%] px-4 mx-auto">
+            <Grid size={3} gridDisplayData={getMostCommonGridDisplayData()}></Grid>
           </div>
         </>
       )}
