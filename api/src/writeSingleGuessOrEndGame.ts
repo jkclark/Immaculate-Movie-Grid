@@ -1,15 +1,10 @@
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
 import { initializeDataSource } from "common/src/db/connect";
-import {
-  countGuessesForScore,
-  createNewScore,
-  getSingleScore,
-  markGameAsOver,
-  writeSingleGuess,
-  writeSingleGuessForNewGame,
-} from "common/src/db/stats";
-import { EntityNotFoundError } from "typeorm";
+import { Guess } from "common/src/db/models/Guess";
+import { Score } from "common/src/db/models/Score";
+import { IncomingGuess } from "common/src/db/stats";
+import { DataSource, EntityNotFoundError } from "typeorm";
 
 const responseHeaders = {
   "Content-Type": "application/json",
@@ -24,7 +19,7 @@ const responseHeaders = {
  * This function handles the following situations, in order:
  *
  * It's important to remember that we never pass a guess (across_index, etc.)
- * and end_game in the same request. Either we're guessing, or we're intentionally
+ * and give_up in the same request. Either we're guessing, or we're intentionally
  * ending the game, not both.
  *
  * 1. User gives up without ever having guessed
@@ -35,8 +30,8 @@ const responseHeaders = {
  */
 export const handler: Handler = async (event: APIGatewayProxyEvent, context: Context) => {
   const dataSource = await initializeDataSource();
-
   const gridDate = new Date(event.pathParameters.gridDate);
+
   const body = JSON.parse(event.body);
   const guess = {
     across_index: body.across_index,
@@ -47,11 +42,11 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     score_id: body.score_id,
   };
   const scoreId = body.score_id;
-  const endGame = body.end_game;
+  const giveUp = body.give_up;
 
   /* 1. User gives up without ever having guessed */
   // Create a score for them and mark it as game over
-  if (endGame && !scoreId) {
+  if (giveUp && !scoreId) {
     const newScore = await createNewScore(dataSource, gridDate);
     await markGameAsOver(dataSource, newScore.id);
     console.log(`Created new score with ID ${newScore.id} and marked it as game over immediately`);
@@ -63,7 +58,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
   }
 
   /* 2. User gives up after having guessed at least once */
-  if (endGame) {
+  if (giveUp) {
     try {
       await markGameAsOver(dataSource, scoreId);
     } catch (e) {
@@ -143,7 +138,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
   const outOfGuesses = previousGuessCount >= MAX_GUESSES - 1;
   if (outOfGuesses) {
     await markGameAsOver(dataSource, scoreId);
-    console.log(`Ended game with score ID ${scoreId}`);
+    console.log(`Ended game with score ID ${scoreId} after using all guesses`);
   }
 
   return {
@@ -152,3 +147,69 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
     body: JSON.stringify({ score_id: scoreId }),
   };
 };
+
+export async function getSingleScore(dataSource: DataSource, scoreId: number): Promise<Score> {
+  const scoreRepo = dataSource.getRepository(Score);
+  return await scoreRepo.findOneOrFail({ where: { id: scoreId } });
+}
+
+export async function writeSingleGuessForNewGame(
+  dataSource: DataSource,
+  gridDate: Date,
+  guess: IncomingGuess
+): Promise<number> {
+  const score = await createNewScore(dataSource, gridDate);
+  await writeSingleGuess(dataSource, gridDate, guess, score.id);
+  return score.id;
+}
+
+export async function createNewScore(dataSource: DataSource, gridDate: Date): Promise<Score> {
+  const scoreRepo = dataSource.getRepository(Score);
+  const score = new Score();
+  score.grid_date = gridDate;
+  score.score = 0;
+  score.game_over = false;
+  return await scoreRepo.save(score);
+}
+
+/**
+ * Save a single guess to the database. This includes updating the score if the guess was correct.
+ *
+ * @param dataSource the database connection
+ * @param gridDate the date of the grid the guess is for
+ * @param guess the guess to write to the database
+ * @param scoreId the ID of the score this guess is associated with
+ * @returns the ID of the guess that was written
+ */
+export async function writeSingleGuess(
+  dataSource: DataSource,
+  gridDate: Date,
+  guess: IncomingGuess,
+  scoreId: number
+): Promise<number> {
+  const guessRepo = dataSource.getRepository(Guess);
+  const guessWithGridDateAndScoreId = { ...guess, grid_date: gridDate, score_id: scoreId };
+  const guessEntity = await guessRepo.save(guessWithGridDateAndScoreId);
+
+  // Update the score if the guess was correct
+  if (guess.correct) {
+    const scoreRepo = dataSource.getRepository(Score);
+    const score = await scoreRepo.findOneOrFail({ where: { id: scoreId } });
+    score.score += 1;
+    await scoreRepo.save(score);
+  }
+
+  return guessEntity.id;
+}
+
+export async function countGuessesForScore(dataSource: DataSource, scoreId: number): Promise<number> {
+  const guessRepo = dataSource.getRepository(Guess);
+  return await guessRepo.count({ where: { score_id: scoreId } });
+}
+
+export async function markGameAsOver(dataSource: DataSource, scoreId: number): Promise<void> {
+  const scoreRepo = dataSource.getRepository(Score);
+  const score = await scoreRepo.findOneOrFail({ where: { id: scoreId } });
+  score.game_over = true;
+  await scoreRepo.save(score);
+}

@@ -13,5 +13,5 @@ export async function recordGuessForGrid(gridDate: string, guess: IncomingGuess)
 }
 
 export async function endGameForGrid(gridDate: string, scoreId: number | undefined): Promise<any> {
-  return hitAPIPost(`${GUESS_API_PATH}/${gridDate}`, { score_id: scoreId, end_game: true });
+  return hitAPIPost(`${GUESS_API_PATH}/${gridDate}`, { score_id: scoreId, give_up: true });
 }
