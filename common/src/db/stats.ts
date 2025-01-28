@@ -34,5 +34,10 @@ export interface SingleGameGuesses {
 }
 
 export interface AllGivenAnswersForSquare {
-  [key: string]: number;
+  [key: string]: GivenAnswerInfo;
+}
+
+export interface GivenAnswerInfo {
+  timesUsed: number;
+  name: string;
 }

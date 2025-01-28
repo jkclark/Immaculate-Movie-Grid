@@ -90,13 +90,9 @@ async function getSquarePercentages(
   // Extract score IDs
   const scoreIds = scores.map((score) => score.id);
 
-  // TODO: Use batch read instead of this
-  // Get all correct guesses with the corresponding score IDs
-  const correctGuesses = await guessRepository.find({
-    where: {
-      score: { id: In(scoreIds) },
-      correct: true,
-    },
+  const correctGuesses = await batchReadFromDB(guessRepository, 1000, { id: "ASC" }, [], {
+    score: { id: In(scoreIds) },
+    correct: true,
   });
 
   // Count up the number of correct guesses for each square
@@ -122,16 +118,13 @@ async function getAllGivenAnswers(
 ): Promise<{ [key: string]: AllGivenAnswersForSquare }> {
   const guessRepository = dataSource.getRepository(Guess);
 
-  // TODO: Use batch read instead of this
-  const allCorrectGuesses = await guessRepository.find({
-    where: {
-      score: {
-        grid: {
-          date: new Date(gridDate),
-        },
+  const allCorrectGuesses = await batchReadFromDB(guessRepository, 1000, { id: "ASC" }, ["credit"], {
+    score: {
+      grid: {
+        date: new Date(gridDate),
       },
-      correct: true,
     },
+    correct: true,
   });
 
   const allGivenAnswers: { [key: string]: AllGivenAnswersForSquare } = {};
@@ -145,10 +138,13 @@ async function getAllGivenAnswers(
 
     const creditUniqueString = `${guess.credit_type}-${guess.credit_id}`;
     if (!allGivenAnswers[square][creditUniqueString]) {
-      allGivenAnswers[square][creditUniqueString] = 0;
+      allGivenAnswers[square][creditUniqueString] = {
+        timesUsed: 0,
+        name: guess.credit.name,
+      };
     }
 
-    allGivenAnswers[square][creditUniqueString] += 1;
+    allGivenAnswers[square][creditUniqueString].timesUsed += 1;
   }
 
   return allGivenAnswers;
