@@ -174,7 +174,7 @@ function App() {
 
         // We're starting fresh
         else {
-          innerGridRow.push({
+          const squareDisplayData: AnyGridDisplayData = {
             clickHandler: () => {
               if (!gameOver) {
                 setSelectedRow(rowIndex + 1);
@@ -182,7 +182,14 @@ function App() {
                 addContentsToOverlay(<SearchBar />);
               }
             },
-          });
+          };
+
+          // Only show pointer cursor if the game is not over
+          if (!gameOver) {
+            squareDisplayData.cursor = "pointer";
+          }
+
+          innerGridRow.push(squareDisplayData);
         }
       }
       newInnerGridData.push(innerGridRow);
@@ -218,6 +225,17 @@ function App() {
     setGameOver(true);
     setSelectedRow(-1);
     setSelectedCol(-1);
+
+    // Remove "cursor: 'pointer'" from all squares
+    // NOTE: I'm not sure why but this smells like a hack
+    const newGridDisplayData = gridDisplayData.map((row) =>
+      row.map((square) => {
+        const newSquare = { ...square };
+        delete newSquare.cursor;
+        return newSquare;
+      })
+    );
+    setGridDisplayData(newGridDisplayData);
 
     // Make sure to hide the search bar and search results if the last guess
     // is an incorrect one

@@ -6,6 +6,7 @@ import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 interface GridDisplayData {
   clickHandler?: () => void;
   cornerText?: string;
+  cursor?: "pointer";
 }
 
 export const gridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);

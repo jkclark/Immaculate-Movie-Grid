@@ -11,6 +11,7 @@ interface GridSquareProps {
   subText?: string;
   clickHandler?: () => void;
   cornerText?: string;
+  cursor?: "pointer";
   row: number;
   col: number;
 }
@@ -23,6 +24,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
   subText,
   clickHandler,
   cornerText,
+  cursor,
   row,
   col,
 }) => {
@@ -51,7 +53,9 @@ const GridSquare: React.FC<GridSquareProps> = ({
   }
 
   return (
-    <div className="relative w-full h-full border border-slate-900">
+    <div
+      className={`relative w-full h-full border border-slate-900 ${cursor === "pointer" && "hover:cursor-pointer"}`}
+    >
       {inner}
       {cornerText && <div className="absolute top-0 right-0 bg-gray-600/40 p-1">{cornerText}</div>}
     </div>
