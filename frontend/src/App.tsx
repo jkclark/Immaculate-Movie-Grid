@@ -8,6 +8,13 @@ import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
 import Overlay, { useOverlayStack } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
+import TabBar from "./components/TabBar";
+import {
+  ACCURACY_TAB_TEXT,
+  ALL_CORRECT_ANSWERS_TAB_TEXT,
+  MOST_COMMON_ANSWERS_TAB_TEXT,
+  YOUR_ANSWERS_TAB_TEXT,
+} from "./constants";
 import {
   AnyGridDisplayData,
   getGuessesRemainingGridDatum,
@@ -245,6 +252,25 @@ function App() {
     addContentsToOverlay(<GameSummary />);
   }
 
+  const tabInfo = {
+    yourAnswers: {
+      label: YOUR_ANSWERS_TAB_TEXT,
+      onClick: () => {},
+    },
+    allAnswers: {
+      label: ALL_CORRECT_ANSWERS_TAB_TEXT,
+      onClick: () => {},
+    },
+    accuracy: {
+      label: ACCURACY_TAB_TEXT,
+      onClick: () => {},
+    },
+    mostCommonAnswers: {
+      label: MOST_COMMON_ANSWERS_TAB_TEXT,
+      onClick: () => {},
+    },
+  };
+
   return (
     <div className="flex flex-col h-dvh dark:bg-gray-800 dark:text-white items-center">
       <Navbar />
@@ -270,14 +296,15 @@ function App() {
         )}
 
         {!gridLoadError && !isLoading && gameOver && (
-          <button
-            className="mt-4"
-            onClick={() => {
-              addContentsToOverlay(<GameSummary />);
-            }}
-          >
-            Summary
-          </button>
+          // <button
+          //   className="mt-4"
+          //   onClick={() => {
+          //     addContentsToOverlay(<GameSummary />);
+          //   }}
+          // >
+          //   Summary
+          // </button>
+          <TabBar tabs={tabInfo} />
         )}
 
         {!gridLoadError && !isLoading && (
