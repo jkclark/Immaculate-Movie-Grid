@@ -106,7 +106,7 @@ const GameSummary: React.FC = () => {
         for (const acrossIndex of indexArray) {
           const percentage = gridStats.squarePercentages[`${acrossIndex}-${downIndex}`] || 0;
           newGridData[downIndex][acrossIndex] = {
-            mainText: `${roundToNearestInteger(percentage)}%`,
+            mainText: `${roundToNearestNDigits(percentage, 0)}%`,
           };
         }
       }
@@ -136,7 +136,7 @@ const GameSummary: React.FC = () => {
         // Split the key into type and id
         let [type, id] = maxAnswerCreditUniqueString.split("-") as ["movie" | "tv", string];
 
-        const answerPercentage = roundToNearestInteger(100 * (maxAnswerInfo.timesUsed / totalAnswers));
+        const answerPercentage = roundToNearestNDigits(100 * (maxAnswerInfo.timesUsed / totalAnswers), 0);
 
         // Insert the data into the grid
         newGridData[downIndex][acrossIndex] = {
@@ -151,8 +151,8 @@ const GameSummary: React.FC = () => {
     return newGridData;
   }
 
-  function roundToNearestInteger(num: number): string {
-    return (Math.round(num * 100) / 100).toFixed(0);
+  function roundToNearestNDigits(num: number, n: number): string {
+    return (Math.round(num * 100) / 100).toFixed(n);
   }
 
   return (
