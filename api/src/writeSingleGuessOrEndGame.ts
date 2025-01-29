@@ -85,7 +85,9 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
   /* 3. User guesses correctly or incorrectly for the first time */
   if (!scoreId) {
     const scoreId = await writeSingleGuessForNewGame(dataSource, gridDate, guess);
-    console.log(`Created new score with ID ${scoreId}`);
+    console.log(
+      `Created new score with ID ${scoreId} with ${guess.correct ? "correct" : "incorrect"} guess ${guess.credit_type}-${guess.credit_id}`
+    );
 
     return {
       statusCode: 200,
@@ -130,7 +132,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent, context: Con
 
   // Record this guess
   await writeSingleGuess(dataSource, gridDate, guess, scoreId);
-  console.log(`Added guess to score with ID ${scoreId}`);
+  console.log(`Added guess to existing score with ID ${scoreId}`);
 
   /* 4a. User guesses for the last (9th) time */
   // If this was the last guess, mark the game as over
