@@ -155,6 +155,12 @@ const GameSummary: React.FC = () => {
     return (Math.round(num * 100) / 100).toFixed(n);
   }
 
+  // Mapping of basic stat names to the number of decimals we should show, if any
+  const statToDecimals: { [key: string]: number } = {
+    avgScore: 2,
+    numGames: 0,
+  };
+
   return (
     <div
       className="grid-grandparent w-4/5 max-w-[800px] h-[75%] rounded-lg shadow-lg bg-white dark:bg-gray-800 overflow-y-auto py-5"
@@ -167,11 +173,14 @@ const GameSummary: React.FC = () => {
             <div className="text-2xl">
               <strong>Today's numbers</strong>
             </div>
-            {Object.entries(gridStats.basicStats).map(([key, stat]) => (
-              <div key={key} className="pt-2">
-                {stat.displayName}: {stat.value}
-              </div>
-            ))}
+            {Object.entries(gridStats.basicStats).map(([key, stat]) => {
+              const decimals = statToDecimals[key];
+              return (
+                <div key={key} className="pt-2">
+                  {stat.displayName}: {roundToNearestNDigits(stat.value, decimals || 0)}
+                </div>
+              );
+            })}
           </div>
         </>
       )}
