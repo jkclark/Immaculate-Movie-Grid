@@ -10,6 +10,7 @@ interface GridSquareProps {
   mainText?: string;
   subText?: string;
   clickHandler?: () => void;
+  cornerText?: string;
   row: number;
   col: number;
 }
@@ -21,6 +22,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
   mainText,
   subText,
   clickHandler,
+  cornerText,
   row,
   col,
 }) => {
@@ -48,7 +50,12 @@ const GridSquare: React.FC<GridSquareProps> = ({
     inner = <EmptyGameSquare clickHandler={stopPropClickHandler} {...{ row, col }} />;
   }
 
-  return <div className="w-full h-full border border-slate-900">{inner}</div>;
+  return (
+    <div className="relative w-full h-full border border-slate-900">
+      {inner}
+      {cornerText && <div className="absolute top-0 right-0 bg-gray-600/40 p-1">{cornerText}</div>}
+    </div>
+  );
 };
 
 export default GridSquare;

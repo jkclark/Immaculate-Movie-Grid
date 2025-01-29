@@ -130,14 +130,20 @@ const GameSummary: React.FC = () => {
           a[1].timesUsed > b[1].timesUsed ? a : b
         );
 
+        // Find the total number of answers
+        const totalAnswers = Object.values(answers).reduce((total, answer) => total + answer.timesUsed, 0);
+
         // Split the key into type and id
         let [type, id] = maxAnswerCreditUniqueString.split("-") as ["movie" | "tv", string];
+
+        const answerPercentage = roundToNearestInteger(100 * (maxAnswerInfo.timesUsed / totalAnswers));
 
         // Insert the data into the grid
         newGridData[downIndex][acrossIndex] = {
           hoverText: maxAnswerInfo.name,
           imageURL: getS3ImageURLForType(type, parseInt(id)),
           backupImageURL: getS3BackupImageURLForType(type),
+          cornerText: `${answerPercentage}%`,
         };
       }
     }
