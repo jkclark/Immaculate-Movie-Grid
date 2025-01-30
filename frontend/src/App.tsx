@@ -8,7 +8,6 @@ import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
 import Overlay, { useOverlayStack } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
-import TabBar from "./components/TabBar";
 import {
   ACCURACY_TAB_TEXT,
   ALL_CORRECT_ANSWERS_TAB_TEXT,
@@ -296,15 +295,15 @@ function App() {
         )}
 
         {!gridLoadError && !isLoading && gameOver && (
-          // <button
-          //   className="mt-4"
-          //   onClick={() => {
-          //     addContentsToOverlay(<GameSummary />);
-          //   }}
-          // >
-          //   Summary
-          // </button>
-          <TabBar tabs={tabInfo} />
+          <button
+            className="mt-4"
+            onClick={() => {
+              addContentsToOverlay(<GameSummary />);
+            }}
+          >
+            Summary
+          </button>
+          // <TabBar tabs={tabInfo} />
         )}
 
         {!gridLoadError && !isLoading && (

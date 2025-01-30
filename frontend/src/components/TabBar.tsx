@@ -1,12 +1,16 @@
 import React from "react";
 
-interface TabProps {
+interface TabData {
   label: string;
   onClick: () => void;
 }
 
+interface TabProps extends TabData {
+  active: boolean;
+}
+
 interface TabInfo {
-  [key: string]: TabProps;
+  [key: string]: TabData;
 }
 
 interface TabBarProps {
@@ -22,14 +26,28 @@ const TabBar: React.FC<TabBarProps> = ({ tabs }) => {
   return (
     <div className="flex flex-row w-full justify-around">
       {Object.entries(tabs).map(([key, tab]) => {
-        return <Tab key={key} {...tab} />;
+        return (
+          <Tab
+            key={key}
+            label={tab.label}
+            active={activeTab === key}
+            onClick={() => {
+              setActiveTab(key);
+              tab.onClick();
+            }}
+          />
+        );
       })}
     </div>
   );
 };
 
-const Tab: React.FC<TabProps> = ({ label, onClick }) => {
-  return <button onClick={onClick}>{label}</button>;
+const Tab: React.FC<TabProps> = ({ label, onClick, active }) => {
+  return (
+    <button className={`${active ? ".selected-tab" : ""}`} onClick={onClick}>
+      {label}
+    </button>
+  );
 };
 
 export default TabBar;
