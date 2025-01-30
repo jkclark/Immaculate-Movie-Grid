@@ -11,5 +11,5 @@ button {
 }
 
 .selected-tab {
-  @apply bg-blue-300 text-white;
+  @apply bg-yellow-600 text-white border border-white hover:bg-yellow-600;
 }

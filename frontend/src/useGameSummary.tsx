@@ -1,26 +1,26 @@
 import { ActorExport, CategoryExport, CreditExport } from "common/src/interfaces";
 import { useAtom, useAtomValue } from "jotai";
-import { useEffect } from "react";
+import CorrectCreditsSummary from "./components/CorrectCreditsSummary";
+import { useOverlayStack } from "./components/Overlay";
+import { AnyGridDisplayData, getBlankGridDisplayData, TextGridDisplayData } from "./gridDisplayData";
+import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
+import { gridDataAtom, gridIdAtom, gridStatsAtom } from "./state";
 
-import { AnyGridDisplayData, getBlankGridDisplayData, TextGridDisplayData } from "../gridDisplayData";
-import { getS3BackupImageURLForType, getS3ImageURLForType } from "../s3";
-import { gridDataAtom, gridIdAtom, gridStatsAtom } from "../state";
-import { getStatsForGrid } from "../stats";
-import CorrectCreditsSummary from "./CorrectCreditsSummary";
-import Grid from "./Grid";
-import { useOverlayStack } from "./Overlay";
-
-const GameSummary: React.FC = () => {
+export function useGameSummary() {
   const gridId = useAtomValue(gridIdAtom);
   const gridData = useAtomValue(gridDataAtom);
   const { addContentsToOverlay } = useOverlayStack();
   const [gridStats, setGridStats] = useAtom(gridStatsAtom);
 
-  // Whenever we open this component, refresh the stats
-  useEffect(() => {
-    getStatsForGrid(gridId).then(setGridStats);
-  }, [gridId]);
+  /*** Basic stats ***/
+  // TODO
+  // Mapping of basic stat names to the number of decimals we should show, if any
+  const statToDecimals: { [key: string]: number } = {
+    avgScore: 2,
+    numGames: 0,
+  };
 
+  /*** All correct answers ***/
   function getAllAnswerGridDisplayData(): AnyGridDisplayData[][] {
     const newInnerGridData: TextGridDisplayData[][] = [];
     const acrossAxisEntities = gridData.axes.slice(0, gridData.axes.length / 2);
@@ -95,6 +95,7 @@ const GameSummary: React.FC = () => {
     return answers;
   }
 
+  /*** Accuracy ***/
   function getAccuracyGridDisplayData(): AnyGridDisplayData[][] {
     const gridSize = 3;
     // We subtract 1 because the getBlankGridDisplayData function adds an extra row and column
@@ -115,6 +116,7 @@ const GameSummary: React.FC = () => {
     return newGridData;
   }
 
+  /*** Most common ***/
   function getMostCommonGridDisplayData(): AnyGridDisplayData[][] {
     const gridSize = 3;
     // We subtract 1 because the getBlankGridDisplayData function adds an extra row and column
@@ -151,74 +153,14 @@ const GameSummary: React.FC = () => {
     return newGridData;
   }
 
+  /*** Utils ***/
   function roundToNearestNDigits(num: number, n: number): string {
     return (Math.round(num * 100) / 100).toFixed(n);
   }
 
-  // Mapping of basic stat names to the number of decimals we should show, if any
-  const statToDecimals: { [key: string]: number } = {
-    avgScore: 2,
-    numGames: 0,
+  return {
+    getAllAnswerGridDisplayData,
+    getAccuracyGridDisplayData,
+    getMostCommonGridDisplayData,
   };
-
-  return (
-    <div
-      className="grid-grandparent w-4/5 max-w-[800px] h-[75%] rounded-lg shadow-lg bg-white dark:bg-gray-800 overflow-y-auto py-5"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* Show the "basic" stats */}
-      {gridStats.basicStats && (
-        <>
-          <div className="flex flex-col items-center mb-10">
-            <div className="text-2xl">
-              <strong>Today's numbers</strong>
-            </div>
-            {Object.entries(gridStats.basicStats).map(([key, stat]) => {
-              const decimals = statToDecimals[key];
-              return (
-                <div key={key} className="pt-2">
-                  {stat.displayName}: {roundToNearestNDigits(stat.value, decimals || 0)}
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {/* Show the total number of possible answers for each square */}
-      <div className="text-2xl pb-3 text-center">
-        <strong>Total possible answers</strong>
-      </div>
-      <div className="grid-parent max-h-[80%] px-4 mb-10 mx-auto">
-        <Grid size={3} gridDisplayData={getAllAnswerGridDisplayData()}></Grid>
-      </div>
-
-      {/* Show players' accuracy for each square */}
-      {gridStats.squarePercentages && (
-        <>
-          <div className="text-2xl pb-3 text-center">
-            <strong>Accuracy</strong>
-          </div>
-          <div className="grid-parent max-h-[80%] px-4 mb-10 mx-auto">
-            <Grid size={3} gridDisplayData={getAccuracyGridDisplayData()}></Grid>
-          </div>
-        </>
-      )}
-
-      {/* Show most popular answers */}
-      {gridStats.allAnswers && (
-        <>
-          <div className="text-2xl pb-3 text-center">
-            <strong>Most common answers</strong>
-          </div>
-          {/* <div className="text-md pb-3 text-center">Click on a square for more information</div> */}
-          <div className="grid-parent max-h-[80%] px-4 mx-auto">
-            <Grid size={3} gridDisplayData={getMostCommonGridDisplayData()}></Grid>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
-
-export default GameSummary;
+}

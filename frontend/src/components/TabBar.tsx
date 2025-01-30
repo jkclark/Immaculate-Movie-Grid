@@ -24,7 +24,7 @@ const TabBar: React.FC<TabBarProps> = ({ tabs }) => {
   const [activeTab, setActiveTab] = React.useState<string | null>(null);
 
   return (
-    <div className="flex flex-row w-full justify-around">
+    <div className="flex flex-row w-full justify-around mt-4">
       {Object.entries(tabs).map(([key, tab]) => {
         return (
           <Tab
@@ -44,7 +44,7 @@ const TabBar: React.FC<TabBarProps> = ({ tabs }) => {
 
 const Tab: React.FC<TabProps> = ({ label, onClick, active }) => {
   return (
-    <button className={`${active ? ".selected-tab" : ""}`} onClick={onClick}>
+    <button className={`${active ? "selected-tab" : ""}`} onClick={onClick}>
       {label}
     </button>
   );

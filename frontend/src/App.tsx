@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 
 import { GridExport } from "common/src/interfaces";
 import { hitAPIGet } from "./api";
-import GameSummary from "./components/GameSummary";
 import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
 import Overlay, { useOverlayStack } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
+import TabBar from "./components/TabBar";
 import {
   ACCURACY_TAB_TEXT,
   ALL_CORRECT_ANSWERS_TAB_TEXT,
@@ -36,6 +36,7 @@ import {
   usedAnswersAtom,
 } from "./state";
 import { endGameForGrid, getStatsForGrid } from "./stats";
+import { useGameSummary } from "./useGameSummary";
 
 function App() {
   const [gridId, setGridId] = useAtom(gridIdAtom);
@@ -52,6 +53,8 @@ function App() {
   const [scoreId, setScoreId] = useAtom(scoreIdAtom);
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
+  const { getAllAnswerGridDisplayData, getAccuracyGridDisplayData, getMostCommonGridDisplayData } =
+    useGameSummary();
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
   const setGridStats = useSetAtom(gridStatsAtom);
 
@@ -246,27 +249,41 @@ function App() {
     // Make sure to hide the search bar and search results if the last guess
     // is an incorrect one
     resetOverlayContents();
-
-    // Show the summary component
-    addContentsToOverlay(<GameSummary />);
   }
 
   const tabInfo = {
     yourAnswers: {
       label: YOUR_ANSWERS_TAB_TEXT,
-      onClick: () => {},
+      onClick: () => {
+        console.log("Your answers");
+      },
     },
     allAnswers: {
       label: ALL_CORRECT_ANSWERS_TAB_TEXT,
-      onClick: () => {},
+      onClick: () => {
+        console.log("All answers");
+        setGridDisplayData(
+          insertInnerGridDisplayData(getInitialGridDisplayData(gridData), getAllAnswerGridDisplayData())
+        );
+      },
     },
     accuracy: {
       label: ACCURACY_TAB_TEXT,
-      onClick: () => {},
+      onClick: () => {
+        console.log("Accuracy");
+        setGridDisplayData(
+          insertInnerGridDisplayData(getInitialGridDisplayData(gridData), getAccuracyGridDisplayData())
+        );
+      },
     },
     mostCommonAnswers: {
       label: MOST_COMMON_ANSWERS_TAB_TEXT,
-      onClick: () => {},
+      onClick: () => {
+        console.log("Most common");
+        setGridDisplayData(
+          insertInnerGridDisplayData(getInitialGridDisplayData(gridData), getMostCommonGridDisplayData())
+        );
+      },
     },
   };
 
@@ -294,17 +311,7 @@ function App() {
           </button>
         )}
 
-        {!gridLoadError && !isLoading && gameOver && (
-          <button
-            className="mt-4"
-            onClick={() => {
-              addContentsToOverlay(<GameSummary />);
-            }}
-          >
-            Summary
-          </button>
-          // <TabBar tabs={tabInfo} />
-        )}
+        {!gridLoadError && !isLoading && gameOver && <TabBar tabs={tabInfo} />}
 
         {!gridLoadError && !isLoading && (
           <div className="grid-parent w-full grow p-4">
