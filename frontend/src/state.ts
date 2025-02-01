@@ -3,6 +3,7 @@ import { atomWithStorage } from "jotai/utils";
 
 import { Stats } from "common/src/db/stats";
 import { deserializeGridExport, GridExport, serializeGridExport } from "common/src/interfaces";
+import { AnyGridDisplayData } from "./gridDisplayData";
 
 function getAtomWithStorageInit<T>(key: string, initialValue: T) {
   return atomWithStorage(key, initialValue, undefined, { getOnInit: true });
@@ -44,7 +45,10 @@ export const usedAnswersAtom = getAtomWithStorageInit<
   Record<string, { type: "movie" | "tv"; id: number; name: string }>
 >("usedAnswers", {});
 
-export const finalGameGridDisplayDataAtom = getAtomWithStorageInit("finalGameGridDisplayData", []);
+export const finalGameGridDisplayDataAtom = getAtomWithStorageInit<AnyGridDisplayData[][]>(
+  "finalGameGridDisplayData",
+  []
+);
 
 // Holds the ID of the score for the current game
 export const scoreIdAtom = getAtomWithStorageInit("scoreId", undefined);
