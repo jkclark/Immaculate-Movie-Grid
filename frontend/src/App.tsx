@@ -313,8 +313,14 @@ function App() {
           <button
             className="mt-4"
             onClick={() => {
+              async function endGameAndGetStats() {
+                endGameForGrid(gridId, scoreId);
+                const stats = await getStatsForGrid(gridId);
+                setGridStats(stats);
+              }
+
               // Tell the backend this game is over
-              endGameForGrid(gridId, scoreId);
+              endGameAndGetStats();
 
               // End the game locally
               endGame();
