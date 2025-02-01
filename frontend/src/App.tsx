@@ -24,6 +24,7 @@ import {
 } from "./gridDisplayData";
 import { getGridDataFromS3, getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 import {
+  finalGameGridDisplayDataAtom,
   gameOverAtom,
   getRowColKey,
   gridDataAtom,
@@ -53,6 +54,7 @@ function App() {
   const [scoreId, setScoreId] = useAtom(scoreIdAtom);
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
+  const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
   const { getAllAnswerGridDisplayData, getAccuracyGridDisplayData, getMostCommonGridDisplayData } =
     useGameSummary();
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
@@ -246,6 +248,10 @@ function App() {
     );
     setGridDisplayData(newGridDisplayData);
 
+    // Remember this grid data so we can restore it when the user switches
+    // back to the "Your answers" tab
+    setFinalGameGridDisplayData(newGridDisplayData);
+
     // Make sure to hide the search bar and search results if the last guess
     // is an incorrect one
     resetOverlayContents();
@@ -256,6 +262,7 @@ function App() {
       label: YOUR_ANSWERS_TAB_TEXT,
       onClick: () => {
         console.log("Your answers");
+        setGridDisplayData(finalGameGridDisplayData);
       },
     },
     allAnswers: {

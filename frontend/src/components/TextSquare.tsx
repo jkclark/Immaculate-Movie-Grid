@@ -55,11 +55,8 @@ const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, clickHandler
   let responsiveMainTextClass = `${smallScreenMainTextClass} sm:${largeScreenMainTextClass}`;
 
   return (
-    <div
-      onClick={handleClick}
-      className="w-full h-full cursor-default text-center flex flex-col item-center justify-center"
-    >
-      <p className={`${responsiveMainTextClass} hover:cursor-default`}>{mainText}</p>
+    <div onClick={handleClick} className="w-full h-full text-center flex flex-col item-center justify-center">
+      <p className={`${responsiveMainTextClass}`}>{mainText}</p>
       {subText && <p className="text-xl">{subText}</p>}
     </div>
   );

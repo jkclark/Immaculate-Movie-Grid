@@ -47,6 +47,7 @@ export function useGameSummary() {
           clickHandler: () => {
             addContentsToOverlay(<CorrectCreditsSummary credits={answers} />);
           },
+          cursor: "pointer",
         });
       }
       newInnerGridData.push(innerGridRow);
