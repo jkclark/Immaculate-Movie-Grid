@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 interface TabData {
   label: string;
@@ -18,21 +18,18 @@ interface TabBarProps {
 }
 
 const TabBar: React.FC<TabBarProps> = ({ tabs }) => {
-  // TODO: Implement tab state within this component so only one tab can be active
-  // Use index or something to determine active tab
-  // Wrap passed onclick with a function that sets the active tab index
-  const [activeTab, setActiveTab] = React.useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<number>(0);
 
   return (
     <div className="flex flex-row w-full justify-around mt-4">
-      {Object.entries(tabs).map(([key, tab]) => {
+      {Object.values(tabs).map((tab, index) => {
         return (
           <Tab
-            key={key}
+            key={index}
             label={tab.label}
-            active={activeTab === key}
+            active={activeTab === index}
             onClick={() => {
-              setActiveTab(key);
+              setActiveTab(index);
               tab.onClick();
             }}
           />
