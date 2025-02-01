@@ -232,11 +232,7 @@ function App() {
     setGridStats({});
   }
 
-  function endGame() {
-    setGameOver(true);
-    setSelectedRow(-1);
-    setSelectedCol(-1);
-
+  function cleanUpGameGridDisplayDataUponEnd() {
     // Remove "cursor: 'pointer'" from all squares
     // NOTE: I'm not sure why but this smells like a hack
     const newGridDisplayData = gridDisplayData.map((row) =>
@@ -246,11 +242,21 @@ function App() {
         return newSquare;
       })
     );
-    setGridDisplayData(newGridDisplayData);
 
+    return newGridDisplayData;
+  }
+
+  function endGame() {
+    setGameOver(true);
+    setSelectedRow(-1);
+    setSelectedCol(-1);
+
+    // Remove click handlers, update text, etc. when game is over
+    const gameOverGridDisplayData = cleanUpGameGridDisplayDataUponEnd();
+    setGridDisplayData(gameOverGridDisplayData);
     // Remember this grid data so we can restore it when the user switches
     // back to the "Your answers" tab
-    setFinalGameGridDisplayData(newGridDisplayData);
+    setFinalGameGridDisplayData(gameOverGridDisplayData);
 
     // Make sure to hide the search bar and search results if the last guess
     // is an incorrect one
