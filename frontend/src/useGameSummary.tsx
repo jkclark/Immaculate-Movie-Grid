@@ -1,16 +1,15 @@
 import { ActorExport, CategoryExport, CreditExport } from "common/src/interfaces";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import CorrectCreditsSummary from "./components/CorrectCreditsSummary";
 import { useOverlayStack } from "./components/Overlay";
 import { AnyGridDisplayData, getBlankGridDisplayData, TextGridDisplayData } from "./gridDisplayData";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
-import { gridDataAtom, gridIdAtom, gridStatsAtom } from "./state";
+import { gridDataAtom, gridStatsAtom } from "./state";
 
 export function useGameSummary() {
-  const gridId = useAtomValue(gridIdAtom);
   const gridData = useAtomValue(gridDataAtom);
   const { addContentsToOverlay } = useOverlayStack();
-  const [gridStats, setGridStats] = useAtom(gridStatsAtom);
+  const gridStats = useAtomValue(gridStatsAtom);
 
   /*** Basic stats ***/
   // TODO
