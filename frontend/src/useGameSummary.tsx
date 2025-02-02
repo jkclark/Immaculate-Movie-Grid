@@ -1,15 +1,18 @@
-import { ActorExport, CategoryExport, CreditExport } from "common/src/interfaces";
-import { useAtomValue } from "jotai";
+import { Stats } from "common/src/db/stats";
+import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
 import CorrectCreditsSummary from "./components/CorrectCreditsSummary";
 import { useOverlayStack } from "./components/Overlay";
-import { AnyGridDisplayData, getBlankGridDisplayData, TextGridDisplayData } from "./gridDisplayData";
+import {
+  AnyGridDisplayData,
+  getBlankGridDisplayData,
+  getInitialGridDisplayData,
+  insertInnerGridDisplayData,
+  TextGridDisplayData,
+} from "./gridDisplayData";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
-import { gridDataAtom, gridStatsAtom } from "./state";
 
 export function useGameSummary() {
-  const gridData = useAtomValue(gridDataAtom);
   const { addContentsToOverlay } = useOverlayStack();
-  const gridStats = useAtomValue(gridStatsAtom);
 
   /*** Basic stats ***/
   // TODO
@@ -20,7 +23,7 @@ export function useGameSummary() {
   };
 
   /*** All correct answers ***/
-  function getAllAnswerGridDisplayData(): AnyGridDisplayData[][] {
+  function getAllAnswerGridDisplayData(gridData: GridExport): AnyGridDisplayData[][] {
     const newInnerGridData: TextGridDisplayData[][] = [];
     const acrossAxisEntities = gridData.axes.slice(0, gridData.axes.length / 2);
     const downAxisEntities = gridData.axes.slice(gridData.axes.length / 2);
@@ -39,7 +42,7 @@ export function useGameSummary() {
             ? getAxisEntityFromListById(gridData.actors, parseInt(downAxisEntityId))
             : getAxisEntityFromListById(gridData.categories, -1 * parseInt(downAxisEntityId));
 
-        const answers = getAnswersForPair(acrossAxisEntity.id, downAxisEntity.id);
+        const answers = getAnswersForPair(gridData, acrossAxisEntity.id, downAxisEntity.id);
         const answerText = `${answers.length}`;
         innerGridRow.push({
           mainText: answerText,
@@ -52,7 +55,7 @@ export function useGameSummary() {
       newInnerGridData.push(innerGridRow);
     }
 
-    return newInnerGridData;
+    return insertInnerGridDisplayData(getInitialGridDisplayData(gridData), newInnerGridData);
   }
 
   // TODO: This is copy-pasted from another file. Also we should just refactor the gridExport to be
@@ -68,7 +71,11 @@ export function useGameSummary() {
     return foundAxisEntity;
   }
 
-  function getAnswersForPair(axisEntity1Id: number, axisEntity2Id: number): CreditExport[] {
+  function getAnswersForPair(
+    gridData: GridExport,
+    axisEntity1Id: number,
+    axisEntity2Id: number
+  ): CreditExport[] {
     const answers: CreditExport[] = [];
 
     const entity1Answers = gridData.answers[axisEntity1Id];
@@ -96,32 +103,32 @@ export function useGameSummary() {
   }
 
   /*** Accuracy ***/
-  function getAccuracyGridDisplayData(): AnyGridDisplayData[][] {
+  function getAccuracyGridDisplayData(gridData: GridExport, gridStats: Stats): AnyGridDisplayData[][] {
     const gridSize = 3;
     // We subtract 1 because the getBlankGridDisplayData function adds an extra row and column
     // for the axes
-    const newGridData: AnyGridDisplayData[][] = getBlankGridDisplayData(gridSize - 1);
+    const newInnerGridData: AnyGridDisplayData[][] = getBlankGridDisplayData(gridSize - 1);
     const indexArray = Array.from({ length: gridSize }, (_, i) => i);
     if (gridStats.squarePercentages) {
       for (const downIndex of indexArray) {
         for (const acrossIndex of indexArray) {
           const percentage = gridStats.squarePercentages[`${acrossIndex}-${downIndex}`] || 0;
-          newGridData[downIndex][acrossIndex] = {
+          newInnerGridData[downIndex][acrossIndex] = {
             mainText: `${roundToNearestNDigits(percentage, 0)}%`,
           };
         }
       }
     }
 
-    return newGridData;
+    return insertInnerGridDisplayData(getInitialGridDisplayData(gridData), newInnerGridData);
   }
 
   /*** Most common ***/
-  function getMostCommonGridDisplayData(): AnyGridDisplayData[][] {
+  function getMostCommonGridDisplayData(gridData: GridExport, gridStats: Stats): AnyGridDisplayData[][] {
     const gridSize = 3;
     // We subtract 1 because the getBlankGridDisplayData function adds an extra row and column
     // for the axes
-    const newGridData: AnyGridDisplayData[][] = getBlankGridDisplayData(gridSize - 1);
+    const newInnerGridData: AnyGridDisplayData[][] = getBlankGridDisplayData(gridSize - 1);
     if (gridStats.allAnswers) {
       for (const [rowCol, answers] of Object.entries(gridStats.allAnswers)) {
         // Get get row, col for the square
@@ -141,7 +148,7 @@ export function useGameSummary() {
         const answerPercentage = roundToNearestNDigits(100 * (maxAnswerInfo.timesUsed / totalAnswers), 0);
 
         // Insert the data into the grid
-        newGridData[downIndex][acrossIndex] = {
+        newInnerGridData[downIndex][acrossIndex] = {
           hoverText: maxAnswerInfo.name,
           imageURL: getS3ImageURLForType(type, parseInt(id)),
           backupImageURL: getS3BackupImageURLForType(type),
@@ -150,7 +157,7 @@ export function useGameSummary() {
       }
     }
 
-    return newGridData;
+    return insertInnerGridDisplayData(getInitialGridDisplayData(gridData), newInnerGridData);
   }
 
   /*** Utils ***/

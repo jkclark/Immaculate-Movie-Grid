@@ -3,6 +3,7 @@ import { atomWithStorage } from "jotai/utils";
 
 import { Stats } from "common/src/db/stats";
 import { deserializeGridExport, GridExport, serializeGridExport } from "common/src/interfaces";
+import { YOUR_ANSWERS_TAB_TEXT } from "./constants";
 import { AnyGridDisplayData } from "./gridDisplayData";
 
 function getAtomWithStorageInit<T>(key: string, initialValue: T) {
@@ -54,6 +55,8 @@ export const finalGameGridDisplayDataAtom = getAtomWithStorageInit<AnyGridDispla
 export const scoreIdAtom = getAtomWithStorageInit("scoreId", undefined);
 
 export const gridStatsAtom = atom<Stats>({});
+
+export const activeTabAtom = atom<string>(YOUR_ANSWERS_TAB_TEXT);
 
 export function getRowColKey(row: number, col: number) {
   return `row:${row},col:${col}`;

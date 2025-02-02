@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import { useAtom } from "jotai";
+import React from "react";
+import { activeTabAtom } from "../state";
 
 interface TabData {
   label: string;
@@ -18,7 +20,7 @@ interface TabBarProps {
 }
 
 const TabBar: React.FC<TabBarProps> = ({ tabs }) => {
-  const [activeTab, setActiveTab] = useState<number>(0);
+  const [activeTab, setActiveTab] = useAtom(activeTabAtom);
 
   return (
     <div className="flex flex-row w-full justify-around mt-4">
@@ -27,9 +29,9 @@ const TabBar: React.FC<TabBarProps> = ({ tabs }) => {
           <Tab
             key={index}
             label={tab.label}
-            active={activeTab === index}
+            active={activeTab === tab.label}
             onClick={() => {
-              setActiveTab(index);
+              setActiveTab(tab.label);
               tab.onClick();
             }}
           />

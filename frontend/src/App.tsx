@@ -1,4 +1,4 @@
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 
 import { GridExport } from "common/src/interfaces";
@@ -24,6 +24,7 @@ import {
 } from "./gridDisplayData";
 import { getGridDataFromS3, getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 import {
+  activeTabAtom,
   finalGameGridDisplayDataAtom,
   gameOverAtom,
   getRowColKey,
@@ -36,7 +37,7 @@ import {
   selectedRowAtom,
   usedAnswersAtom,
 } from "./state";
-import { endGameForGrid, getStatsForGrid } from "./stats";
+import { useStats } from "./stats";
 import { useGameSummary } from "./useGameSummary";
 
 function App() {
@@ -54,11 +55,13 @@ function App() {
   const [scoreId, setScoreId] = useAtom(scoreIdAtom);
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
+  const activeTab = useAtomValue(activeTabAtom);
   const [finalGameGridDisplayData, setFinalGameGridDisplayData] = useAtom(finalGameGridDisplayDataAtom);
   const { getAllAnswerGridDisplayData, getAccuracyGridDisplayData, getMostCommonGridDisplayData } =
     useGameSummary();
   const [gameOver, setGameOver] = useAtom(gameOverAtom);
-  const setGridStats = useSetAtom(gridStatsAtom);
+  const [gridStats, setGridStats] = useAtom(gridStatsAtom);
+  const { updateStatsForGrid, endGameForGrid } = useStats();
 
   // On page load, hit the search Lambda function to warm it up
   useEffect(() => {
@@ -120,15 +123,13 @@ function App() {
         return;
       }
 
-      const stats = await getStatsForGrid(gridId);
-      setGridStats(stats);
+      await updateStatsForGrid(gridId);
     }
     fetchStats();
   }, [gridId]);
 
   // Once we've loaded the grid data, populate the grid display data
   useEffect(() => {
-    console.log("Grid data", gridData);
     if (Object.keys(gridData).length === 0) {
       return;
     }
@@ -147,6 +148,14 @@ function App() {
       endGame();
     }
   }, [guessesRemaining]);
+
+  useEffect(() => {
+    if (activeTab === ACCURACY_TAB_TEXT) {
+      setGridDisplayData(getAccuracyGridDisplayData(gridData, gridStats));
+    } else if (activeTab === MOST_COMMON_ANSWERS_TAB_TEXT) {
+      setGridDisplayData(getMostCommonGridDisplayData(gridData, gridStats));
+    }
+  }, [gridStats, activeTab]);
 
   async function getGridDataForDate(dateString: string): Promise<GridExport> {
     // Load the grid named with today's date
@@ -275,27 +284,21 @@ function App() {
       label: ALL_CORRECT_ANSWERS_TAB_TEXT,
       onClick: () => {
         console.log("All answers");
-        setGridDisplayData(
-          insertInnerGridDisplayData(getInitialGridDisplayData(gridData), getAllAnswerGridDisplayData())
-        );
+        setGridDisplayData(getAllAnswerGridDisplayData(gridData));
       },
     },
     accuracy: {
       label: ACCURACY_TAB_TEXT,
       onClick: () => {
         console.log("Accuracy");
-        setGridDisplayData(
-          insertInnerGridDisplayData(getInitialGridDisplayData(gridData), getAccuracyGridDisplayData())
-        );
+        setGridDisplayData(getAccuracyGridDisplayData(gridData, gridStats));
       },
     },
     mostCommonAnswers: {
       label: MOST_COMMON_ANSWERS_TAB_TEXT,
       onClick: () => {
         console.log("Most common");
-        setGridDisplayData(
-          insertInnerGridDisplayData(getInitialGridDisplayData(gridData), getMostCommonGridDisplayData())
-        );
+        setGridDisplayData(getMostCommonGridDisplayData(gridData, gridStats));
       },
     },
   };
@@ -314,9 +317,8 @@ function App() {
             className="mt-4"
             onClick={() => {
               async function endGameAndGetStats() {
-                endGameForGrid(gridId, scoreId);
-                const stats = await getStatsForGrid(gridId);
-                setGridStats(stats);
+                await endGameForGrid(gridId, scoreId);
+                await updateStatsForGrid(gridId);
               }
 
               // Tell the backend this game is over
@@ -334,7 +336,7 @@ function App() {
 
         {!gridLoadError && !isLoading && (
           <div className="grid-parent w-full grow p-4">
-            <Grid size={4} gridDisplayData={gridDisplayData} />
+            <Grid gridDisplayData={gridDisplayData} />
           </div>
         )}
       </div>

@@ -23,7 +23,7 @@ import {
   selectedRowAtom,
   usedAnswersAtom,
 } from "../state";
-import { recordGuessForGrid } from "../stats";
+import { useStats } from "../stats";
 import { useOverlayStack } from "./Overlay";
 
 interface SearchResultProps extends SearchResultData {
@@ -46,6 +46,7 @@ const SearchResult: React.FC<SearchResultProps> = ({
   const [guessesRemaining, setGuessesRemaining] = useAtom(guessesRemainingAtom);
   const [usedAnswers, setUsedAnswers] = useAtom(usedAnswersAtom);
   const [scoreId, setScoreId] = useAtom(scoreIdAtom);
+  const { recordGuessForGrid } = useStats();
   const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
   const { resetOverlayContents } = useOverlayStack();
   const [isWrong, setIsWrong] = useState(false);

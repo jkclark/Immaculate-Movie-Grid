@@ -5,14 +5,15 @@ import { AnyGridDisplayData } from "../gridDisplayData";
 import GridSquare from "./GridSquare";
 
 interface GridProps {
-  size: number;
   gridDisplayData: AnyGridDisplayData[][];
 }
 
-// NOTE: If you ever want to pass in a new value to the Grid's size param,
-// you need to add the corresponding `grid-cols-${size}` and `grid-rows-${size}`
-// classes to tailwind.config.js in the safelist.
-const Grid: React.FC<GridProps> = ({ gridDisplayData, size }) => {
+// NOTE: If you ever want to show a differently sized grid, you need to add the
+// corresponding `grid-cols-${size}` and `grid-rows-${size}` classes to
+// tailwind.config.js in the safelist.
+const Grid: React.FC<GridProps> = ({ gridDisplayData }) => {
+  const size = gridDisplayData.length;
+
   return (
     <div className={`grid-container aspect-[2/3] grid grid-cols-${size} grid-rows-${size} mx-auto`}>
       {gridDisplayData.flat().map((square, index) => (
