@@ -59,7 +59,9 @@ const GridSquare: React.FC<GridSquareProps> = ({
       className={`relative w-full h-full border ${border ? border : "border-slate-900"} ${cursor === "pointer" && "hover:cursor-pointer"}`}
     >
       {inner}
-      {cornerText && <div className="absolute top-0 right-0 bg-gray-600/40 p-1">{cornerText}</div>}
+      {cornerText && (
+        <div className="absolute top-0 right-0 rounded-bl-sm bg-gray-600/80 p-1">{cornerText}</div>
+      )}
     </div>
   );
 };

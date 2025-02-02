@@ -894,6 +894,10 @@ video {
   border-bottom-left-radius: 0.125rem;
 }
 
+.rounded-bl-sm {
+  border-bottom-left-radius: 0.125rem;
+}
+
 .border {
   border-width: 1px;
 }
@@ -943,8 +947,8 @@ video {
   background-color: rgb(249 250 251 / var(--tw-bg-opacity));
 }
 
-.bg-gray-600\/40 {
-  background-color: rgb(75 85 99 / 0.4);
+.bg-gray-600\/80 {
+  background-color: rgb(75 85 99 / 0.8);
 }
 
 .bg-gray-800 {
