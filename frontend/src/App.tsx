@@ -149,6 +149,7 @@ function App() {
     }
   }, [guessesRemaining]);
 
+  // Update the accuracy and most common answers tabs when the grid stats change
   useEffect(() => {
     if (activeTab === ACCURACY_TAB_TEXT) {
       setGridDisplayData(getAccuracyGridDisplayData(gridData, gridStats));
@@ -202,12 +203,9 @@ function App() {
                 addContentsToOverlay(<SearchBar />);
               }
             },
+            cursor: "pointer",
+            border: "border-slate-600",
           };
-
-          // Only show pointer cursor if the game is not over
-          if (!gameOver) {
-            squareDisplayData.cursor = "pointer";
-          }
 
           innerGridRow.push(squareDisplayData);
         }
@@ -242,12 +240,14 @@ function App() {
   }
 
   function cleanUpGameGridDisplayDataUponEnd() {
-    // Remove "cursor: 'pointer'" from all squares
     // NOTE: I'm not sure why but this smells like a hack
+    // 1. Remove "cursor: 'pointer'" from all squares
+    // 2. Remove custom border
     const newGridDisplayData = gridDisplayData.map((row) =>
       row.map((square) => {
         const newSquare = { ...square };
         delete newSquare.cursor;
+        delete newSquare.border;
         return newSquare;
       })
     );

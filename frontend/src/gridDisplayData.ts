@@ -7,6 +7,7 @@ interface GridDisplayData {
   clickHandler?: () => void;
   cornerText?: string;
   cursor?: "pointer";
+  border?: string;
 }
 
 export const gridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);
