@@ -10,9 +10,13 @@ interface GridSquareProps {
   mainText?: string;
   subText?: string;
   clickHandler?: () => void;
+  // Show text in the top right corner of the square if present
   cornerText?: string;
   cursor?: "pointer";
+  // Border color utility for the square
   border?: string;
+  // Show a "gradient" from the bottom of the square to the `backgroundGradientHeight` % of the way up
+  backgroundGradientHeight?: number;
   row: number;
   col: number;
 }
@@ -27,6 +31,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
   cornerText,
   cursor,
   border,
+  backgroundGradientHeight,
   row,
   col,
 }) => {
@@ -61,6 +66,12 @@ const GridSquare: React.FC<GridSquareProps> = ({
       {inner}
       {cornerText && (
         <div className="absolute top-0 right-0 rounded-bl-sm bg-gray-600/80 p-1">{cornerText}</div>
+      )}
+      {backgroundGradientHeight && backgroundGradientHeight > 0 && (
+        <div
+          className="z-0 absolute bottom-0 left-0 w-full bg-slate-600"
+          style={{ height: `${backgroundGradientHeight}%` }}
+        />
       )}
     </div>
   );

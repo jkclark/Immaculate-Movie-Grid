@@ -599,6 +599,10 @@ video {
   bottom: 0px;
 }
 
+.left-0 {
+  left: 0px;
+}
+
 .left-1\/2 {
   left: 50%;
 }
@@ -625,6 +629,10 @@ video {
 
 .top-2vh {
   top: 2vh;
+}
+
+.z-0 {
+  z-index: 0;
 }
 
 .z-10 {
@@ -959,6 +967,11 @@ video {
 .bg-sky-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(224 242 254 / var(--tw-bg-opacity));
+}
+
+.bg-slate-600 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(71 85 105 / var(--tw-bg-opacity));
 }
 
 .bg-white {

@@ -113,8 +113,11 @@ export function useGameSummary() {
       for (const downIndex of indexArray) {
         for (const acrossIndex of indexArray) {
           const percentage = gridStats.squarePercentages[`${acrossIndex}-${downIndex}`] || 0;
+          const roundedPercentage = parseInt(roundToNearestNDigits(percentage, 0));
           newInnerGridData[downIndex][acrossIndex] = {
-            mainText: `${roundToNearestNDigits(percentage, 0)}%`,
+            mainText: `${roundedPercentage}%`,
+            // Only add the gradient if the percentage is greater than 0
+            ...(roundedPercentage > 0 && { backgroundGradientHeight: roundedPercentage }),
           };
         }
       }

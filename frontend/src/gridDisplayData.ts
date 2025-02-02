@@ -8,6 +8,7 @@ interface GridDisplayData {
   cornerText?: string;
   cursor?: "pointer";
   border?: string;
+  backgroundGradientHeight?: number;
 }
 
 export const gridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);

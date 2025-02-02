@@ -55,7 +55,11 @@ const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, clickHandler
   let responsiveMainTextClass = `${smallScreenMainTextClass} sm:${largeScreenMainTextClass}`;
 
   return (
-    <div onClick={handleClick} className="w-full h-full text-center flex flex-col item-center justify-center">
+    <div
+      onClick={handleClick}
+      // NOTE: relative necessary for z-index so "gradient" can appear behind text
+      className="relative w-full h-full text-center flex flex-col item-center justify-center z-10"
+    >
       <p className={`${responsiveMainTextClass}`}>{mainText}</p>
       {subText && <p className="text-xl">{subText}</p>}
     </div>
