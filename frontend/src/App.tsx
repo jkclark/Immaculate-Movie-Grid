@@ -42,7 +42,6 @@ import { useGameSummary } from "./useGameSummary";
 
 function App() {
   const [gridId, setGridId] = useAtom(gridIdAtom);
-  const [isNewGrid, setIsNewGrid] = useState(false);
   const [gridData, setGridData] = useAtom(gridDataAtom);
   const [gridDisplayData, setGridDisplayData] = useAtom(gridDisplayDataAtom);
   // This could be a set, but I think it's clearer if it's a list of objects like this
@@ -100,9 +99,6 @@ function App() {
         // Save the grid's ID (which is today's date) to localStorage
         setGridId(jsonData.id);
 
-        // Set isNewGrid to true so we know to set up the initial grid display data
-        setIsNewGrid(true);
-
         setGridData(jsonData);
       }
 
@@ -134,7 +130,11 @@ function App() {
       return;
     }
 
-    setGridDisplayData(getInitialGameGridDisplayData(isNewGrid ? true : false));
+    if (gameOver) {
+      setGridDisplayData(finalGameGridDisplayData);
+    } else {
+      setGridDisplayData(getInitialGameGridDisplayData());
+    }
 
     setIsLoading(false);
   }, [gridData]);
@@ -172,18 +172,20 @@ function App() {
   /**
    * Get the initial game grid display data, including used answers if there is a grid in progress.
    *
+   * This function isn't called if the game is already over.
+   *
    * @param fresh whether or not to include usedAnswers from localstorage
    * @returns a 2D array of AnyGridDisplayData representing the initial game grid
    */
-  function getInitialGameGridDisplayData(fresh: boolean): AnyGridDisplayData[][] {
+  function getInitialGameGridDisplayData(): AnyGridDisplayData[][] {
     const newInnerGridData: AnyGridDisplayData[][] = [];
 
     // Create squares for inner grid
     for (let rowIndex = 0; rowIndex < gridData.axes.length / 2; rowIndex++) {
       const innerGridRow: AnyGridDisplayData[] = [];
       for (let colIndex = 0; colIndex < gridData.axes.length / 2; colIndex++) {
-        // We're restoring usedAnswers from localstorage
-        if (!fresh && usedAnswers[getRowColKey(rowIndex, colIndex)]) {
+        // This square was already answered correctly
+        if (usedAnswers[getRowColKey(rowIndex, colIndex)]) {
           console.log(`Restoring used answer for row ${rowIndex} and col ${colIndex}`);
           const { type, id, name } = usedAnswers[getRowColKey(rowIndex, colIndex)];
           innerGridRow.push({
@@ -193,7 +195,7 @@ function App() {
           });
         }
 
-        // We're starting fresh
+        // This square is empty
         else {
           const squareDisplayData: AnyGridDisplayData = {
             clickHandler: () => {
