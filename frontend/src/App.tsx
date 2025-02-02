@@ -237,6 +237,7 @@ function App() {
     setUsedAnswers({});
     setScoreId(undefined);
     setGridStats({});
+    setFinalGameGridDisplayData([]);
   }
 
   function cleanUpGameGridDisplayDataUponEnd() {
