@@ -14,12 +14,12 @@ const CreditDetails: React.FC<CreditDetailsProps> = ({ credit }) => {
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="flex items-start md:flex-row bg-white dark:bg-gray-800 w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-3 md:p-6 relative"
+      className="flex items-start md:flex-row bg-theme-light-primary dark:bg-theme-dark-primary w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-3 md:p-6 relative"
     >
       <svg
         onClick={() => popOverlayContents()}
         xmlns="http://www.w3.org/2000/svg"
-        className="h-6 w-6 absolute top-2 right-2 cursor-pointer hover:text-blue-500"
+        className="h-6 w-6 absolute top-2 right-2 cursor-pointer hover:text-theme-light-other-1 hover:dark:text-theme-dark-other-1"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"

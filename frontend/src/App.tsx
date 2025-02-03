@@ -206,7 +206,7 @@ function App() {
               }
             },
             cursor: "pointer",
-            border: "border-slate-600",
+            border: "border-theme-light-other-1 dark:border-theme-dark-other-1",
           };
 
           innerGridRow.push(squareDisplayData);
@@ -307,7 +307,7 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col h-dvh dark:bg-gray-800 dark:text-white items-center">
+    <div className="flex flex-col h-dvh bg-theme-light-primary dark:bg-theme-dark-primary dark:text-white items-center">
       <Navbar />
 
       <Overlay />

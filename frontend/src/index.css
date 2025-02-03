@@ -11,5 +11,9 @@ button {
 }
 
 .selected-tab {
-  @apply bg-yellow-600 text-white border border-white hover:bg-yellow-600;
+  @apply bg-theme-light-other-1 dark:bg-theme-dark-other-1 text-white border border-white hover:bg-theme-light-secondary hover:dark:bg-theme-dark-secondary;
+}
+
+.unselected-tab {
+  @apply bg-theme-light-other-2 dark:bg-theme-dark-other-2 text-white hover:bg-theme-light-secondary hover:dark:bg-theme-dark-secondary;
 }

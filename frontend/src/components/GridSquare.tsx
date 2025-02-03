@@ -61,7 +61,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
 
   return (
     <div
-      className={`relative w-full h-full border ${border ? border : "border-slate-900"} ${cursor === "pointer" && "hover:cursor-pointer"}`}
+      className={`relative w-full h-full border ${border ? border : "border-theme-light-secondary dark:border-theme-dark-secondary"} ${cursor === "pointer" && "hover:cursor-pointer"}`}
     >
       {inner}
       {cornerText && (
@@ -69,7 +69,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
       )}
       {backgroundGradientHeight && backgroundGradientHeight > 0 && (
         <div
-          className="z-0 absolute bottom-0 left-0 w-full bg-slate-600"
+          className="z-0 absolute bottom-0 left-0 w-full bg-theme-light-secondary dark:bg-theme-dark-secondary"
           style={{ height: `${backgroundGradientHeight}%` }}
         />
       )}

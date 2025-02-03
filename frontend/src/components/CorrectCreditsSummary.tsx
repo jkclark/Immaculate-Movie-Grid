@@ -18,7 +18,7 @@ const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="flex flex-col md:flex-row bg-white dark:bg-gray-800 w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-3 md:p-6 relative"
+      className="flex flex-col md:flex-row bg-theme-light-primary dark:bg-theme-dark-primary w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-3 md:p-6 relative"
     >
       <CreditList title="Movies" credits={movies} />
       <CreditList title="TV Shows" credits={tvShows} />
@@ -28,7 +28,7 @@ const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
-        className="h-6 w-6 absolute top-2 right-2 cursor-pointer hover:text-blue-500"
+        className="h-6 w-6 absolute top-2 right-2 cursor-pointer hover:text-theme-light-other-1 hover:dark:text-theme-dark-other-1"
       >
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
       </svg>
@@ -105,7 +105,7 @@ const CreditList: React.FC<CreditListProps> = ({ title, credits }) => {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="h-6 w-6 ml-2 hover:text-blue-500"
+              className="h-6 w-6 ml-2 hover:text-theme-light-other-1 hover:dark:text-theme-dark-other-1"
             >
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="16" x2="12" y2="12" />
