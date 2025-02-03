@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import AboutDisplay from "./AboutDisplay";
+import DarkModeToggle from "./DarkModeToggle";
 import HowToPlayDisplay from "./HowToPlayDisplay";
 import { useOverlayStack } from "./Overlay";
 
@@ -26,30 +27,29 @@ const Navbar: React.FC = () => {
       <div
         className={`${isOpen ? "block" : "hidden"} absolute w-full bg-theme-light-secondary dark:bg-theme-dark-secondary lg:relative lg:flex lg:items-center lg:w-auto mt-30 lg:mt-0 -ml-4`}
       >
-        <div className="text-sm lg:flex-grow">
-          <a
-            href="#responsive-header"
-            className="block mt-4 lg:inline-block lg:mt-0 text-gray-900 dark:text-white hover:text-blue-500 mr-4 pl-4 lg:pl-0"
-            // e.preventDefault prevents the URL from changing
-            onClick={(e) => {
-              e.preventDefault();
-              addContentsToOverlay(<HowToPlayDisplay />);
-            }}
-          >
-            How to play
-          </a>
-          <a
-            href="#responsive-header"
-            className="block mt-4 lg:inline-block lg:mt-0 text-gray-900 dark:text-white hover:text-blue-500 pl-4 lg:pl-0 mb-3 lg:mb-0"
-            // e.preventDefault prevents the URL from changing
-            onClick={(e) => {
-              e.preventDefault();
-              addContentsToOverlay(<AboutDisplay />);
-            }}
-          >
-            About
-          </a>
-        </div>
+        <a
+          href="#responsive-header"
+          className="block mt-4 lg:inline-block lg:mt-0 text-gray-900 dark:text-white hover:text-blue-500 mr-4 pl-4 lg:pl-0"
+          // e.preventDefault prevents the URL from changing
+          onClick={(e) => {
+            e.preventDefault();
+            addContentsToOverlay(<HowToPlayDisplay />);
+          }}
+        >
+          How to play
+        </a>
+        <a
+          href="#responsive-header"
+          className="block mt-4 lg:inline-block lg:mt-0 text-gray-900 dark:text-white hover:text-blue-500 pl-4 lg:pl-0 mb-3 lg:mb-0 lg:mr-3"
+          // e.preventDefault prevents the URL from changing
+          onClick={(e) => {
+            e.preventDefault();
+            addContentsToOverlay(<AboutDisplay />);
+          }}
+        >
+          About
+        </a>
+        <DarkModeToggle />
       </div>
     </nav>
   );

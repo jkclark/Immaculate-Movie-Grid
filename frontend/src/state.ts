@@ -61,3 +61,5 @@ export const activeTabAtom = atom<string>(YOUR_ANSWERS_TAB_TEXT);
 export function getRowColKey(row: number, col: number) {
   return `row:${row},col:${col}`;
 }
+
+export const darkModeAtom = getAtomWithStorageInit<boolean>("darkMode", false);

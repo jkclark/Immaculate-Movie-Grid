@@ -142,6 +142,7 @@ const semanticColors = {
 };
 
 export default {
+  darkMode: "class",
   content: ["index.html", "src/**/*.{vue,js,ts,jsx,tsx}"],
   safelist: [
     "text-xl",
