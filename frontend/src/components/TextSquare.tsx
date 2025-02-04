@@ -58,7 +58,7 @@ const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, clickHandler
     <div
       onClick={handleClick}
       // NOTE: relative necessary for z-index so "gradient" can appear behind text
-      className="relative w-full h-full text-center flex flex-col item-center justify-center z-10"
+      className="relative w-full h-full text-center flex flex-col item-center justify-center z-10 theme-text"
     >
       <p className={`${responsiveMainTextClass}`}>{mainText}</p>
       {subText && <p className="text-xl">{subText}</p>}

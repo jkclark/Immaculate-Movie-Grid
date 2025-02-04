@@ -69,7 +69,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
       )}
       {backgroundGradientHeight && backgroundGradientHeight > 0 && (
         <div
-          className="z-0 absolute bottom-0 left-0 w-full bg-theme-light-secondary dark:bg-theme-dark-secondary"
+          className="z-0 absolute bottom-0 left-0 w-full bg-theme-secondary"
           style={{ height: `${backgroundGradientHeight}%` }}
         />
       )}

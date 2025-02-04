@@ -18,8 +18,13 @@ const HowToPlayDisplay: React.FC = () => {
           <p>
             For example, if a square lies at the intersection of Marlon Brando and Al Pacino, you could fill
             in that square with{" "}
-            <span className="bg-black text-black hover:text-white transition-colors duration-300 italic rounded-sm">
-              <a href="https://www.themoviedb.org/movie/238-the-godfather?language=en-US">The Godfather</a>
+            <span className="bg-theme-secondary italic rounded-sm">
+              <a
+                href="https://www.themoviedb.org/movie/238-the-godfather?language=en-US"
+                className="text-theme-light-secondary dark:text-theme-dark-secondary hover:theme-text transition-colors duration-300"
+              >
+                The Godfather
+              </a>
             </span>
             .
           </p>

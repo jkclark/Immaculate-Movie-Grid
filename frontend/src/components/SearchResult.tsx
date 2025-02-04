@@ -172,16 +172,16 @@ const SearchResult: React.FC<SearchResultProps> = ({
   return (
     <div
       className={
-        "bg-gray-800 p-4 shadow-lg border border-gray-600 text-sm hover:bg-gray-700 flex justify-between items-center"
+        "bg-theme-primary p-4 shadow-lg border border-theme-light-other-2 dark:border-theme-dark-other-2 text-sm hover:bg-theme-other-2 flex justify-between items-center"
       }
     >
-      <div className={`${isWrong ? "text-red-700" : "text-white"}`}>
+      <div className={`${isWrong ? "text-red-500" : "theme-text"}`}>
         <span className="text-lg font-bold">{`${emoji} ${title}`}</span>
-        <span className="text-sm text-gray-500 block">{`(${dateString})`}</span>
+        <span className="text-sm theme-text block">{`(${dateString})`}</span>
       </div>
       <button
         onClick={handleClick}
-        className={`${isWrong ? "invisible" : ""} bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded`}
+        className={`${isWrong ? "invisible" : ""} selected-tab font-bold py-2 px-4 rounded`}
       >
         Select
       </button>

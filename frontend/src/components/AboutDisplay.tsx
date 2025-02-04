@@ -11,7 +11,7 @@ const AboutDisplay: React.FC = () => {
           <br />
           <p className="text-base">
             This game was inspired by the similar, baseball-themed{" "}
-            <a href="https://www.immaculategrid.com/" className="text-blue-500 underline">
+            <a href="https://www.immaculategrid.com/" className="underline">
               Immaculate Grid
             </a>
             .
@@ -23,7 +23,7 @@ const AboutDisplay: React.FC = () => {
           <br />
           <p className="text-base">
             All of the data used in this game comes from the amazing{" "}
-            <a href="https://www.themoviedb.org/" className="text-blue-500 underline">
+            <a href="https://www.themoviedb.org/" className="underline">
               TMDB
             </a>
             , who generously provide a free-to-use API.
@@ -31,7 +31,7 @@ const AboutDisplay: React.FC = () => {
           <br />
           <p>
             The game also uses{" "}
-            <a href="https://www.flaticon.com/packs/cinema-183" className="text-blue-500 underline">
+            <a href="https://www.flaticon.com/packs/cinema-183" className="underline">
               icons created by Freepik
             </a>
             .

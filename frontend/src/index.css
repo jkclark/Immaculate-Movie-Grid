@@ -7,13 +7,17 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 button {
-  @apply bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded;
+  @apply theme-text py-1 px-3 rounded;
+}
+
+a {
+  @apply text-theme-light-accent dark:text-theme-dark-accent;
 }
 
 .selected-tab {
-  @apply bg-theme-light-other-1 dark:bg-theme-dark-other-1 text-white border border-white hover:bg-theme-light-secondary hover:dark:bg-theme-dark-secondary;
+  @apply bg-theme-other-1 theme-text hover:bg-theme-secondary;
 }
 
 .unselected-tab {
-  @apply bg-theme-light-other-2 dark:bg-theme-dark-other-2 text-white hover:bg-theme-light-secondary hover:dark:bg-theme-dark-secondary;
+  @apply bg-theme-other-2 theme-text hover:bg-theme-secondary;
 }

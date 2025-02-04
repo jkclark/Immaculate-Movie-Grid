@@ -61,7 +61,11 @@ const lightThemePalette = {
     800: "#faf6f4",
     900: "#fcfaf9",
   },
+  josh_black: {
+    DEFAULT: "#000",
+  },
 };
+
 const darkThemePalette = {
   timberwolf: {
     DEFAULT: "#dad7cd",
@@ -123,6 +127,9 @@ const darkThemePalette = {
     800: "#a3c2b3",
     900: "#d1e0d9",
   },
+  josh_white: {
+    DEFAULT: "#FFF",
+  },
 };
 
 const semanticColors = {
@@ -132,6 +139,7 @@ const semanticColors = {
   "theme-light-accent": lightThemePalette.rose_quartz,
   "theme-light-other-1": lightThemePalette.pale_dogwood,
   "theme-light-other-2": lightThemePalette.isabelline,
+  "theme-light-text": lightThemePalette.josh_black,
 
   // Dark theme
   "theme-dark-primary": darkThemePalette.brunswick_green,
@@ -139,6 +147,7 @@ const semanticColors = {
   "theme-dark-accent": darkThemePalette.timberwolf,
   "theme-dark-other-1": darkThemePalette.sage,
   "theme-dark-other-2": darkThemePalette.hunter_green,
+  "theme-dark-text": darkThemePalette.josh_white,
 };
 
 export default {
@@ -173,5 +182,28 @@ export default {
       colors: semanticColors,
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        ".bg-theme-primary": {
+          "@apply bg-theme-light-primary dark:bg-theme-dark-primary": {},
+        },
+        ".bg-theme-secondary": {
+          "@apply bg-theme-light-secondary dark:bg-theme-dark-secondary": {},
+        },
+        ".bg-theme-accent": {
+          "@apply bg-theme-light-accent dark:bg-theme-dark-accent": {},
+        },
+        ".bg-theme-other-1": {
+          "@apply bg-theme-light-other-1 dark:bg-theme-dark-other-1": {},
+        },
+        ".bg-theme-other-2": {
+          "@apply bg-theme-light-other-2 dark:bg-theme-dark-other-2": {},
+        },
+        ".theme-text": {
+          "@apply text-theme-light-text dark:text-theme-dark-text": {},
+        },
+      });
+    },
+  ],
 };

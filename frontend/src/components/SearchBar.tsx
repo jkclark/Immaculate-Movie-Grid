@@ -56,16 +56,13 @@ const SearchBar: React.FC = () => {
       onSubmit={(e) => e.preventDefault()}
       className="w-full max-w-screen-lg px-10 z-30 absolute top-2vh left-1/2 transform -translate-x-1/2"
     >
-      <label
-        htmlFor="default-search"
-        className="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white"
-      >
+      <label htmlFor="default-search" className="mb-2 text-sm font-medium sr-only theme-text">
         Search
       </label>
       <div className="relative">
         <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
           <svg
-            className="w-4 h-4 text-gray-500 dark:text-gray-400"
+            className="w-4 h-4 theme-text"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -85,7 +82,7 @@ const SearchBar: React.FC = () => {
             ref={inputRef}
             type="search"
             id="default-search"
-            className={`block w-full p-4 ps-10 text-base text-gray-900 border border-gray-300 rounded bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+            className={`block w-full p-4 ps-10 text-base theme-text border border-theme-light-other-1 rounded bg-theme-primary focus:ring-theme-light-accent focus:border-theme-light-accent dark:border-theme-dark-other-1 placeholder-theme-light-text dark:placeholder-theme-dark-text dark:focus:ring-theme-dark-accent dark:focus:border-theme-dark-accent`}
             placeholder="Search any movie or TV show"
             required
             onChange={(e) => setInputText(e.target.value)}
@@ -93,11 +90,11 @@ const SearchBar: React.FC = () => {
           />
           {isLoading && (
             <div className="absolute right-0 top-0 bottom-0 flex items-center justify-end pr-3">
-              <PiFilmSlate className="w-6 h-6 animate-spin" />
+              <PiFilmSlate className="w-6 h-6 animate-spin theme-text" />
             </div>
           )}
           {!isLoading && inputText && inputText === previousInputText && (
-            <div className="absolute right-0 top-0 bottom-0 flex items-center justify-end pr-3 text-sm text-gray-400">
+            <div className="absolute right-0 top-0 bottom-0 flex items-center justify-end pr-3 text-sm theme-text">
               <p>{searchResults.length} results </p>
             </div>
           )}

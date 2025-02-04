@@ -18,7 +18,7 @@ const CorrectCreditsSummary: React.FC<CorrectCreditsSummaryProps> = ({ credits }
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="flex flex-col md:flex-row bg-theme-light-primary dark:bg-theme-dark-primary w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-3 md:p-6 relative"
+      className="flex flex-col md:flex-row bg-theme-primary w-4/5 md:w-2/3 max-w-[800px] h-1/2 rounded-lg shadow-lg p-3 md:p-6 relative"
     >
       <CreditList title="Movies" credits={movies} />
       <CreditList title="TV Shows" credits={tvShows} />
@@ -86,13 +86,13 @@ const CreditList: React.FC<CreditListProps> = ({ title, credits }) => {
       className="flex flex-col w-full md:w-1/2 text-center overflow-auto max-h-[desiredHeight]"
       onScroll={handleScroll}
     >
-      <h2 className="text-xl font-bold mb-4">{title}</h2>
+      <h2 className="text-xl font-bold mb-4 theme-text">{title}</h2>
       <ul className="mb-8 flex flex-col">
         {visibleCredits.map((credit, index) => (
           <li
             key={`${credit.type}-${credit.id}-${index}`}
             onClick={() => addContentsToOverlay(<CreditDetails credit={credit} />)}
-            className="text-gray-700 dark:text-gray-300 flex items-center justify-between cursor-pointer mb-2"
+            className="flex items-center justify-between cursor-pointer mb-2 theme-text hover:text-theme-light-other-1 hover:dark:text-theme-dark-other-1"
           >
             <div className="flex-1 overflow-hidden">
               <p className="truncate whitespace-nowrap">{credit.name}</p>

@@ -307,7 +307,7 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col h-dvh bg-theme-light-primary dark:bg-theme-dark-primary dark:text-white items-center">
+    <div className="flex flex-col h-dvh bg-theme-primary items-center">
       <Navbar />
 
       <Overlay />
@@ -317,7 +317,7 @@ function App() {
         {gridLoadError && <div>There was an error loading the grid data. Please try again later.</div>}
         {!gridLoadError && !isLoading && !gameOver && (
           <button
-            className="mt-4"
+            className="unselected-tab mt-4"
             onClick={() => {
               async function endGameAndGetStats() {
                 await endGameForGrid(gridId, scoreId);
