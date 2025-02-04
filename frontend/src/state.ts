@@ -62,4 +62,5 @@ export function getRowColKey(row: number, col: number) {
   return `row:${row},col:${col}`;
 }
 
-export const darkModeAtom = getAtomWithStorageInit<boolean>("darkMode", false);
+const prefersDarkMode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+export const darkModeAtom = getAtomWithStorageInit<boolean>("darkMode", prefersDarkMode);
