@@ -61,94 +61,123 @@ const lightThemePalette = {
     800: "#faf6f4",
     900: "#fcfaf9",
   },
-  josh_black: {
-    DEFAULT: "#000",
-  },
 };
 
 const darkThemePalette = {
-  timberwolf: {
-    DEFAULT: "#dad7cd",
-    100: "#312e24",
-    200: "#615b48",
-    300: "#92896c",
-    400: "#b6b09c",
-    500: "#dad7cd",
-    600: "#e2dfd7",
-    700: "#e9e7e1",
-    800: "#f0efeb",
-    900: "#f8f7f5",
+  gunmetal: {
+    DEFAULT: "#16262e",
+    100: "#040709",
+    200: "#090f12",
+    300: "#0d161b",
+    400: "#111e24",
+    500: "#16262e",
+    600: "#325769",
+    700: "#4f88a5",
+    800: "#87b1c5",
+    900: "#c3d8e2",
   },
-  sage: {
-    DEFAULT: "#a3b18a",
-    100: "#212619",
-    200: "#434c33",
-    300: "#64724c",
-    400: "#859865",
-    500: "#a3b18a",
-    600: "#b6c1a2",
-    700: "#c8d0b9",
-    800: "#dae0d0",
-    900: "#edefe8",
+  charcoal: {
+    DEFAULT: "#2e4756",
+    100: "#090e11",
+    200: "#131c22",
+    300: "#1c2b34",
+    400: "#253945",
+    500: "#2e4756",
+    600: "#496f87",
+    700: "#6c96b0",
+    800: "#9db9ca",
+    900: "#cedce5",
   },
-  fern_green: {
-    DEFAULT: "#588157",
-    100: "#111911",
-    200: "#233323",
-    300: "#344c34",
-    400: "#466645",
-    500: "#588157",
-    600: "#739f72",
-    700: "#96b795",
-    800: "#b9cfb9",
-    900: "#dce7dc",
+  cerulean: {
+    DEFAULT: "#3c7a89",
+    100: "#0c191c",
+    200: "#183137",
+    300: "#244a53",
+    400: "#31626f",
+    500: "#3c7a89",
+    600: "#52a0b3",
+    700: "#7db8c6",
+    800: "#a9cfd9",
+    900: "#d4e7ec",
   },
-  hunter_green: {
-    DEFAULT: "#3a5a40",
-    100: "#0c120d",
-    200: "#172419",
-    300: "#233626",
-    400: "#2e4833",
-    500: "#3a5a40",
-    600: "#56865f",
-    700: "#7aaa83",
-    800: "#a7c7ac",
-    900: "#d3e3d6",
+  cool_gray: {
+    DEFAULT: "#9fa2b2",
+    100: "#1e1f25",
+    200: "#3c3e4b",
+    300: "#5a5d70",
+    400: "#797d94",
+    500: "#9fa2b2",
+    600: "#b2b4c1",
+    700: "#c5c7d1",
+    800: "#d9dae0",
+    900: "#ececf0",
   },
-  brunswick_green: {
-    DEFAULT: "#344e41",
-    100: "#0a0f0d",
-    200: "#141f1a",
-    300: "#1f2e26",
-    400: "#293d33",
-    500: "#344e41",
-    600: "#527a66",
-    700: "#75a38c",
-    800: "#a3c2b3",
-    900: "#d1e0d9",
-  },
-  josh_white: {
-    DEFAULT: "#FFF",
+  thistle: {
+    DEFAULT: "#dbc2cf",
+    100: "#341f2a",
+    200: "#683d53",
+    300: "#9c5c7d",
+    400: "#bd8ea6",
+    500: "#dbc2cf",
+    600: "#e2ced9",
+    700: "#e9dae2",
+    800: "#f1e7ec",
+    900: "#f8f3f5",
   },
 };
 
-const semanticColors = {
-  // Light theme
-  "theme-light-primary": lightThemePalette.space_cadet,
-  "theme-light-secondary": lightThemePalette.ultra_violet,
-  "theme-light-accent": lightThemePalette.rose_quartz,
-  "theme-light-other-1": lightThemePalette.pale_dogwood,
-  "theme-light-other-2": lightThemePalette.isabelline,
-  "theme-light-text": lightThemePalette.josh_black,
+/**
+ * Here we map the color palettes above to semantic color names. For example,
+ * the first color in the lightThemePalette object will get mapped to the
+ * theme-light-primary semantic color name because "primary" is the first color
+ * name in the themeColorNames array.
+ */
+const semanticColors = {};
+const themeColorNames = [
+  "primary",
+  "secondary",
+  "accent",
+  "other-1",
+  "other-2",
+  // "text",
+];
 
-  // Dark theme
-  "theme-dark-primary": darkThemePalette.brunswick_green,
-  "theme-dark-secondary": darkThemePalette.fern_green,
-  "theme-dark-accent": darkThemePalette.timberwolf,
-  "theme-dark-other-1": darkThemePalette.sage,
-  "theme-dark-other-2": darkThemePalette.hunter_green,
-  "theme-dark-text": darkThemePalette.josh_white,
-};
+// Add the light colors in order
+let index = 0;
+for (const value of Object.values(lightThemePalette)) {
+  semanticColors[`theme-light-${themeColorNames[index]}`] = value;
+  index += 1;
+}
+
+index = 0;
+// Add the dark colors in order
+for (const value of Object.values(darkThemePalette)) {
+  // Add the dark theme color to the semantic colors
+  semanticColors[`theme-dark-${themeColorNames[index]}`] = value;
+  index += 1;
+}
+
+// Manually add the text colors for now
+semanticColors["theme-light-text"] = { DEFAULT: "#000" };
+semanticColors["theme-dark-text"] = { DEFAULT: "#fff" };
+
+// semanticColors looks like this:
+// const semanticColors = {
+//   "theme-light-primary": lightThemePalette.space_cadet,
+//   "theme-light-secondary": lightThemePalette...,
+//   "theme-light-accent": lightThemePalette...,
+//   "theme-light-other-1": lightThemePalette...,
+//   "theme-light-other-2": lightThemePalette...,
+//
+//   "theme-dark-primary": darkThemePalette.gunmetal,
+//   "theme-dark-secondary": darkThemePalette...,
+//   "theme-dark-accent": darkThemePalette...,
+//   "theme-dark-other-1": darkThemePalette...,
+//   "theme-dark-other-2": darkThemePalette...,
+//
+//   "theme-light-text": { DEFAULT: "#000" },
+//   "theme-dark-text": { DEFAULT: "#fff" },
+// };
 
 export default {
   darkMode: "class",
