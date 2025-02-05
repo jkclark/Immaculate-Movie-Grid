@@ -320,7 +320,9 @@ function App() {
             className="unselected-tab mt-4"
             onClick={() => {
               async function endGameAndGetStats() {
-                await endGameForGrid(gridId, scoreId);
+                const endGameResponse = await endGameForGrid(gridId, scoreId);
+                setScoreId(endGameResponse.score_id);
+
                 await updateStatsForGrid(gridId);
               }
 
