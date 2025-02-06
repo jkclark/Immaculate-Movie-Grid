@@ -9,7 +9,7 @@ const Navbar: React.FC = () => {
   const { addContentsToOverlay } = useOverlayStack();
 
   return (
-    <nav className="relative flex items-center justify-between flex-wrap bg-theme-secondary px-4 py-2 w-full z-10">
+    <nav className="relative flex items-center justify-between flex-wrap bg-theme-secondary px-4 py-2 w-full z-20">
       <div className="flex items-center flex-shrink-0 theme-text mr-6">
         <span className="font-semibold text-xl tracking-tight">Immaculate Movie Grid</span>
       </div>
@@ -25,7 +25,7 @@ const Navbar: React.FC = () => {
         </button>
       </div>
       <div
-        className={`${isOpen ? "block" : "hidden"} absolute w-full bg-theme-secondary lg:relative lg:flex lg:items-center lg:w-auto mt-30 lg:mt-0 -ml-4`}
+        className={`${isOpen ? "block" : "hidden"} absolute w-full top-full left-0 pb-1 bg-theme-secondary lg:relative lg:flex lg:items-center lg:w-auto lg:top-0 lg:pb-0`}
       >
         <a
           href="#responsive-header"

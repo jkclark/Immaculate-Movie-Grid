@@ -18,7 +18,10 @@ const DarkModeToggle: React.FC = () => {
   }
 
   return (
-    <button onClick={toggleDarkMode} className="h-full bg-transparent hover:bg-theme-other-2">
+    <button
+      onClick={toggleDarkMode}
+      className="h-full bg-transparent hover:bg-theme-other-2 ml-3 px-2 lg:ml-0 lg:px-2"
+    >
       {darkMode ? (
         // We're in dark mode, so show a sun icon
         // Credit: https://www.svgrepo.com/svg/523849/sun-2
