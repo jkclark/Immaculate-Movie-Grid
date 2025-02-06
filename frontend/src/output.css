@@ -1236,64 +1236,40 @@ a:is(.dark *) {
   color: rgb(49 92 43 / var(--tw-text-opacity));
 }
 
-.selected-tab {
-  --tw-bg-opacity: 1;
-  background-color: rgb(201 173 167 / var(--tw-bg-opacity));
-}
-
-.selected-tab:is(.dark *) {
-  --tw-bg-opacity: 1;
-  background-color: rgb(96 113 47 / var(--tw-bg-opacity));
-}
-
-.selected-tab {
+.tab {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity));
 }
 
+.tab:is(.dark *) {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+.selected-tab {
+  --tw-bg-opacity: 1;
+  background-color: rgb(154 140 152 / var(--tw-bg-opacity));
+}
+
 .selected-tab:is(.dark *) {
-  --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity));
-}
-
-.selected-tab:hover {
   --tw-bg-opacity: 1;
-  background-color: rgb(74 78 105 / var(--tw-bg-opacity));
-}
-
-.selected-tab:hover:is(.dark *) {
-  --tw-bg-opacity: 1;
-  background-color: rgb(39 64 41 / var(--tw-bg-opacity));
+  background-color: rgb(49 92 43 / var(--tw-bg-opacity));
 }
 
 .unselected-tab {
-  --tw-bg-opacity: 1;
-  background-color: rgb(242 233 228 / var(--tw-bg-opacity));
-}
-
-.unselected-tab:is(.dark *) {
-  --tw-bg-opacity: 1;
-  background-color: rgb(158 169 63 / var(--tw-bg-opacity));
-}
-
-.unselected-tab {
-  --tw-text-opacity: 1;
-  color: rgb(0 0 0 / var(--tw-text-opacity));
-}
-
-.unselected-tab:is(.dark *) {
-  --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity));
+  border-width: 1px;
+  border-color: transparent;
 }
 
 .unselected-tab:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(74 78 105 / var(--tw-bg-opacity));
+  border-width: 1px;
+  --tw-border-opacity: 1;
+  border-color: rgb(154 140 152 / var(--tw-border-opacity));
 }
 
-.unselected-tab:hover:is(.dark *) {
-  --tw-bg-opacity: 1;
-  background-color: rgb(39 64 41 / var(--tw-bg-opacity));
+.unselected-tab:is(.dark *):hover {
+  --tw-border-opacity: 1;
+  border-color: rgb(49 92 43 / var(--tw-border-opacity));
 }
 
 .hover\:cursor-default:hover {
@@ -1492,6 +1468,11 @@ a:is(.dark *) {
 
   .lg\:items-center {
     align-items: center;
+  }
+
+  .lg\:px-0 {
+    padding-left: 0px;
+    padding-right: 0px;
   }
 
   .lg\:pl-0 {

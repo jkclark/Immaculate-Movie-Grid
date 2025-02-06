@@ -14,10 +14,14 @@ a {
   @apply text-theme-light-accent dark:text-theme-dark-accent;
 }
 
+.tab {
+  @apply theme-text;
+}
+
 .selected-tab {
-  @apply bg-theme-other-1 theme-text hover:bg-theme-secondary;
+  @apply bg-theme-accent;
 }
 
 .unselected-tab {
-  @apply bg-theme-other-2 theme-text hover:bg-theme-secondary;
+  @apply border border-transparent hover:border hover:border-theme-light-accent hover:dark:border-theme-dark-accent;
 }

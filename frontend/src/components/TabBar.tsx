@@ -23,7 +23,7 @@ const TabBar: React.FC<TabBarProps> = ({ tabs }) => {
   const [activeTab, setActiveTab] = useAtom(activeTabAtom);
 
   return (
-    <div className="flex flex-row w-full justify-around mt-4">
+    <div className="flex flex-row w-full justify-around mt-4 px-4 lg:px-0">
       {Object.values(tabs).map((tab, index) => {
         return (
           <Tab
@@ -43,7 +43,7 @@ const TabBar: React.FC<TabBarProps> = ({ tabs }) => {
 
 const Tab: React.FC<TabProps> = ({ label, onClick, active }) => {
   return (
-    <button className={`${active ? "selected-tab" : "unselected-tab"}`} onClick={onClick}>
+    <button className={`tab ${active ? "selected-tab" : "unselected-tab"}`} onClick={onClick}>
       {label}
     </button>
   );
