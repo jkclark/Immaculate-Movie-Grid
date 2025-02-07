@@ -255,6 +255,12 @@ function App() {
       })
     );
 
+    // Remove guesses left
+    newGridDisplayData[0][0] = {
+      mainText: Object.keys(usedAnswers).length.toString(),
+      subText: "Final score",
+    };
+
     return newGridDisplayData;
   }
 
