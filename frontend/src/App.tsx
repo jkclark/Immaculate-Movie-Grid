@@ -323,7 +323,7 @@ function App() {
         {gridLoadError && <div>There was an error loading the grid data. Please try again later.</div>}
         {!gridLoadError && !isLoading && !gameOver && (
           <button
-            className="unselected-tab mt-4"
+            className="selected-tab mt-4"
             onClick={() => {
               async function endGameAndGetStats() {
                 const endGameResponse = await endGameForGrid(gridId, scoreId);
