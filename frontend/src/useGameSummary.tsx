@@ -55,7 +55,16 @@ export function useGameSummary() {
       newInnerGridData.push(innerGridRow);
     }
 
-    return insertInnerGridDisplayData(getInitialGridDisplayData(gridData), newInnerGridData);
+    const initialGridDisplayData = getInitialGridDisplayData(gridData);
+
+    // Add total number of distinct credits in grid to the top left corner
+    const totalCreditsGridDisplayDatum = {
+      mainText: Object.keys(gridData.credits).length.toString(),
+      subText: "Total",
+    };
+    initialGridDisplayData[0][0] = totalCreditsGridDisplayDatum;
+
+    return insertInnerGridDisplayData(initialGridDisplayData, newInnerGridData);
   }
 
   // TODO: This is copy-pasted from another file. Also we should just refactor the gridExport to be
