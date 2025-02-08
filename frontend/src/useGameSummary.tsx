@@ -17,10 +17,10 @@ export function useGameSummary() {
   /*** Basic stats ***/
   // TODO
   // Mapping of basic stat names to the number of decimals we should show, if any
-  const statToDecimals: { [key: string]: number } = {
-    avgScore: 2,
-    numGames: 0,
-  };
+  // const statToDecimals: { [key: string]: number } = {
+  //   avgScore: 2,
+  //   numGames: 0,
+  // };
 
   /*** All correct answers ***/
   function getAllAnswerGridDisplayData(gridData: GridExport): AnyGridDisplayData[][] {
