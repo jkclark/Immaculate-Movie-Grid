@@ -712,8 +712,8 @@ video {
   display: none;
 }
 
-.aspect-\[2\/3\] {
-  aspect-ratio: 2/3;
+.aspect-square {
+  aspect-ratio: 1 / 1;
 }
 
 .h-1\/2 {
@@ -966,6 +966,11 @@ video {
 
 .fill-current {
   fill: currentColor;
+}
+
+.object-contain {
+  -o-object-fit: contain;
+     object-fit: contain;
 }
 
 .p-1 {

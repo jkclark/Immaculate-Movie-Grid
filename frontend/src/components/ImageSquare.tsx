@@ -24,15 +24,12 @@ const ImageSquare: React.FC<ImageSquareProps> = ({ imageURL, hoverText, backupIm
   };
 
   return (
-    <div
-      onClick={handleClick}
-      className="h-full aspect-[2/3] flex items-center justify-center relative group"
-    >
+    <div onClick={handleClick} className="w-full h-full flex items-center justify-center relative group">
       <ImageWithBackup
         imageURL={imageURL}
         altText={hoverText}
         backupImageURL={backupImageURL}
-        className="h-full"
+        className="h-full object-contain"
       />
       <div
         className={`absolute inset-0 bg-black ${isMobile ? (isTextVisible ? "opacity-50" : "opacity-0") : "opacity-0 group-hover:opacity-50"} transition-opacity duration-100`}

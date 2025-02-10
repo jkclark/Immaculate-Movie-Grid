@@ -64,7 +64,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
 
   return (
     <div
-      className={`relative w-full h-full ${!isAxisSquare && "border"} ${border ? border : "border-theme-light-secondary dark:border-theme-dark-secondary"} ${cursor === "pointer" && "hover:cursor-pointer"}`}
+      className={`relative w-full aspect-square ${!isAxisSquare && "border"} ${border ? border : "border-theme-light-secondary dark:border-theme-dark-secondary"} ${cursor === "pointer" && "hover:cursor-pointer"}`}
     >
       {inner}
       {cornerText && (

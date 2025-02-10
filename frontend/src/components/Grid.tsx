@@ -15,7 +15,8 @@ const Grid: React.FC<GridProps> = ({ gridDisplayData }) => {
   const size = gridDisplayData.length;
 
   return (
-    <div className={`grid-container aspect-[2/3] grid grid-cols-${size} grid-rows-${size} mx-auto`}>
+    // Width & height managed in grid.css
+    <div className={`grid-container aspect-square grid grid-cols-${size} grid-rows-${size} mx-auto`}>
       {gridDisplayData.flat().map((square, index) => (
         <GridSquare key={index} {...square} row={Math.floor(index / size)} col={index % size} />
       ))}

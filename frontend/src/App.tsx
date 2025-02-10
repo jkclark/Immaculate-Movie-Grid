@@ -346,7 +346,7 @@ function App() {
         {!gridLoadError && !isLoading && gameOver && <TabBar tabs={tabInfo} />}
 
         {!gridLoadError && !isLoading && (
-          <div className="grid-parent w-full grow p-4">
+          <div className="grid-parent aspect-square w-full grow p-4">
             <Grid gridDisplayData={gridDisplayData} />
           </div>
         )}
