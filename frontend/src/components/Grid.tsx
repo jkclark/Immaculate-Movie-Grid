@@ -16,10 +16,28 @@ const Grid: React.FC<GridProps> = ({ gridDisplayData }) => {
 
   return (
     // Width & height managed in grid.css
-    <div className={`grid-container aspect-square grid grid-cols-${size} grid-rows-${size} mx-auto`}>
-      {gridDisplayData.flat().map((square, index) => (
-        <GridSquare key={index} {...square} row={Math.floor(index / size)} col={index % size} />
-      ))}
+    <div className={`grid-container aspect-square mx-auto`}>
+      {gridDisplayData.flat().map((square, index) => {
+        // The gaps in the grid are between the 1st and 2nd columns and rows,
+        // so we need to adjust the column and row indices accordingly
+        const colIndex = (index % size) + 1;
+        const adjustedColIndex = colIndex >= 2 ? colIndex + 1 : colIndex;
+
+        const rowIndex = Math.floor(index / size) + 1;
+        const adjustedRowIndex = rowIndex >= 2 ? rowIndex + 1 : rowIndex;
+
+        return (
+          <div
+            key={index}
+            style={{
+              gridColumn: adjustedColIndex,
+              gridRow: adjustedRowIndex,
+            }}
+          >
+            <GridSquare key={index} {...square} row={Math.floor(index / size)} col={index % size} />
+          </div>
+        );
+      })}
     </div>
   );
 };

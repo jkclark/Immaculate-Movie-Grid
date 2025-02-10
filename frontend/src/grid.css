@@ -9,6 +9,10 @@
 .grid-container {
   width: 100%;
   height: auto;
+
+  display: grid;
+  grid-template-columns: 1fr 15px repeat(3, 1fr);
+  grid-template-rows: 1fr 15px repeat(3, 1fr);
 }
 
 @container (aspect-ratio >= 1) {
