@@ -317,7 +317,7 @@ function App() {
 
       <Overlay />
 
-      <div className="grid-grandparent w-full max-w-[800px] flex flex-col flex-grow items-center justify-start">
+      <div className="grid-grandparent w-full flex flex-col flex-grow items-center justify-start">
         {/* <div className="w-full flex flex-col flex-grow items-center justify-center"> */}
         {gridLoadError && <div>There was an error loading the grid data. Please try again later.</div>}
 
