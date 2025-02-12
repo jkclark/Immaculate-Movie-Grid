@@ -34,7 +34,13 @@ const Grid: React.FC<GridProps> = ({ gridDisplayData }) => {
               gridRow: adjustedRowIndex,
             }}
           >
-            <GridSquare key={index} {...square} row={Math.floor(index / size)} col={index % size} />
+            <GridSquare
+              key={index}
+              {...square}
+              row={Math.floor(index / size)}
+              col={index % size}
+              gridSize={size}
+            />
           </div>
         );
       })}

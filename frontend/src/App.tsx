@@ -206,7 +206,6 @@ function App() {
               }
             },
             cursor: "pointer",
-            border: "border-theme-light-other-1 dark:border-theme-dark-other-1",
           };
 
           innerGridRow.push(squareDisplayData);
@@ -323,7 +322,10 @@ function App() {
         {gridLoadError && <div>There was an error loading the grid data. Please try again later.</div>}
         {!gridLoadError && !isLoading && !gameOver && (
           <button
-            className="selected-tab mt-4"
+            // Border takes up 1px (or something) and so when game over buttons
+            // have a border and this button doesn't, everything shifts down upon
+            // game over, so to fix that we have transparent border on this button
+            className="selected-tab mt-4 border border-transparent"
             onClick={() => {
               async function endGameAndGetStats() {
                 const endGameResponse = await endGameForGrid(gridId, scoreId);

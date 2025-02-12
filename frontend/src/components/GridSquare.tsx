@@ -19,6 +19,7 @@ interface GridSquareProps {
   backgroundGradientHeight?: number;
   row: number;
   col: number;
+  gridSize: number;
 }
 
 const GridSquare: React.FC<GridSquareProps> = ({
@@ -34,6 +35,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
   backgroundGradientHeight,
   row,
   col,
+  gridSize,
 }) => {
   function stopPropClickHandler(event: React.MouseEvent) {
     // Necessary to prevent the page's click handler from resetting this state
@@ -44,13 +46,35 @@ const GridSquare: React.FC<GridSquareProps> = ({
     }
   }
 
+  // Determine which, if any of the 4 corners to round
+  // Remember that with axes we don't want corners for row and col 0, but rather 1
+  const firstRowColIndex = 1;
+  // Make sure to add the corresponding 4 classes to tailwind.config.js
+  const borderRoundedness = "xl";
+  let roundedCornerClassName;
+  if (row == firstRowColIndex && col == firstRowColIndex) {
+    roundedCornerClassName = `rounded-tl-${borderRoundedness}`;
+  } else if (row == firstRowColIndex && col == gridSize - 1) {
+    roundedCornerClassName = `rounded-tr-${borderRoundedness}`;
+  } else if (row == gridSize - 1 && col == firstRowColIndex) {
+    roundedCornerClassName = `rounded-bl-${borderRoundedness}`;
+  } else if (row == gridSize - 1 && col == gridSize - 1) {
+    roundedCornerClassName = `rounded-br-${borderRoundedness}`;
+  }
+
   let inner: JSX.Element;
 
   if (mainText) {
     inner = <TextSquare {...{ mainText, subText, clickHandler }} />;
   } else if (imageURL) {
     if (backupImageURL) {
-      inner = <ImageSquare {...{ imageURL, backupImageURL }} hoverText={hoverText || ""} />;
+      inner = (
+        <ImageSquare
+          {...{ imageURL, backupImageURL }}
+          hoverText={hoverText || ""}
+          roundedCornerClassName={roundedCornerClassName}
+        />
+      );
     } else {
       console.error("This should not be allowed. I really need to better define my types...");
       inner = <ImageSquare {...{ imageURL }} hoverText={hoverText || ""} backupImageURL="" />;
@@ -64,7 +88,15 @@ const GridSquare: React.FC<GridSquareProps> = ({
 
   return (
     <div
-      className={`relative w-full aspect-square ${!isAxisSquare && "border"} ${border ? border : "border-theme-light-secondary dark:border-theme-dark-secondary"} ${cursor === "pointer" && "hover:cursor-pointer"}`}
+      className={`
+        relative
+        w-full
+        aspect-square
+        ${!isAxisSquare && "border"}
+        ${border ? border : "border-theme-light-secondary dark:border-theme-dark-secondary"}
+        ${roundedCornerClassName}
+        ${cursor === "pointer" && "hover:cursor-pointer"}
+      `}
     >
       {inner}
       {cornerText && (

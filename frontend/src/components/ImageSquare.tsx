@@ -6,9 +6,16 @@ interface ImageSquareProps {
   hoverText: string;
   backupImageURL: string;
   clickHandler?: (event: React.MouseEvent) => void;
+  roundedCornerClassName?: string;
 }
 
-const ImageSquare: React.FC<ImageSquareProps> = ({ imageURL, hoverText, backupImageURL, clickHandler }) => {
+const ImageSquare: React.FC<ImageSquareProps> = ({
+  imageURL,
+  hoverText,
+  backupImageURL,
+  clickHandler,
+  roundedCornerClassName,
+}) => {
   const [isTextVisible, setIsTextVisible] = useState(false);
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -32,7 +39,7 @@ const ImageSquare: React.FC<ImageSquareProps> = ({ imageURL, hoverText, backupIm
         className="h-full object-contain"
       />
       <div
-        className={`absolute inset-0 bg-black ${isMobile ? (isTextVisible ? "opacity-50" : "opacity-0") : "opacity-0 group-hover:opacity-50"} transition-opacity duration-100`}
+        className={`absolute inset-0 bg-black ${isMobile ? (isTextVisible ? "opacity-50" : "opacity-0") : "opacity-0 group-hover:opacity-50"} transition-opacity duration-100 ${roundedCornerClassName}`}
       ></div>
       <div
         className={`absolute inset-0 flex items-center justify-center text-center ${isMobile ? (isTextVisible ? "opacity-100" : "opacity-0") : "opacity-0 group-hover:opacity-100"} transition-opacity duration-100`}
