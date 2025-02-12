@@ -80,6 +80,13 @@ const GridSquare: React.FC<GridSquareProps> = ({
   // Don't show borders on the top and left edges of the grid
   const isAxisSquare = col == 0 || row == 0;
 
+  const outerBorderClasses = `
+    ${row === 1 && col != 0 ? "border-t-2" : ""}
+    ${col === 1 && row != 0 ? "border-l-2" : ""}
+    ${row === gridSize - 1 && col != 0 ? "border-b-2" : ""}
+    ${col === gridSize - 1 && row != 0 ? "border-r-2" : ""}
+  `;
+
   return (
     <div
       className={`
@@ -90,6 +97,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
         ${border ? border : "border-theme-light-secondary dark:border-theme-dark-secondary"}
         ${roundedCornerClassName}
         ${cursor === "pointer" && "hover:cursor-pointer"}
+        ${outerBorderClasses}
       `}
     >
       {inner}
