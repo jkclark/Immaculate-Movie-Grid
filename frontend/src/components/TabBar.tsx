@@ -17,13 +17,14 @@ interface TabInfo {
 
 interface TabBarProps {
   tabs: TabInfo;
+  invisible: boolean;
 }
 
-const TabBar: React.FC<TabBarProps> = ({ tabs }) => {
+const TabBar: React.FC<TabBarProps> = ({ tabs, invisible }) => {
   const [activeTab, setActiveTab] = useAtom(activeTabAtom);
 
   return (
-    <div className="flex flex-row w-full justify-around mt-4 px-4 lg:px-0">
+    <div className={`flex flex-row w-full justify-around mt-4 px-4 lg:px-0 ${invisible ? "invisible" : ""}`}>
       {Object.values(tabs).map((tab, index) => {
         return (
           <Tab

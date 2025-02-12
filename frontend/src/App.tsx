@@ -317,9 +317,18 @@ function App() {
 
       <Overlay />
 
-      <div className="grid-grandparent w-full max-w-[800px] flex flex-col flex-grow items-center justify-center">
+      <div className="grid-grandparent w-full max-w-[800px] flex flex-col flex-grow items-center justify-start">
         {/* <div className="w-full flex flex-col flex-grow items-center justify-center"> */}
         {gridLoadError && <div>There was an error loading the grid data. Please try again later.</div>}
+
+        {!gridLoadError && !isLoading && <TabBar tabs={tabInfo} invisible={!gameOver} />}
+
+        {!gridLoadError && !isLoading && (
+          <div className="grid-parent aspect-square w-full p-4">
+            <Grid gridDisplayData={gridDisplayData} />
+          </div>
+        )}
+
         {!gridLoadError && !isLoading && !gameOver && (
           <button
             // Border takes up 1px (or something) and so when game over buttons
@@ -343,14 +352,6 @@ function App() {
           >
             Give up
           </button>
-        )}
-
-        {!gridLoadError && !isLoading && gameOver && <TabBar tabs={tabInfo} />}
-
-        {!gridLoadError && !isLoading && (
-          <div className="grid-parent aspect-square w-full grow p-4">
-            <Grid gridDisplayData={gridDisplayData} />
-          </div>
         )}
       </div>
     </div>
