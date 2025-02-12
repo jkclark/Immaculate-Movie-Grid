@@ -74,7 +74,13 @@ const GridSquare: React.FC<GridSquareProps> = ({
       inner = <ImageSquare {...{ imageURL }} hoverText={hoverText || ""} backupImageURL="" />;
     }
   } else {
-    inner = <EmptyGameSquare clickHandler={stopPropClickHandler} {...{ row, col }} />;
+    inner = (
+      <EmptyGameSquare
+        clickHandler={stopPropClickHandler}
+        {...{ row, col }}
+        roundedCornerClassName={roundedCornerClassName}
+      />
+    );
   }
 
   // Don't show borders on the top and left edges of the grid
