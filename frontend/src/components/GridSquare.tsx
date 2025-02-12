@@ -100,7 +100,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
     >
       {inner}
       {cornerText && (
-        <div className="absolute top-0 right-0 rounded-bl-sm bg-gray-600/80 p-1">{cornerText}</div>
+        <div className="absolute top-0 right-0 rounded-bl-sm bg-gray-600/80 p-1 theme-text">{cornerText}</div>
       )}
       {backgroundGradientHeight && backgroundGradientHeight > 0 && (
         <div
