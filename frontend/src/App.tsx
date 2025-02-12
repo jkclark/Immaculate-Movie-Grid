@@ -16,10 +16,8 @@ import {
 } from "./constants";
 import {
   AnyGridDisplayData,
-  getGuessesRemainingGridDatum,
   getInitialGridDisplayData,
   gridDisplayDataAtom,
-  insertGridDisplayDatumAtRowCol,
   insertInnerGridDisplayData,
 } from "./gridDisplayData";
 import { getGridDataFromS3, getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
@@ -217,16 +215,8 @@ function App() {
     // Get grid data with axes populated
     const newGridData = getInitialGridDisplayData(gridData);
 
-    // Add guesses left
-    const newGridDataWithGuesses = insertGridDisplayDatumAtRowCol(
-      getGuessesRemainingGridDatum(guessesRemaining),
-      0,
-      0,
-      newGridData
-    );
-
     // Insert inner grid into outer grid
-    return insertInnerGridDisplayData(newGridDataWithGuesses, newInnerGridData);
+    return insertInnerGridDisplayData(newGridData, newInnerGridData);
   }
 
   function resetGame() {
@@ -253,12 +243,6 @@ function App() {
         return newSquare;
       })
     );
-
-    // Remove guesses left
-    newGridDisplayData[0][0] = {
-      mainText: Object.keys(usedAnswers).length.toString(),
-      subText: "Final score",
-    };
 
     return newGridDisplayData;
   }
@@ -329,29 +313,33 @@ function App() {
           </div>
         )}
 
-        {!gridLoadError && !isLoading && !gameOver && (
-          <button
-            // Border takes up 1px (or something) and so when game over buttons
-            // have a border and this button doesn't, everything shifts down upon
-            // game over, so to fix that we have transparent border on this button
-            className="selected-tab my-4 border border-transparent"
-            onClick={() => {
-              async function endGameAndGetStats() {
-                const endGameResponse = await endGameForGrid(gridId, scoreId);
-                setScoreId(endGameResponse.score_id);
+        {!gridLoadError && !isLoading && (
+          <div className={`${gameOver ? "invisible" : ""} flex flex-col mt-4 items-center theme-text`}>
+            <div className="text-4xl">{guessesRemaining}</div>
+            <div className="text-lg">guesses left</div>
+            <button
+              // Border takes up 1px (or something) and so when game over buttons
+              // have a border and this button doesn't, everything shifts down upon
+              // game over, so to fix that we have transparent border on this button
+              className="selected-tab my-4 border border-transparent"
+              onClick={() => {
+                async function endGameAndGetStats() {
+                  const endGameResponse = await endGameForGrid(gridId, scoreId);
+                  setScoreId(endGameResponse.score_id);
 
-                await updateStatsForGrid(gridId);
-              }
+                  await updateStatsForGrid(gridId);
+                }
 
-              // Tell the backend this game is over
-              endGameAndGetStats();
+                // Tell the backend this game is over
+                endGameAndGetStats();
 
-              // End the game locally
-              endGame();
-            }}
-          >
-            Give up
-          </button>
+                // End the game locally
+                endGame();
+              }}
+            >
+              Give up
+            </button>
+          </div>
         )}
       </div>
     </div>

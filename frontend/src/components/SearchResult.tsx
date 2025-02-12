@@ -8,11 +8,7 @@ import {
   GridExport as GridData,
   SearchResult as SearchResultData,
 } from "common/src/interfaces";
-import {
-  getGuessesRemainingGridDatum,
-  gridDisplayDataAtom,
-  insertGridDisplayDatumAtRowCol,
-} from "../gridDisplayData";
+import { gridDisplayDataAtom, insertGridDisplayDatumAtRowCol } from "../gridDisplayData";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "../s3";
 import {
   getRowColKey,
@@ -145,9 +141,6 @@ const SearchResult: React.FC<SearchResultProps> = ({
   }
 
   function updateGuessesRemaining(newGuessesRemaining: number): void {
-    setGridDisplayData(
-      insertGridDisplayDatumAtRowCol(getGuessesRemainingGridDatum(newGuessesRemaining), 0, 0, gridDisplayData)
-    );
     setGuessesRemaining(newGuessesRemaining);
   }
 

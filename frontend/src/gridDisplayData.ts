@@ -119,10 +119,3 @@ export function insertInnerGridDisplayData(
   }
   return newGridDisplayData;
 }
-
-export function getGuessesRemainingGridDatum(newGuessesRemaining: number): AnyGridDisplayData {
-  return {
-    mainText: `${newGuessesRemaining}`,
-    subText: "guesses left",
-  };
-}
