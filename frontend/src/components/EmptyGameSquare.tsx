@@ -24,7 +24,13 @@ const EmptyGameSquare: React.FC<EmptyGameSquare> = ({ row, col, clickHandler, ro
   return (
     <div
       onClick={gameOver ? undefined : handleClick}
-      className={`w-full h-full ${roundedCornerClassName} ${row === selectedRow && col === selectedCol && "bg-sky-100"} ${!gameOver ? "hover:bg-theme-light-accent dark:hover:bg-them-dark-accent" : ""}`}
+      className={`
+        w-full
+        h-full
+        ${roundedCornerClassName}
+        ${row === selectedRow && col === selectedCol && "bg-sky-100"}
+        ${!gameOver && !(row == 0 && col == 0) ? "hover:bg-theme-light-accent dark:hover:bg-them-dark-accent" : ""}
+      `}
     ></div>
   );
 };
