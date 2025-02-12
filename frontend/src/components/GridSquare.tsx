@@ -49,17 +49,17 @@ const GridSquare: React.FC<GridSquareProps> = ({
   // Determine which, if any of the 4 corners to round
   // Remember that with axes we don't want corners for row and col 0, but rather 1
   const firstRowColIndex = 1;
-  // Make sure to add the corresponding 4 classes to tailwind.config.js
-  const borderRoundedness = "xl";
+  // If changed, make sure to add "rounded-{size}" class and corresponding tl, tr, bl, br classes to tailwind.config.js
+  const roundednessSize = "xl";
   let roundedCornerClassName;
   if (row == firstRowColIndex && col == firstRowColIndex) {
-    roundedCornerClassName = `rounded-tl-${borderRoundedness}`;
+    roundedCornerClassName = `rounded-tl-${roundednessSize}`;
   } else if (row == firstRowColIndex && col == gridSize - 1) {
-    roundedCornerClassName = `rounded-tr-${borderRoundedness}`;
+    roundedCornerClassName = `rounded-tr-${roundednessSize}`;
   } else if (row == gridSize - 1 && col == firstRowColIndex) {
-    roundedCornerClassName = `rounded-bl-${borderRoundedness}`;
+    roundedCornerClassName = `rounded-bl-${roundednessSize}`;
   } else if (row == gridSize - 1 && col == gridSize - 1) {
-    roundedCornerClassName = `rounded-br-${borderRoundedness}`;
+    roundedCornerClassName = `rounded-br-${roundednessSize}`;
   }
 
   let inner: JSX.Element;
@@ -68,7 +68,14 @@ const GridSquare: React.FC<GridSquareProps> = ({
     inner = <TextSquare {...{ mainText, subText, clickHandler }} />;
   } else if (imageURL) {
     if (backupImageURL) {
-      inner = <ImageSquare {...{ imageURL, backupImageURL }} hoverText={hoverText || ""} />;
+      const isAxisSquare = col == 0 || row == 0;
+      inner = (
+        <ImageSquare
+          {...{ imageURL, backupImageURL }}
+          hoverText={hoverText || ""}
+          roundednessClassName={isAxisSquare ? `rounded-${roundednessSize}` : ""}
+        />
+      );
     } else {
       console.error("This should not be allowed. I really need to better define my types...");
       inner = <ImageSquare {...{ imageURL }} hoverText={hoverText || ""} backupImageURL="" />;

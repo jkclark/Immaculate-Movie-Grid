@@ -200,6 +200,7 @@ export default {
     "grid-cols-3",
     "grid-rows-4", // for the actual game grid
     "grid-cols-4",
+    "rounded-xl",
     "rounded-tl-xl",
     "rounded-tr-xl",
     "rounded-bl-xl",
