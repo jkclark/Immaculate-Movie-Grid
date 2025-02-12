@@ -712,6 +712,10 @@ video {
   display: none;
 }
 
+.aspect-\[2\/3\] {
+  aspect-ratio: 2/3;
+}
+
 .aspect-square {
   aspect-ratio: 1 / 1;
 }
@@ -899,6 +903,10 @@ video {
 
 .rounded {
   border-radius: 0.25rem;
+}
+
+.rounded-3xl {
+  border-radius: 1.5rem;
 }
 
 .rounded-lg {

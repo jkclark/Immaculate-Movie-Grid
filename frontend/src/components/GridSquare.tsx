@@ -68,13 +68,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
     inner = <TextSquare {...{ mainText, subText, clickHandler }} />;
   } else if (imageURL) {
     if (backupImageURL) {
-      inner = (
-        <ImageSquare
-          {...{ imageURL, backupImageURL }}
-          hoverText={hoverText || ""}
-          roundedCornerClassName={roundedCornerClassName}
-        />
-      );
+      inner = <ImageSquare {...{ imageURL, backupImageURL }} hoverText={hoverText || ""} />;
     } else {
       console.error("This should not be allowed. I really need to better define my types...");
       inner = <ImageSquare {...{ imageURL }} hoverText={hoverText || ""} backupImageURL="" />;
