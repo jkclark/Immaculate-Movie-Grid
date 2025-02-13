@@ -12,56 +12,14 @@ const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, clickHandler
     }
   };
 
-  const smallScreenTextClasses = [
-    "text-xs",
-    "text-sm",
-    "text-base",
-    "text-lg",
-    "text-xl",
-    "text-2xl",
-    "text-3xl",
-  ];
-
-  const largeScreenTextClasses = [
-    "text-xl",
-    "text-2xl",
-    "text-3xl",
-    "text-4xl",
-    "text-5xl",
-    "text-6xl",
-    "text-7xl",
-  ];
-
-  function getTextClassForString(text: string, textClasses: string[], baseIndex: number): string {
-    const textLength = text.length;
-    // This is just the (very basic) forula we're using for now to determine the offset
-    const offset = Math.floor(textLength / 2);
-    const textClassIndex = Math.max(baseIndex - offset, 0);
-    return textClasses[textClassIndex];
-  }
-
-  const smallScreenMainTextClass = getTextClassForString(
-    mainText,
-    smallScreenTextClasses,
-    smallScreenTextClasses.length - 1
-  );
-
-  const largeScreenMainTextClass = getTextClassForString(
-    mainText,
-    largeScreenTextClasses,
-    largeScreenTextClasses.length - 1
-  );
-
-  let responsiveMainTextClass = `${smallScreenMainTextClass} sm:${largeScreenMainTextClass}`;
-
   return (
     <div
       onClick={handleClick}
       // NOTE: relative necessary for z-index so "gradient" can appear behind text
       className="relative w-full h-full text-center flex flex-col item-center justify-center z-10 theme-text"
     >
-      <p className={`${responsiveMainTextClass}`}>{mainText}</p>
-      {subText && <p className="text-xl">{subText}</p>}
+      <p className="text-md sm:text-xl md:text-3xl lg:text-4xl">{mainText}</p>
+      {subText && <p className="text-md sm:text:lg md:text-xl lg:text-2xl">{subText}</p>}
     </div>
   );
 };
