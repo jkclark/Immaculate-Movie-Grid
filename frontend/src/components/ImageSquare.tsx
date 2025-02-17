@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import ImageWithBackup from "./ImageWithBackup";
 
-interface ImageSquareProps {
+export interface ImageSquareProps {
   imageURL: string;
   hoverText: string;
   backupImageURL: string;
   clickHandler?: (event: React.MouseEvent) => void;
   roundednessClassName?: string;
+  invisible?: boolean;
 }
 
 const ImageSquare: React.FC<ImageSquareProps> = ({
@@ -15,6 +16,7 @@ const ImageSquare: React.FC<ImageSquareProps> = ({
   backupImageURL,
   clickHandler,
   roundednessClassName,
+  invisible,
 }) => {
   const [isTextVisible, setIsTextVisible] = useState(false);
 
@@ -31,7 +33,10 @@ const ImageSquare: React.FC<ImageSquareProps> = ({
   };
 
   return (
-    <div onClick={handleClick} className="w-full h-full flex items-center justify-center relative group">
+    <div
+      onClick={handleClick}
+      className={`w-full h-full flex items-center justify-center relative group ${invisible ? "hidden" : ""}`}
+    >
       <ImageWithBackup
         imageURL={imageURL}
         altText={hoverText}

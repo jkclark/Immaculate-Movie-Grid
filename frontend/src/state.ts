@@ -64,3 +64,13 @@ export function getRowColKey(row: number, col: number) {
 
 const prefersDarkMode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
 export const darkModeAtom = getAtomWithStorageInit<boolean>("darkMode", prefersDarkMode);
+
+export enum ActorSquareMode {
+  PHOTO = "photo",
+  NAME = "name",
+}
+
+export const actorSquareModeAtom = getAtomWithStorageInit<ActorSquareMode>(
+  "actorSquareMode",
+  ActorSquareMode.PHOTO
+);

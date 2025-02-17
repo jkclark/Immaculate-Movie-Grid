@@ -2,6 +2,7 @@ import React from "react";
 import EmptyGameSquare from "./EmptyGameSquare";
 import ImageSquare from "./ImageSquare";
 import TextSquare from "./TextSquare";
+import ToggleableImageSquare from "./ToggleableImageSquare";
 
 interface GridSquareProps {
   imageURL?: string;
@@ -10,6 +11,7 @@ interface GridSquareProps {
   mainText?: string;
   subText?: string;
   clickHandler?: () => void;
+  toggleable?: boolean;
   // Show text in the top right corner of the square if present
   cornerText?: string;
   cursor?: "pointer";
@@ -29,6 +31,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
   mainText,
   subText,
   clickHandler,
+  toggleable,
   cornerText,
   cursor,
   border,
@@ -51,6 +54,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
   const firstRowColIndex = 1;
   // If changed, make sure to add "rounded-{size}" class and corresponding tl, tr, bl, br classes to tailwind.config.js
   const roundednessSize = "xl";
+  const allAroundRoundedCornerClassName = `rounded-${roundednessSize}`;
   let roundedCornerClassName;
   if (row == firstRowColIndex && col == firstRowColIndex) {
     roundedCornerClassName = `rounded-tl-${roundednessSize}`;
@@ -64,23 +68,33 @@ const GridSquare: React.FC<GridSquareProps> = ({
 
   let inner: JSX.Element;
 
-  if (mainText) {
+  // Toggleable square
+  if (toggleable && mainText && imageURL && hoverText && backupImageURL) {
+    inner = (
+      <ToggleableImageSquare
+        {...{ imageURL, hoverText, backupImageURL, mainText, subText }}
+        roundednessClassName={allAroundRoundedCornerClassName}
+      />
+    );
+  }
+
+  // Text square
+  else if (mainText) {
     inner = <TextSquare {...{ mainText, subText, clickHandler }} />;
-  } else if (imageURL) {
+  }
+
+  // Image square
+  else if (imageURL) {
     if (backupImageURL) {
-      const isAxisSquare = col == 0 || row == 0;
-      inner = (
-        <ImageSquare
-          {...{ imageURL, backupImageURL }}
-          hoverText={hoverText || ""}
-          roundednessClassName={isAxisSquare ? `rounded-${roundednessSize}` : ""}
-        />
-      );
+      inner = <ImageSquare {...{ imageURL, backupImageURL }} hoverText={hoverText || ""} />;
     } else {
       console.error("This should not be allowed. I really need to better define my types...");
       inner = <ImageSquare {...{ imageURL }} hoverText={hoverText || ""} backupImageURL="" />;
     }
-  } else {
+  }
+
+  // Empty square
+  else {
     inner = (
       <EmptyGameSquare
         clickHandler={stopPropClickHandler}

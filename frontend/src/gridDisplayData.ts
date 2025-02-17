@@ -9,6 +9,7 @@ interface GridDisplayData {
   cursor?: "pointer";
   border?: string;
   backgroundGradientHeight?: number;
+  toggleable?: boolean;
 }
 
 export const gridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);
@@ -43,9 +44,11 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
         if (axisEntityType === "actor") {
           const axisEntity = getAxisEntityFromListById(gridData.actors, parseInt(axisEntityId));
           displayData[rowIndex][colIndex] = {
+            mainText: axisEntity.name,
             hoverText: axisEntity.name,
             imageURL: getS3ImageURLForType("actor", axisEntity.id),
             backupImageURL: getS3BackupImageURLForType("actor"),
+            toggleable: true,
           };
         } else {
           // Remember, categories have negative IDs
@@ -60,10 +63,12 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
         if (axisEntityType === "actor") {
           const axisEntity = getAxisEntityFromListById(gridData.actors, parseInt(axisEntityId));
           displayData[rowIndex][colIndex] = {
+            mainText: axisEntity.name,
             hoverText: axisEntity.name,
             // The below line will break for categories at this point, but that's ok
             imageURL: getS3ImageURLForType("actor", axisEntity.id),
             backupImageURL: getS3BackupImageURLForType("actor"),
+            toggleable: true,
           };
         } else {
           // Remember, categories have negative IDs

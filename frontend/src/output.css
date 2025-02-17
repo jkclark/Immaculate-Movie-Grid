@@ -789,6 +789,10 @@ video {
   width: 100%;
 }
 
+.max-w-\[600px\] {
+  max-width: 600px;
+}
+
 .max-w-\[800px\] {
   max-width: 800px;
 }
@@ -998,6 +1002,11 @@ video {
 
 .bg-gray-600\/80 {
   background-color: rgb(75 85 99 / 0.8);
+}
+
+.bg-red-900 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(127 29 29 / var(--tw-bg-opacity));
 }
 
 .bg-sky-100 {

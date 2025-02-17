@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { GridExport } from "common/src/interfaces";
 import { hitAPIGet } from "./api";
+import ActorModeToggle from "./components/ActorModeToggle";
 import Grid from "./components/Grid";
 import Navbar from "./components/Navbar";
 import Overlay, { useOverlayStack } from "./components/Overlay";
@@ -314,14 +315,19 @@ function App() {
         )}
 
         {!gridLoadError && !isLoading && (
-          <div className="flex flex-col mt-4 items-center theme-text">
-            <div className="text-4xl">{gameOver ? Object.keys(usedAnswers).length : guessesRemaining}</div>
-            <div className="text-lg">{gameOver ? "final score" : "guesses left"}</div>
+          // 800px arbitrarily chosen as max width. Letting it take full width looks bad
+          <div className="w-full max-w-[600px] flex flex-row justify-around items-center my-4 theme-text">
+            <ActorModeToggle />
+            <div className="flex flex-col items-center">
+              <div className="text-4xl">{gameOver ? Object.keys(usedAnswers).length : guessesRemaining}</div>
+              <div className="text-lg">{gameOver ? "final score" : "guesses left"}</div>
+            </div>
+
             <button
               // Border takes up 1px (or something) and so when game over buttons
               // have a border and this button doesn't, everything shifts down upon
               // game over, so to fix that we have transparent border on this button
-              className={`${gameOver ? "invisible" : ""} selected-tab my-4 border border-transparent`}
+              className={`${gameOver ? "invisible" : ""} border border-transparent bg-red-900`}
               onClick={() => {
                 async function endGameAndGetStats() {
                   const endGameResponse = await endGameForGrid(gridId, scoreId);

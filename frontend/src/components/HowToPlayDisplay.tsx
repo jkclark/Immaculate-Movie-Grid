@@ -40,7 +40,8 @@ const HowToPlayDisplay: React.FC = () => {
           <br />
 
           <p>
-            You can hover/tap on an actor to see their name. Hover/tap on a category to see details about it.
+            You can hover/tap on an actor's photo to see their name. Hover/tap on a category to see details
+            about it.
           </p>
         </div>
       }
