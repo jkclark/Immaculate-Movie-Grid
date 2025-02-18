@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 
 import { ActorExport, CategoryExport, GridExport } from "common/src/interfaces";
-import { CATEGORY_IDS_TO_DESCRIPTIONS } from "./constants";
+import { CATEGORY_IDS_TO_TOOLTIP_TEXTS } from "./constants";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 
 interface GridDisplayData {
@@ -18,7 +18,7 @@ export const gridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);
 export interface TextGridDisplayData extends GridDisplayData {
   mainText: string;
   subText?: string;
-  tooltipText: JSX.Element;
+  tooltipText?: JSX.Element;
 }
 
 export interface ImageGridDisplayData extends GridDisplayData {
@@ -57,7 +57,7 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
           const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
           displayData[rowIndex][colIndex] = {
             mainText: axisEntity.name,
-            tooltipText: CATEGORY_IDS_TO_DESCRIPTIONS[axisEntity.id.toString()],
+            tooltipText: CATEGORY_IDS_TO_TOOLTIP_TEXTS[axisEntity.id.toString()],
           };
         }
       } else if (colIndex === 0 && rowIndex !== 0) {
@@ -78,7 +78,7 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
           const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
           displayData[rowIndex][colIndex] = {
             mainText: axisEntity.name,
-            tooltipText: CATEGORY_IDS_TO_DESCRIPTIONS[axisEntity.id.toString()],
+            tooltipText: CATEGORY_IDS_TO_TOOLTIP_TEXTS[axisEntity.id.toString()],
           };
         }
       }
