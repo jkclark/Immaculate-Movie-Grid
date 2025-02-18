@@ -1,12 +1,18 @@
 export interface TextSquareProps {
   mainText: string;
   subText?: string;
-  hoverText?: string;
+  tooltipText?: JSX.Element;
   clickHandler?: (event: React.MouseEvent) => void;
   invisible?: boolean;
 }
 
-const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, hoverText, clickHandler, invisible }) => {
+const TextSquare: React.FC<TextSquareProps> = ({
+  mainText,
+  subText,
+  tooltipText,
+  clickHandler,
+  invisible,
+}) => {
   const handleClick = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (clickHandler) {
@@ -22,11 +28,11 @@ const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, hoverText, c
     >
       <p className="text-md sm:text-xl md:text-3xl lg:text-4xl">{mainText}</p>
       {subText && <p className="text-md sm:text:lg md:text-xl lg:text-2xl">{subText}</p>}
-      {hoverText && (
+      {tooltipText && (
         <div className="absolute top-0 left-0 invisible group-hover:visible w-full flex items-center justify-center">
           <div className="relative">
             <div className="bg-theme-primary border-2 border-theme-light-secondary dark:border-theme-dark-secondary py-1 px-2 theme-text rounded-lg">
-              {hoverText}
+              {tooltipText}
             </div>
             {/* Small down arrow on tooltip */}
             {/* They are the same size triangle, one is 1 pixel above the other

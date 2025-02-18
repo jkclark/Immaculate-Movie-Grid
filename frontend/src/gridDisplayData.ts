@@ -18,6 +18,7 @@ export const gridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);
 export interface TextGridDisplayData extends GridDisplayData {
   mainText: string;
   subText?: string;
+  tooltipText: JSX.Element;
 }
 
 export interface ImageGridDisplayData extends GridDisplayData {
@@ -56,7 +57,7 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
           const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
           displayData[rowIndex][colIndex] = {
             mainText: axisEntity.name,
-            hoverText: CATEGORY_IDS_TO_DESCRIPTIONS[axisEntity.id.toString()],
+            tooltipText: CATEGORY_IDS_TO_DESCRIPTIONS[axisEntity.id.toString()],
           };
         }
       } else if (colIndex === 0 && rowIndex !== 0) {
@@ -77,7 +78,7 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
           const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
           displayData[rowIndex][colIndex] = {
             mainText: axisEntity.name,
-            hoverText: CATEGORY_IDS_TO_DESCRIPTIONS[axisEntity.id.toString()],
+            tooltipText: CATEGORY_IDS_TO_DESCRIPTIONS[axisEntity.id.toString()],
           };
         }
       }

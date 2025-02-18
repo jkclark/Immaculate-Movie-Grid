@@ -10,6 +10,7 @@ interface GridSquareProps {
   backupImageURL?: string;
   mainText?: string;
   subText?: string;
+  tooltipText?: JSX.Element;
   clickHandler?: () => void;
   toggleable?: boolean;
   // Show text in the top right corner of the square if present
@@ -30,6 +31,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
   backupImageURL,
   mainText,
   subText,
+  tooltipText,
   clickHandler,
   toggleable,
   cornerText,
@@ -80,7 +82,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
 
   // Text square
   else if (mainText) {
-    inner = <TextSquare {...{ mainText, subText, hoverText, clickHandler }} />;
+    inner = <TextSquare {...{ mainText, subText, tooltipText, clickHandler }} />;
   }
 
   // Image square
