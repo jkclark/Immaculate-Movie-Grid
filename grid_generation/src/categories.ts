@@ -24,15 +24,15 @@ const releasedIn21stCenturyCategory: Category = {
 
   // Technically, we could just parseInt the whole of credit.release_date, but this is more readable.
   creditFilter: (credit) =>
-    (credit.release_date && parseInt(credit.release_date.split("-")[0]) >= 2000) ||
-    (credit.last_air_date && parseInt(credit.last_air_date.split("-")[0]) >= 2000),
+    (credit.release_date && parseInt(credit.release_date.split("-")[0]) >= 2001) ||
+    (credit.last_air_date && parseInt(credit.last_air_date.split("-")[0]) >= 2001),
 };
 
 const releasedBefore21stCenturyCategory: Category = {
   id: -3,
   name: "Released before the 21st century",
   // Technically, we could just parseInt the whole of credit.release_date, but this is more readable.
-  creditFilter: (credit) => credit.release_date && parseInt(credit.release_date.split("-")[0]) < 2000,
+  creditFilter: (credit) => credit.release_date && parseInt(credit.release_date.split("-")[0]) < 2001,
 };
 
 const comedyCategory: Category = {
