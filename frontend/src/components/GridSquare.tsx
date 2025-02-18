@@ -127,6 +127,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
         ${roundedCornerClassName}
         ${cursor === "pointer" && "hover:cursor-pointer"}
         ${outerBorderClasses}
+        select-none
       `}
     >
       {inner}
