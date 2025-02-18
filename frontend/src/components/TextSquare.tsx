@@ -29,7 +29,7 @@ const TextSquare: React.FC<TextSquareProps> = ({
       <p className="big-responsive-text">{mainText}</p>
       {subText && <p className="medium-responsive-text">{subText}</p>}
       {tooltipText && (
-        <div className="absolute top-0 left-0 invisible group-hover:visible w-full flex items-center justify-center">
+        <div className="absolute bottom-[75%] left-0 invisible group-hover:visible w-full flex items-center justify-center">
           <div className="relative">
             <div className="bg-theme-primary border-2 border-theme-light-secondary dark:border-theme-dark-secondary py-1 px-2 small-responsive-text theme-text rounded-lg">
               {tooltipText}
