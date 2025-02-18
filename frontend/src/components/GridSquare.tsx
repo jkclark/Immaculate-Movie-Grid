@@ -80,7 +80,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
 
   // Text square
   else if (mainText) {
-    inner = <TextSquare {...{ mainText, subText, clickHandler }} />;
+    inner = <TextSquare {...{ mainText, subText, hoverText, clickHandler }} />;
   }
 
   // Image square

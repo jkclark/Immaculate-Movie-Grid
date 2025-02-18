@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 
 import { ActorExport, CategoryExport, GridExport } from "common/src/interfaces";
+import { CATEGORY_IDS_TO_DESCRIPTIONS } from "./constants";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 
 interface GridDisplayData {
@@ -55,6 +56,7 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
           const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
           displayData[rowIndex][colIndex] = {
             mainText: axisEntity.name,
+            hoverText: CATEGORY_IDS_TO_DESCRIPTIONS[axisEntity.id.toString()],
           };
         }
       } else if (colIndex === 0 && rowIndex !== 0) {
@@ -75,6 +77,7 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
           const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
           displayData[rowIndex][colIndex] = {
             mainText: axisEntity.name,
+            hoverText: CATEGORY_IDS_TO_DESCRIPTIONS[axisEntity.id.toString()],
           };
         }
       }

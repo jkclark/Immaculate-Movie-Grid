@@ -1,3 +1,6 @@
+/**
+ * NOTE: The tooltip text for the categories lives in constants.ts on the frontend.
+ */
 import { Credit } from "./interfaces";
 
 /**
