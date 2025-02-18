@@ -25,3 +25,15 @@ a {
 .unselected-tab {
   @apply border border-transparent hover:border hover:border-theme-light-accent hover:dark:border-theme-dark-accent;
 }
+
+.big-responsive-text {
+  @apply text-base sm:text-xl md:text-3xl lg:text-4xl;
+}
+
+.medium-responsive-text {
+  @apply text-base sm:text-lg md:text-xl lg:text-2xl;
+}
+
+.small-responsive-text {
+  @apply text-xs sm:text-sm md:text-base lg:text-lg;
+}
