@@ -74,7 +74,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
   if (toggleable && mainText && imageURL && hoverText && backupImageURL) {
     inner = (
       <ToggleableImageSquare
-        {...{ imageURL, hoverText, backupImageURL, mainText, subText }}
+        {...{ imageURL, hoverText, backupImageURL, mainText, subText, tooltipText }}
         roundednessClassName={allAroundRoundedCornerClassName}
       />
     );

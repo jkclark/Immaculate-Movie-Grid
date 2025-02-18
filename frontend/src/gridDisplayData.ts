@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 
 import { ActorExport, CategoryExport, GridExport } from "common/src/interfaces";
-import { CATEGORY_IDS_TO_TOOLTIP_TEXTS } from "./constants";
+import { ACTOR_TOOLTIP_TEXT, CATEGORY_IDS_TO_TOOLTIP_TEXTS } from "./constants";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 
 interface GridDisplayData {
@@ -50,6 +50,7 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
             hoverText: axisEntity.name,
             imageURL: getS3ImageURLForType("actor", axisEntity.id),
             backupImageURL: getS3BackupImageURLForType("actor"),
+            tooltipText: ACTOR_TOOLTIP_TEXT,
             toggleable: true,
           };
         } else {
@@ -71,6 +72,7 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
             // The below line will break for categories at this point, but that's ok
             imageURL: getS3ImageURLForType("actor", axisEntity.id),
             backupImageURL: getS3BackupImageURLForType("actor"),
+            tooltipText: ACTOR_TOOLTIP_TEXT,
             toggleable: true,
           };
         } else {

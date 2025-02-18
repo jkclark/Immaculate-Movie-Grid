@@ -3,6 +3,14 @@ export const ALL_CORRECT_ANSWERS_TAB_TEXT = "All correct answers";
 export const ACCURACY_TAB_TEXT = "Accuracy";
 export const MOST_COMMON_ANSWERS_TAB_TEXT = "Most common answers";
 
+export const ACTOR_TOOLTIP_TEXT = (
+  <div>
+    The movie or TV show's cast must contain the actor, as per{" "}
+    <a target="_blank" href="https://www.themoviedb.org">
+      TMDB
+    </a>
+  </div>
+);
 export const CATEGORY_IDS_TO_TOOLTIP_TEXTS: { [key: string]: JSX.Element } = {
   "-1": (
     <div>
