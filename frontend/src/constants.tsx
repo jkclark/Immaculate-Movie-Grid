@@ -14,7 +14,7 @@ export const ACTOR_TOOLTIP_TEXT = (
 export const CATEGORY_IDS_TO_TOOLTIP_TEXTS: { [key: string]: JSX.Element } = {
   "-1": (
     <div>
-      The movie or TV show must have the specified rating according to the{" "}
+      As per{" "}
       <a target="_blank" href="https://en.wikipedia.org/wiki/Motion_Picture_Association#Film_rating_system">
         MPAA{" "}
       </a>{" "}
@@ -24,11 +24,23 @@ export const CATEGORY_IDS_TO_TOOLTIP_TEXTS: { [key: string]: JSX.Element } = {
       </a>
     </div>
   ),
-  "-2": <div>The movie or TV show must have been released during or after the year 2000</div>,
-  "-3": <div>The movie or TV show must have been released before the year 2000</div>,
+  "-2": (
+    <div>
+      1999 ❌<br />
+      2000 ❌<br />
+      2001 ✅
+    </div>
+  ),
+  "-3": (
+    <div>
+      1999 ✅<br />
+      2000 ✅<br />
+      2001 ❌
+    </div>
+  ),
   "-4": (
     <div>
-      The movie or TV show must be classified in the comedy genre, as per{" "}
+      As per{" "}
       <a target="blank" href="https://www.themoviedb.org">
         TMDB
       </a>
@@ -36,7 +48,7 @@ export const CATEGORY_IDS_TO_TOOLTIP_TEXTS: { [key: string]: JSX.Element } = {
   ),
   "-5": (
     <div>
-      The movie or TV show must be classified as animated, as per{" "}
+      As per{" "}
       <a target="blank" href="https://www.themoviedb.org">
         TMDB
       </a>
@@ -44,7 +56,7 @@ export const CATEGORY_IDS_TO_TOOLTIP_TEXTS: { [key: string]: JSX.Element } = {
   ),
   "-6": (
     <div>
-      The movie or TV show must be classified in the crime genre, as per{" "}
+      As per{" "}
       <a target="blank" href="https://www.themoviedb.org">
         TMDB
       </a>
@@ -52,7 +64,7 @@ export const CATEGORY_IDS_TO_TOOLTIP_TEXTS: { [key: string]: JSX.Element } = {
   ),
   "-7": (
     <div>
-      The movie or TV show must be classified in the drama genre, as per{" "}
+      As per{" "}
       <a target="blank" href="https://www.themoviedb.org">
         TMDB
       </a>
@@ -60,7 +72,7 @@ export const CATEGORY_IDS_TO_TOOLTIP_TEXTS: { [key: string]: JSX.Element } = {
   ),
   "-8": (
     <div>
-      The movie or TV show must be classified in either the Sci-Fi or Fantasy genres, as per{" "}
+      As per{" "}
       <a target="blank" href="https://www.themoviedb.org">
         TMDB
       </a>
@@ -68,7 +80,7 @@ export const CATEGORY_IDS_TO_TOOLTIP_TEXTS: { [key: string]: JSX.Element } = {
   ),
   "-9": (
     <div>
-      The movie or TV show must be classified in the myster genre, as per{" "}
+      As per{" "}
       <a target="blank" href="https://www.themoviedb.org">
         TMDB
       </a>
