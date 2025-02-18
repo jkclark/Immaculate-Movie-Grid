@@ -25,8 +25,15 @@ const TextSquare: React.FC<TextSquareProps> = ({ mainText, subText, hoverText, c
       {hoverText && (
         <div className="absolute top-0 left-0 invisible group-hover:visible w-full flex items-center justify-center">
           <div className="relative">
-            <p className="bg-theme-secondary py-1 px-2 theme-text rounded-sm">{hoverText}</p>
+            <div className="bg-theme-primary border-2 border-theme-light-secondary dark:border-theme-dark-secondary py-1 px-2 theme-text rounded-lg">
+              {hoverText}
+            </div>
+            {/* Small down arrow on tooltip */}
+            {/* They are the same size triangle, one is 1 pixel above the other
+            and the colors are set to make it appear like a border around the
+            bottom 2 sides of the triangle */}
             <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-theme-light-secondary dark:border-t-theme-dark-secondary"></div>
+            <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-1 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-theme-light-primary dark:border-t-theme-dark-primary"></div>
           </div>
         </div>
       )}
