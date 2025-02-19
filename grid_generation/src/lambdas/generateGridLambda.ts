@@ -44,6 +44,7 @@ function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     gridDate = tomorrow.toISOString().split("T")[0];
+    console.log(`No grid date provided, defaulting to ${gridDate}`);
   } else {
     // Validate date format
     const date = new Date(gridDate);
