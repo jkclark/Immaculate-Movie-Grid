@@ -1,40 +1,43 @@
 /**
- * A little script to convert a list of actors I got from the internet to their
- * TMDB IDs. The output is a file called famousActorIds.ts that contains an array of
- * actor IDs with comments of the actors' names.
+ * A little script to fetch the TMDB IDs for a list of actors I got from the
+ * internet. The output is a file called famousActorsIdsToNames.ts that contains an
+ * object mapping actor IDs to names.
  *
  * Run from the project root with `npx ts-node src/famous_actors/convertActorsToIds.ts`.
- * Will overwrite the famousActorIds.ts file in the src/famous_actors directory.
+ * Will overwrite the famousActorIdsToNames.ts file in the src/famous_actors directory.
  */
 import dotenv from "dotenv";
 import fs from "fs";
+import { Actor } from "src/interfaces";
 
 dotenv.config();
 
 async function main() {
-  const actors = readActorsFile();
-  const actorIdTuples: [string, number][] = [];
+  const actorNames = readActorsFile();
+  const actors: Actor[] = [];
 
   // Get the ID for each actor
-  for (const actor of actors) {
-    console.log(`Getting ID for actor: ${actor}`);
-    const actorId: number = await getActorIdByName(actor);
-    if (actorId === undefined) {
-      console.error(`No actor ID found for actor: ${actor}`);
+  for (const actorName of actorNames) {
+    console.log(`Getting ID for actor: ${actorName}`);
+    let actor: Actor;
+    try {
+      actor = await getActorByName(actorName);
+    } catch (e) {
       continue;
     }
-    actorIdTuples.push([actor, actorId]);
+
+    actors.push(actor);
   }
 
   // Prepare the actors string
-  let actorsString = "export const famousActorIds: number[] = [\n";
-  for (const [actor, id] of actorIdTuples) {
-    actorsString += `  ${id}, // ${actor}\n`;
+  let actorsString = "export const famousActorIds: { [key: number]: string } = {\n";
+  for (const actor of actors) {
+    actorsString += `  ${actor.id}: "${actor.name}",\n`;
   }
-  actorsString += "];\n";
+  actorsString += "};\n";
 
   // Write the actors string to the actors.ts file
-  fs.writeFileSync("./src/famous_actors/famousActorIds.ts", actorsString);
+  fs.writeFileSync("./src/famous_actors/famousActorIdsToNames.ts", actorsString);
 }
 
 function readActorsFile(): string[] {
@@ -47,7 +50,7 @@ function readActorsFile(): string[] {
  * @param name the name of the actor to get
  * @returns the ID of the actor with the given name
  */
-export async function getActorIdByName(name: string): Promise<number> {
+export async function getActorByName(name: string): Promise<Actor> {
   const options = {
     method: "GET",
     headers: {
@@ -59,18 +62,23 @@ export async function getActorIdByName(name: string): Promise<number> {
   const url = `https://api.themoviedb.org/3/search/person?query=${encodeURIComponent(name)}&language=en-US`;
 
   let actorId: number;
+  let actorName: string;
   await fetch(url, options)
     .then((res) => res.json())
     .then((json) => {
       if (json.results && json.results.length > 0) {
         actorId = json.results[0].id;
+        actorName = json.results[0].name;
       } else {
         throw new Error(`No results found for actor: ${name}`);
       }
-    })
-    .catch((err) => console.error("error:" + err));
+    });
 
-  return actorId;
+  return {
+    id: actorId.toString(),
+    name: actorName,
+    credits: new Set(),
+  };
 }
 
 main();
