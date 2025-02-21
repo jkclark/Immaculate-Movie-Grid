@@ -914,7 +914,6 @@ export const famousActorIds: { [key: number]: string } = {
   1356210: "Millie Bobby Brown",
   3197: "Tom Sizemore",
   689: "Kate Capshaw",
-  8767: "Jim Caviezel",
   8725: "Olivia de Havilland",
   1003: "Jean Reno",
   62862: "Danny McBride",
