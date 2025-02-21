@@ -1,4 +1,4 @@
-export const famousActorIds: { [key: number]: string } = {
+export const famousActorIdsToNames: { [key: number]: string } = {
   500: "Tom Cruise",
   16483: "Sylvester Stallone",
   2888: "Will Smith",

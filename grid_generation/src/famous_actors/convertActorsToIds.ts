@@ -30,7 +30,7 @@ async function main() {
   }
 
   // Prepare the actors string
-  let actorsString = "export const famousActorIds: { [key: number]: string } = {\n";
+  let actorsString = "export const famousActorIdsToNames: { [key: number]: string } = {\n";
   for (const actor of actors) {
     actorsString += `  ${actor.id}: "${actor.name}",\n`;
   }
