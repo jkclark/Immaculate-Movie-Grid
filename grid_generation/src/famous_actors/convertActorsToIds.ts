@@ -1,13 +1,13 @@
-/** 
+/**
  * A little script to convert a list of actors I got from the internet to their
  * TMDB IDs. The output is a file called famousActorIds.ts that contains an array of
  * actor IDs with comments of the actors' names.
- * 
- * Run from the project root with `npx ts-node src/convertActorsToIds.ts`.
- * Will overwrite the famousActorIds.ts file in the src directory.
+ *
+ * Run from the project root with `npx ts-node src/famous_actors/convertActorsToIds.ts`.
+ * Will overwrite the famousActorIds.ts file in the src/famous_actors directory.
  */
 import dotenv from "dotenv";
-import fs from 'fs';
+import fs from "fs";
 
 dotenv.config();
 
@@ -17,6 +17,7 @@ async function main() {
 
   // Get the ID for each actor
   for (const actor of actors) {
+    console.log(`Getting ID for actor: ${actor}`);
     const actorId: number = await getActorIdByName(actor);
     if (actorId === undefined) {
       console.error(`No actor ID found for actor: ${actor}`);
@@ -26,20 +27,19 @@ async function main() {
   }
 
   // Prepare the actors string
-  let actorsString = 'export const famousActorIds: number[] = [\n';
+  let actorsString = "export const famousActorIds: number[] = [\n";
   for (const [actor, id] of actorIdTuples) {
     actorsString += `  ${id}, // ${actor}\n`;
   }
-  actorsString += '];\n';
+  actorsString += "];\n";
 
   // Write the actors string to the actors.ts file
-  fs.writeFileSync('./src/famousActorIds.ts', actorsString);
+  fs.writeFileSync("./src/famous_actors/famousActorIds.ts", actorsString);
 }
 
-
 function readActorsFile(): string[] {
-  const data = fs.readFileSync('./src/famousActors.txt', 'utf-8');
-  return data.split('\n');
+  const data = fs.readFileSync("./src/famous_actors/famousActors.txt", "utf-8");
+  return data.split("\n");
 }
 
 /**
@@ -52,25 +52,25 @@ export async function getActorIdByName(name: string): Promise<number> {
     method: "GET",
     headers: {
       accept: "application/json",
-      Authorization: `Bearer ${process.env.TMDB_API_KEY}`
-    }
+      Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
+    },
   };
 
   const url = `https://api.themoviedb.org/3/search/person?query=${encodeURIComponent(name)}&language=en-US`;
 
   let actorId: number;
   await fetch(url, options)
-    .then(res => res.json())
-    .then(json => {
+    .then((res) => res.json())
+    .then((json) => {
       if (json.results && json.results.length > 0) {
         actorId = json.results[0].id;
       } else {
         throw new Error(`No results found for actor: ${name}`);
       }
     })
-    .catch(err => console.error("error:" + err));
+    .catch((err) => console.error("error:" + err));
 
   return actorId;
 }
 
-main()
+main();

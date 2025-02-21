@@ -42,7 +42,7 @@ export const famousActorIds: number[] = [
   18918, // Dwayne Johnson
   95624, // Shirley Temple
   134, // Jamie Foxx
-  148815, // Harrison Ford
+  3, // Harrison Ford
   5292, // Denzel Washington
   4491, // Jennifer Aniston
   11510, // Macaulay Culkin
@@ -86,7 +86,7 @@ export const famousActorIds: number[] = [
   934, // Russell Crowe
   72129, // Jennifer Lawrence
   6941, // Cameron Diaz
-  16619, // Mr. T
+  2328829, // Mr. T
   5064, // Meryl Streep
   1532, // Bill Murray
   54693, // Emma Stone
@@ -245,7 +245,7 @@ export const famousActorIds: number[] = [
   2224, // Christian Slater
   19149, // Tori Spelling
   2219, // Tobey Maguire
-  22859, // Jerry Lewis
+  3663, // Jerry Lewis
   78041, // Kirk Cameron
   64930, // Bob Newhart
   8784, // Daniel Craig
@@ -391,7 +391,7 @@ export const famousActorIds: number[] = [
   7167, // Don Rickles
   228, // Ed Harris
   6844, // Dom DeLuise
-  146713, // Desi Arnaz
+  91711, // Desi Arnaz
   8447, // Jeff Daniels
   25541, // Katherine Heigl
   27726, // Don Knotts
@@ -411,7 +411,7 @@ export const famousActorIds: number[] = [
   56949, // Redd Foxx
   9205, // Denise Richards
   6450, // Faye Dunaway
-  120057, // Jane Seymour
+  10223, // Jane Seymour
   4960, // Charles Bronson
   83414, // Tim Conway
   4070, // Grace Kelly
@@ -467,7 +467,7 @@ export const famousActorIds: number[] = [
   56322, // Amy Poehler
   854, // James Stewart
   1023139, // Adam Driver
-  60438, // Michael Landon
+  116771, // Michael Landon
   67599, // Vanessa Hudgens
   89784, // Phyllis Diller
   18249, // Cicely Tyson
@@ -477,7 +477,7 @@ export const famousActorIds: number[] = [
   9274, // James Brolin
   53256, // Terry Crews
   8724, // Errol Flynn
-  77120, // Steve Austin
+  1945021, // Steve Austin
   17605, // Idris Elba
   827, // Elliott Gould
   63208, // Tommy Chong
@@ -640,7 +640,7 @@ export const famousActorIds: number[] = [
   28640, // Molly Shannon
   25540, // Sandra Oh
   7301, // Anthony Perkins
-  29578, // John Barrymore
+  116560, // John Barrymore
   1233, // Philip Seymour Hoffman
   11514, // Catherine O'Hara
   6197, // Brian Dennehy
@@ -914,6 +914,7 @@ export const famousActorIds: number[] = [
   1356210, // Millie Bobby Brown
   3197, // Tom Sizemore
   689, // Kate Capshaw
+  8767, // James Caviezel
   8725, // Olivia de Havilland
   1003, // Jean Reno
   62862, // Danny McBride
@@ -970,7 +971,7 @@ export const famousActorIds: number[] = [
   57599, // Seann William Scott
   168581, // Holly Robinson Peete
   89614, // Curly Howard
-  3127718, // Michael Epps
+  4268414, // Michael Epps
   8606, // Robert Shaw
   35705, // Regina Hall
   4113, // Claude Rains
@@ -995,6 +996,7 @@ export const famousActorIds: number[] = [
   16420, // Richard Boone
   7062, // Andrew Lincoln
   105207, // Barbi Benton
+  20049, // David Tennant
   11181, // Kenneth Branagh
   1674162, // Jonathan Majors
   1524, // Harold Ramis
