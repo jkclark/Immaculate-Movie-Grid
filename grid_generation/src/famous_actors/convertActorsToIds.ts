@@ -8,7 +8,7 @@
  */
 import dotenv from "dotenv";
 import fs from "fs";
-import { Actor } from "src/interfaces";
+import { Actor } from "../interfaces";
 
 dotenv.config();
 
