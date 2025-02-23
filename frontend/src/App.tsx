@@ -333,34 +333,39 @@ function App() {
         {!gridLoadError && !isLoading && (
           // 800px arbitrarily chosen as max width. Letting it take full width looks bad
           <div className="w-full max-w-[600px] flex flex-row justify-around items-center my-4 theme-text">
-            <ActorModeToggle />
-            <div className="flex flex-col items-center">
+            <div className="flex-1 flex justify-center">
+              <ActorModeToggle />
+            </div>
+
+            <div className="flex flex-col items-center flex-1">
               <div className="text-4xl">{gameOver ? Object.keys(usedAnswers).length : guessesRemaining}</div>
               <div className="text-lg">{gameOver ? "final score" : "guesses left"}</div>
             </div>
 
-            <button
-              // Border takes up 1px (or something) and so when game over buttons
-              // have a border and this button doesn't, everything shifts down upon
-              // game over, so to fix that we have transparent border on this button
-              className={`${gameOver ? "invisible" : ""} border border-transparent bg-red-900`}
-              onClick={() => {
-                async function endGameAndGetStats() {
-                  const endGameResponse = await endGameForGrid(gridId, scoreId);
-                  setScoreId(endGameResponse.score_id);
+            <div className="flex-1 flex justify-center">
+              <button
+                // Border takes up 1px (or something) and so when game over buttons
+                // have a border and this button doesn't, everything shifts down upon
+                // game over, so to fix that we have transparent border on this button
+                className={`${gameOver ? "invisible" : ""} border border-transparent bg-red-900`}
+                onClick={() => {
+                  async function endGameAndGetStats() {
+                    const endGameResponse = await endGameForGrid(gridId, scoreId);
+                    setScoreId(endGameResponse.score_id);
 
-                  await updateStatsForGrid(gridId);
-                }
+                    await updateStatsForGrid(gridId);
+                  }
 
-                // Tell the backend this game is over
-                endGameAndGetStats();
+                  // Tell the backend this game is over
+                  endGameAndGetStats();
 
-                // End the game locally
-                endGame();
-              }}
-            >
-              Give up
-            </button>
+                  // End the game locally
+                  endGame();
+                }}
+              >
+                Give up
+              </button>
+            </div>
           </div>
         )}
       </div>
