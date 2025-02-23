@@ -6,7 +6,10 @@ const HowToPlayDisplay: React.FC = () => {
     <SimpleTextDisplay
       content={
         <div>
-          <h1 className="text-3xl font-bold">How to play</h1>
+          <h1 className="text-3xl font-bold">Immaculate Movie Grid</h1>
+          <br />
+
+          <h2 className="text-2xl font-bold">How to play</h2>
           <br />
 
           <p className="text-base">
