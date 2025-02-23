@@ -265,6 +265,10 @@ function App() {
     return newGridDisplayData;
   }
 
+  function showPostGameSummary() {
+    addContentsToOverlay(<BasicStatsDisplay />);
+  }
+
   function endGame() {
     setGameOver(true);
     setSelectedRow(-1);
@@ -280,6 +284,9 @@ function App() {
     // Make sure to hide the search bar and search results if the last guess
     // is an incorrect one
     resetOverlayContents();
+
+    // Show summary after a 0.5 second delay
+    showPostGameSummary();
   }
 
   const tabInfo = {
@@ -349,9 +356,7 @@ function App() {
                   // This button, because of the button below, subsequently always needs
                   // a transparent border to keep the layout consistent
                   className={`selected-tab border border-transparent`}
-                  onClick={() => {
-                    addContentsToOverlay(<BasicStatsDisplay />);
-                  }}
+                  onClick={showPostGameSummary}
                 >
                   Show summary
                 </button>
