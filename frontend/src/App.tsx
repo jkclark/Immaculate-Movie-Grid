@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { GridExport } from "common/src/interfaces";
 import { hitAPIGet } from "./api";
 import ActorModeToggle from "./components/ActorModeToggle";
+import BasicStatsDisplay from "./components/BasicStatsDisplay";
 import Grid from "./components/Grid";
 import HowToPlayDisplay from "./components/HowToPlayDisplay";
 import Navbar from "./components/Navbar";
@@ -343,28 +344,41 @@ function App() {
             </div>
 
             <div className="flex-1 flex justify-center">
-              <button
-                // Border takes up 1px (or something) and so when game over buttons
-                // have a border and this button doesn't, everything shifts down upon
-                // game over, so to fix that we have transparent border on this button
-                className={`${gameOver ? "invisible" : ""} border border-transparent bg-red-900`}
-                onClick={() => {
-                  async function endGameAndGetStats() {
-                    const endGameResponse = await endGameForGrid(gridId, scoreId);
-                    setScoreId(endGameResponse.score_id);
+              {gameOver ? (
+                <button
+                  // This button, because of the button below, subsequently always needs
+                  // a transparent border to keep the layout consistent
+                  className={`selected-tab border border-transparent`}
+                  onClick={() => {
+                    addContentsToOverlay(<BasicStatsDisplay />);
+                  }}
+                >
+                  Show summary
+                </button>
+              ) : (
+                <button
+                  // Border takes up 1px (or something) and so when the game over button
+                  // has a border and this button doesn't, everything shifts down upon
+                  // game over, so to fix that we have transparent border on this button
+                  className={`border border-transparent bg-red-900`}
+                  onClick={() => {
+                    async function endGameAndGetStats() {
+                      const endGameResponse = await endGameForGrid(gridId, scoreId);
+                      setScoreId(endGameResponse.score_id);
 
-                    await updateStatsForGrid(gridId);
-                  }
+                      await updateStatsForGrid(gridId);
+                    }
 
-                  // Tell the backend this game is over
-                  endGameAndGetStats();
+                    // Tell the backend this game is over
+                    endGameAndGetStats();
 
-                  // End the game locally
-                  endGame();
-                }}
-              >
-                Give up
-              </button>
+                    // End the game locally
+                    endGame();
+                  }}
+                >
+                  Give up
+                </button>
+              )}
             </div>
           </div>
         )}
