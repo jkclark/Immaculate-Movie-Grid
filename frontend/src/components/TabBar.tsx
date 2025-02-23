@@ -26,7 +26,7 @@ const TabBar: React.FC<TabBarProps> = ({ tabs, invisible }) => {
   return (
     <div
       // 800px arbitrarily chosen as max width. Letting it take full width looks bad
-      className={`flex flex-row w-full max-w-[800px] justify-around mt-4 px-4 lg:px-0 ${invisible ? "invisible" : ""}`}
+      className={`flex flex-row w-full max-w-[800px] justify-around mt-4 px-4 lg:px-0 ${invisible ? "invisible" : ""} small-responsive-text theme-text`}
     >
       {Object.values(tabs).map((tab, index) => {
         return (
