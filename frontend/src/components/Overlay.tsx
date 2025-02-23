@@ -1,5 +1,5 @@
 import { atom, useAtom, useSetAtom } from "jotai";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { selectedColAtom, selectedRowAtom } from "../state";
 
 const overlayContentsAtom = atom<JSX.Element[]>([]);
@@ -30,13 +30,23 @@ const Overlay: React.FC = () => {
   const setSelectedRow = useSetAtom(selectedRowAtom);
   const setSelectedCol = useSetAtom(selectedColAtom);
   const { peekOverlayContents, resetOverlayContents } = useOverlayStack();
+  // For the opacity transition
+  const [isVisible, setIsVisible] = useState(false);
+
+  const transitionDuration = 300;
+  const transitionDurationClassName = `transition-opacity duration-${transitionDuration} ease-in-out`;
 
   function closeOverlay() {
-    resetOverlayContents();
+    setIsVisible(false);
 
-    // This is only relevant when the game is ongoing, but that doesn't really matter
-    setSelectedRow(-1);
-    setSelectedCol(-1);
+    // The timeout is to allow the opacity transition to finish before clearing the overlay contents
+    setTimeout(() => {
+      resetOverlayContents();
+
+      // This is only relevant when the game is ongoing, but that doesn't really matter
+      setSelectedRow(-1);
+      setSelectedCol(-1);
+    }, transitionDuration);
   }
 
   // Close overlay on escape key press
@@ -55,13 +65,21 @@ const Overlay: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (peekOverlayContents()) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false);
+    }
+  }, [peekOverlayContents()]);
+
   const topOverlayContents = peekOverlayContents();
 
   return (
     topOverlayContents && (
       <div
         onClick={closeOverlay}
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20"
+        className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 ${transitionDurationClassName} ${isVisible ? "opacity-100" : "opacity-0"}`}
       >
         {topOverlayContents}
       </div>
