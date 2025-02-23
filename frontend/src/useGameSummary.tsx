@@ -10,6 +10,7 @@ import {
   TextGridDisplayData,
 } from "./gridDisplayData";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
+import { roundToNearestNDigits } from "./utils";
 
 export function useGameSummary() {
   const { addContentsToOverlay } = useOverlayStack();
@@ -170,11 +171,6 @@ export function useGameSummary() {
     }
 
     return insertInnerGridDisplayData(getInitialGridDisplayData(gridData), newInnerGridData);
-  }
-
-  /*** Utils ***/
-  function roundToNearestNDigits(num: number, n: number): string {
-    return (Math.round(num * 100) / 100).toFixed(n);
   }
 
   return {

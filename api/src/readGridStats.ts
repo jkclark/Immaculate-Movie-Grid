@@ -37,10 +37,12 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
       numGames: {
         value: scores.length,
         displayName: "Games played",
+        roundToDigits: 0,
       },
       avgScore: {
         value: scores.reduce((acc, score) => acc + score.score, 0) / scores.length || 0,
         displayName: "Average score",
+        roundToDigits: 2,
       },
     },
     squarePercentages: squarePercentages,

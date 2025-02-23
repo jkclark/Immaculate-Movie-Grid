@@ -1,10 +1,11 @@
 /**
- * This file contains functions for getting and writing statistics about the games played.
+ * This file contains common interfaces for stats-related data.
  */
 
 interface BasicStat {
   value: number;
   displayName: string;
+  roundToDigits?: number;
 }
 
 /* Right now these all have to be optional because

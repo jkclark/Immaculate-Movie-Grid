@@ -1,5 +1,6 @@
 import { useAtomValue } from "jotai";
 import { gridIdAtom, gridStatsAtom, usedAnswersAtom } from "../state";
+import { roundToNearestNDigits } from "../utils";
 import SimpleTextDisplay from "./SimpleTextDisplay";
 
 const BasicStatsDisplay: React.FC = () => {
@@ -36,7 +37,7 @@ const BasicStatsDisplay: React.FC = () => {
         {Object.entries(gridStats.basicStats || {}).map(([key, stat]) => (
           <div className="flex justify-between w-full" key={key}>
             <span>{stat.displayName}:</span>
-            <span>{stat.value}</span>
+            <span>{roundToNearestNDigits(stat.value, stat.roundToDigits ?? 0)}</span>
           </div>
         ))}
       </div>
