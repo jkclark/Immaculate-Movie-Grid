@@ -33,7 +33,7 @@ const HowToPlayDisplay: React.FC = () => {
           <p>Tap on a square to search for a movie or TV show that satisifes its requirements.</p>
           <br />
 
-          <p>You get 9 guesses, right or wrong, for 9 squares. The goal is to be ✨immaculate✨</p>
+          <p>You get 9 guesses, right or wrong. Your goal is to be ✨immaculate✨</p>
           <br />
 
           <p>You cannot use the same movie or TV show more than once in the grid.</p>
