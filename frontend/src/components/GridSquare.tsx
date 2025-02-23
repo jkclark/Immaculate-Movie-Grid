@@ -10,7 +10,7 @@ interface GridSquareProps {
   backupImageURL?: string;
   mainText?: string;
   subText?: string;
-  tooltipText?: JSX.Element;
+  tooltipTextIndex?: number;
   clickHandler?: () => void;
   toggleable?: boolean;
   // Show text in the top right corner of the square if present
@@ -31,7 +31,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
   backupImageURL,
   mainText,
   subText,
-  tooltipText,
+  tooltipTextIndex,
   clickHandler,
   toggleable,
   cornerText,
@@ -74,7 +74,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
   if (toggleable && mainText && imageURL && hoverText && backupImageURL) {
     inner = (
       <ToggleableImageSquare
-        {...{ imageURL, hoverText, backupImageURL, mainText, subText, tooltipText }}
+        {...{ imageURL, hoverText, backupImageURL, mainText, subText, tooltipTextIndex }}
         roundednessClassName={allAroundRoundedCornerClassName}
       />
     );
@@ -82,7 +82,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
 
   // Text square
   else if (mainText) {
-    inner = <TextSquare {...{ mainText, subText, tooltipText, clickHandler }} />;
+    inner = <TextSquare {...{ mainText, subText, tooltipTextIndex, clickHandler }} />;
   }
 
   // Image square

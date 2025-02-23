@@ -1,7 +1,9 @@
+import { CATEGORY_IDS_TO_TOOLTIP_TEXTS } from "../constants";
+
 export interface TextSquareProps {
   mainText: string;
   subText?: string;
-  tooltipText?: JSX.Element;
+  tooltipTextIndex?: number;
   clickHandler?: (event: React.MouseEvent) => void;
   invisible?: boolean;
 }
@@ -9,7 +11,7 @@ export interface TextSquareProps {
 const TextSquare: React.FC<TextSquareProps> = ({
   mainText,
   subText,
-  tooltipText,
+  tooltipTextIndex,
   clickHandler,
   invisible,
 }) => {
@@ -19,6 +21,14 @@ const TextSquare: React.FC<TextSquareProps> = ({
       clickHandler(event);
     }
   };
+
+  // Fetch tooltip Element from constants.tsx
+  // We do this because previously we were passing the actual JSX element as a prop
+  // which didn't work well when writing and subsequently reading the Element from localStorage
+  let tooltipText;
+  if (tooltipTextIndex || tooltipTextIndex === 0) {
+    tooltipText = CATEGORY_IDS_TO_TOOLTIP_TEXTS[tooltipTextIndex];
+  }
 
   return (
     <div

@@ -13,7 +13,7 @@ const ToggleableImageSquare: React.FC<ToggleableImageSquareProps> = ({
   backupImageURL,
   mainText,
   subText,
-  tooltipText,
+  tooltipTextIndex,
   roundednessClassName,
 }) => {
   const actorSquareMode = useAtomValue(actorSquareModeAtom);
@@ -30,7 +30,7 @@ const ToggleableImageSquare: React.FC<ToggleableImageSquareProps> = ({
       <TextSquare
         mainText={mainText}
         subText={subText}
-        tooltipText={tooltipText}
+        tooltipTextIndex={tooltipTextIndex}
         invisible={actorSquareMode !== ActorSquareMode.NAME}
       />
     </>

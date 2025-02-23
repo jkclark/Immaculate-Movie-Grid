@@ -1,7 +1,6 @@
 import { atom } from "jotai";
 
 import { ActorExport, CategoryExport, GridExport } from "common/src/interfaces";
-import { ACTOR_TOOLTIP_TEXT, CATEGORY_IDS_TO_TOOLTIP_TEXTS } from "./constants";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
 
 interface GridDisplayData {
@@ -18,7 +17,7 @@ export const gridDisplayDataAtom = atom<AnyGridDisplayData[][]>([[]]);
 export interface TextGridDisplayData extends GridDisplayData {
   mainText: string;
   subText?: string;
-  tooltipText?: JSX.Element;
+  tooltipTextIndex?: number;
 }
 
 export interface ImageGridDisplayData extends GridDisplayData {
@@ -50,7 +49,8 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
             hoverText: axisEntity.name,
             imageURL: getS3ImageURLForType("actor", axisEntity.id),
             backupImageURL: getS3BackupImageURLForType("actor"),
-            tooltipText: ACTOR_TOOLTIP_TEXT,
+            // actor = 0, all categories have their own IDs
+            tooltipTextIndex: 0,
             toggleable: true,
           };
         } else {
@@ -58,7 +58,7 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
           const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
           displayData[rowIndex][colIndex] = {
             mainText: axisEntity.name,
-            tooltipText: CATEGORY_IDS_TO_TOOLTIP_TEXTS[axisEntity.id.toString()],
+            tooltipTextIndex: axisEntity.id,
           };
         }
       } else if (colIndex === 0 && rowIndex !== 0) {
@@ -72,7 +72,8 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
             // The below line will break for categories at this point, but that's ok
             imageURL: getS3ImageURLForType("actor", axisEntity.id),
             backupImageURL: getS3BackupImageURLForType("actor"),
-            tooltipText: ACTOR_TOOLTIP_TEXT,
+            // actor = 0, all categories have their own IDs
+            tooltipTextIndex: 0,
             toggleable: true,
           };
         } else {
@@ -80,7 +81,7 @@ export function getInitialGridDisplayData(gridData: GridExport): AnyGridDisplayD
           const axisEntity = getAxisEntityFromListById(gridData.categories, -1 * parseInt(axisEntityId));
           displayData[rowIndex][colIndex] = {
             mainText: axisEntity.name,
-            tooltipText: CATEGORY_IDS_TO_TOOLTIP_TEXTS[axisEntity.id.toString()],
+            tooltipTextIndex: axisEntity.id,
           };
         }
       }
