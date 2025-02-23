@@ -5,6 +5,7 @@ import { GridExport } from "common/src/interfaces";
 import { hitAPIGet } from "./api";
 import ActorModeToggle from "./components/ActorModeToggle";
 import Grid from "./components/Grid";
+import HowToPlayDisplay from "./components/HowToPlayDisplay";
 import Navbar from "./components/Navbar";
 import Overlay, { useOverlayStack } from "./components/Overlay";
 import SearchBar from "./components/SearchBar";
@@ -25,6 +26,7 @@ import { getGridDataFromS3, getS3BackupImageURLForType, getS3ImageURLForType } f
 import {
   activeTabAtom,
   finalGameGridDisplayDataAtom,
+  firstTimePlayingAtom,
   gameOverAtom,
   getRowColKey,
   gridDataAtom,
@@ -46,6 +48,7 @@ function App() {
   // This could be a set, but I think it's clearer if it's a list of objects like this
   const [isLoading, setIsLoading] = useState(true);
   const [gridLoadError, setGridLoadError] = useState(false);
+  const [firstTimePlaying, setFirstTimePlaying] = useAtom(firstTimePlayingAtom);
 
   const setSelectedRow = useSetAtom(selectedRowAtom);
   const setSelectedCol = useSetAtom(selectedColAtom);
@@ -64,6 +67,19 @@ function App() {
   // On page load, hit the search Lambda function to warm it up
   useEffect(() => {
     hitAPIGet("search?query=immaculate-movie-grid-search-warm-up");
+  }, []);
+
+  // If this is the user's first time playing,
+  // show the "How to play" modal
+  useEffect(() => {
+    if (firstTimePlaying) {
+      // Show the overlay after a short delay
+      // When it happens immediately it's offputting
+      setTimeout(() => addContentsToOverlay(<HowToPlayDisplay />), 1000);
+
+      // Set firstTimePlaying to false so this never happens again
+      setFirstTimePlaying(false);
+    }
   }, []);
 
   // On page load, load the grid data

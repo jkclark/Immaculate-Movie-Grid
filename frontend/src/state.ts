@@ -74,3 +74,5 @@ export const actorSquareModeAtom = getAtomWithStorageInit<ActorSquareMode>(
   "actorSquareMode",
   ActorSquareMode.PHOTO
 );
+
+export const firstTimePlayingAtom = getAtomWithStorageInit("firstTimePlaying", true);
