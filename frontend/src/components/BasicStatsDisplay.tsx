@@ -26,7 +26,7 @@ const BasicStatsDisplay: React.FC = () => {
     <div className="w-full h-full flex flex-col items-center">
       <div className="big-responsive-text">{formatDate(gridId)}</div>
       <br />
-      <div className="flex flex-col w-1/2 medium-responsive-text">
+      <div className="flex flex-col w-3/4 medium-responsive-text">
         {/* Your score */}
         <div className="flex justify-between w-full">
           <span>Your Score:</span>
