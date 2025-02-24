@@ -35,15 +35,15 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
 
   const stats = {
     basicStats: {
-      numGames: {
-        value: scores.length,
-        displayName: "Games played",
-        roundToDigits: 0,
-      },
       avgScore: {
         value: scores.reduce((acc, score) => acc + score.score, 0) / scores.length || 0,
-        displayName: "Average score",
+        displayName: "Today's average score",
         roundToDigits: 2,
+      },
+      numGames: {
+        value: scores.length,
+        displayName: "Games played today",
+        roundToDigits: 0,
       },
     },
     squarePercentages: squarePercentages,
