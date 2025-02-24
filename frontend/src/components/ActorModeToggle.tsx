@@ -15,7 +15,7 @@ const ActorModeToggle: React.FC = () => {
   }
 
   return (
-    <button className="selected-tab" onClick={toggleActorSquareMode}>
+    <button className="selected-tab small-responsive-text" onClick={toggleActorSquareMode}>
       Show {actorSquareMode === ActorSquareMode.NAME ? "photos" : "names"}
     </button>
   );
