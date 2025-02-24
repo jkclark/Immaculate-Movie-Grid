@@ -31,6 +31,7 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
   const scores = await getAllScores(dataSource, gridDate);
   const squarePercentages = await getSquarePercentages(dataSource, gridDate);
   const allGivenAnswers = await getAllGivenAnswers(dataSource, gridDate);
+  const scoreCounts = await getScoreCounts(dataSource, gridDate);
 
   const stats = {
     basicStats: {
@@ -47,6 +48,7 @@ export async function getStatsForGrid(dataSource: DataSource, gridDate: string):
     },
     squarePercentages: squarePercentages,
     allAnswers: allGivenAnswers,
+    scoreCounts: scoreCounts,
   };
 
   return stats;
@@ -148,4 +150,20 @@ async function getAllGivenAnswers(
   }
 
   return allGivenAnswers;
+}
+
+async function getScoreCounts(dataSource: DataSource, gridDate: string): Promise<{ [key: number]: number }> {
+  const scoreRepository = dataSource.getRepository(Score);
+
+  const scores = await batchReadFromDB(scoreRepository, 1000, { id: "ASC" }, [], {
+    grid: { date: new Date(gridDate) },
+  });
+
+  const scoreCounts: { [key: number]: number } = {};
+
+  for (const score of scores) {
+    scoreCounts[score.score] = (scoreCounts[score.score] || 0) + 1;
+  }
+
+  return scoreCounts;
 }

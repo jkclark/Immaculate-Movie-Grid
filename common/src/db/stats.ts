@@ -18,6 +18,7 @@ export interface Stats {
   basicStats?: { [key: string]: BasicStat };
   squarePercentages?: { [key: string]: number };
   allAnswers?: { [key: string]: AllGivenAnswersForSquare };
+  scoreCounts?: { [key: number]: number };
 }
 
 export interface IncomingGuess {
