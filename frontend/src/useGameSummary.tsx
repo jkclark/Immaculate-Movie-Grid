@@ -10,7 +10,7 @@ import {
   TextGridDisplayData,
 } from "./gridDisplayData";
 import { getS3BackupImageURLForType, getS3ImageURLForType } from "./s3";
-import { roundToNearestNDigits } from "./utils";
+import { addCommasToNumber, roundToNearestNDigits } from "./utils";
 
 export function useGameSummary() {
   const { addContentsToOverlay } = useOverlayStack();
@@ -44,7 +44,7 @@ export function useGameSummary() {
             : getAxisEntityFromListById(gridData.categories, -1 * parseInt(downAxisEntityId));
 
         const answers = getAnswersForPair(gridData, acrossAxisEntity.id, downAxisEntity.id);
-        const answerText = `${answers.length}`;
+        const answerText = `${addCommasToNumber(answers.length)}`;
         innerGridRow.push({
           mainText: answerText,
           clickHandler: () => {
@@ -60,7 +60,7 @@ export function useGameSummary() {
 
     // Add total number of distinct credits in grid to the top left corner
     const totalCreditsGridDisplayDatum = {
-      mainText: Object.keys(gridData.credits).length.toString(),
+      mainText: addCommasToNumber(Object.keys(gridData.credits).length),
       subText: "Total",
     };
     initialGridDisplayData[0][0] = totalCreditsGridDisplayDatum;
