@@ -11,7 +11,7 @@ const Navbar: React.FC = () => {
   return (
     <nav className="relative flex items-center justify-between flex-wrap bg-theme-secondary px-4 py-2 w-full z-20">
       <div className="flex items-center flex-shrink-0 theme-text mr-6">
-        <span className="font-semibold text-xl tracking-tight">Immaculate Movie Grid</span>
+        <span className="font-medium text-xl tracking-tight">Immaculate Movie Grid</span>
       </div>
       <div className="block lg:hidden">
         <button

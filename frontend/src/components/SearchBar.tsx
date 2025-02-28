@@ -56,6 +56,7 @@ const SearchBar: React.FC = () => {
       onSubmit={(e) => e.preventDefault()}
       className="w-full max-w-screen-lg px-10 z-30 absolute top-2vh left-1/2 transform -translate-x-1/2"
     >
+      {/* For screen readers */}
       <label htmlFor="default-search" className="mb-2 text-sm font-medium sr-only theme-text">
         Search
       </label>

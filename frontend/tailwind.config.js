@@ -199,6 +199,14 @@ export default {
         30: "7.5rem",
       },
       colors: semanticColors,
+      fontFamily: {
+        sans: ["Roboto"],
+      },
+      fontWeight: {
+        normal: 300,
+        medium: 500,
+        bold: 700,
+      },
     },
   },
   plugins: [
