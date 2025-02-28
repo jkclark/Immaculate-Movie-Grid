@@ -56,16 +56,26 @@ const GridSquare: React.FC<GridSquareProps> = ({
   const firstRowColIndex = 1;
   // If changed, make sure to add "rounded-{size}" class and corresponding tl, tr, bl, br classes to tailwind.config.js
   const roundednessSize = "xl";
+  // NOTE: If we try to round the gradients in the same way as the text squares, there is a small
+  // "gap" between the gradient and the rounded corners. I'm not sure why this happens, but using a smaller size
+  // for the gradient seems to fix it.
+  // If changed, make sure to add "rounded-{size}" class and corresponding tl, tr, bl, br classes to tailwind.config.js
+  const gradientRoundednessSize = "lg";
   const allAroundRoundedCornerClassName = `rounded-${roundednessSize}`;
   let roundedCornerClassName;
+  let gradientRoundedCornerClassName;
   if (row == firstRowColIndex && col == firstRowColIndex) {
     roundedCornerClassName = `rounded-tl-${roundednessSize}`;
+    gradientRoundedCornerClassName = `rounded-tl-${gradientRoundednessSize}`;
   } else if (row == firstRowColIndex && col == gridSize - 1) {
     roundedCornerClassName = `rounded-tr-${roundednessSize}`;
+    gradientRoundedCornerClassName = `rounded-tr-${gradientRoundednessSize}`;
   } else if (row == gridSize - 1 && col == firstRowColIndex) {
     roundedCornerClassName = `rounded-bl-${roundednessSize}`;
+    gradientRoundedCornerClassName = `rounded-bl-${gradientRoundednessSize}`;
   } else if (row == gridSize - 1 && col == gridSize - 1) {
     roundedCornerClassName = `rounded-br-${roundednessSize}`;
+    gradientRoundedCornerClassName = `rounded-br-${gradientRoundednessSize}`;
   }
 
   let inner: JSX.Element;
@@ -136,7 +146,7 @@ const GridSquare: React.FC<GridSquareProps> = ({
       )}
       {backgroundGradientHeight && backgroundGradientHeight > 0 && (
         <div
-          className="z-0 absolute bottom-0 left-0 w-full bg-theme-secondary"
+          className={`z-0 absolute bottom-0 left-0 w-full bg-theme-secondary ${gradientRoundedCornerClassName}`}
           style={{ height: `${backgroundGradientHeight}%` }}
         />
       )}

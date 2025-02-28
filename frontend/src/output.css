@@ -965,6 +965,10 @@ video {
   border-bottom-left-radius: 0.125rem;
 }
 
+.rounded-bl-lg {
+  border-bottom-left-radius: 0.5rem;
+}
+
 .rounded-bl-sm {
   border-bottom-left-radius: 0.125rem;
 }
@@ -973,12 +977,24 @@ video {
   border-bottom-left-radius: 0.75rem;
 }
 
+.rounded-br-lg {
+  border-bottom-right-radius: 0.5rem;
+}
+
 .rounded-br-xl {
   border-bottom-right-radius: 0.75rem;
 }
 
+.rounded-tl-lg {
+  border-top-left-radius: 0.5rem;
+}
+
 .rounded-tl-xl {
   border-top-left-radius: 0.75rem;
+}
+
+.rounded-tr-lg {
+  border-top-right-radius: 0.5rem;
 }
 
 .rounded-tr-xl {
