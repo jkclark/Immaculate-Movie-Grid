@@ -11,6 +11,14 @@ The gist of it is:
 - Add netsh rule
 - Run Vite with `--host` flag
 
+This project uses [shadcn](https://ui.shadcn.com/). The files related to it (which may not be obvious):
+
+- `components.json`
+- `src/components/ui/*`
+- `src/lib/*`
+- `src/index.css` is modified by the `shadcn` CLI
+- `tailwind.config.js` is modified by the `shadcn` CLI
+
 (Below is the original Vite + React-TS README)
 
 # React + TypeScript + Vite

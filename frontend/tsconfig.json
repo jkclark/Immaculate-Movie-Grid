@@ -28,6 +28,10 @@
       ],
       "frontend/*": [
         "src/*"
+      ],
+      // Prerequisite for shadcn
+      "@/*": [
+        "./src/*"
       ]
     },
     // The following two options are required for TypeORM's decorators,
@@ -36,11 +40,12 @@
     "emitDecoratorMetadata": true,
   },
   "include": [
-    "src"
+    "src",
+    "tsconfig.app.json"
   ],
   "references": [
     {
       "path": "./tsconfig.node.json"
     }
-  ]
+  ],
 }
