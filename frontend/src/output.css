@@ -1269,6 +1269,14 @@ body {
   fill: currentColor;
 }
 
+.fill-theme-light-secondary {
+  fill: #77a6b6;
+}
+
+.fill-theme-light-text {
+  fill: #fff;
+}
+
 .object-contain {
   -o-object-fit: contain;
      object-fit: contain;
@@ -1852,6 +1860,14 @@ a:is(.dark *) {
 .dark\:border-t-theme-dark-secondary:is(.dark *) {
   --tw-border-opacity: 1;
   border-top-color: rgb(77 114 152 / var(--tw-border-opacity, 1));
+}
+
+.dark\:fill-theme-dark-secondary:is(.dark *) {
+  fill: #4d7298;
+}
+
+.dark\:fill-theme-dark-text:is(.dark *) {
+  fill: #fff;
 }
 
 .dark\:text-theme-dark-secondary:is(.dark *) {
