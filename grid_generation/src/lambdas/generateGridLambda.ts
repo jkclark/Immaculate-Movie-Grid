@@ -1,8 +1,8 @@
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
+import { generateGrid } from "../generateGrid";
 import DBGraphHandler from "../graph_handlers/dbGraphHandler";
 import GraphHandler from "../graph_handlers/graphHandler";
-import { generateGrid } from "../index";
 
 interface EventGridGenArgs {
   gridDate: string;
