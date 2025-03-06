@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
 import DBGraphHandler from "../graph_handlers/dbGraphHandler";
 import GraphHandler from "../graph_handlers/graphHandler";
-import { main } from "../index";
+import { generateGrid } from "../index";
 
 interface EventGridGenArgs {
   gridDate: string;
@@ -28,7 +28,7 @@ export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, 
     graphHandler,
   };
 
-  const gridExport = await main(gridGenArgs);
+  const gridExport = await generateGrid(gridGenArgs);
 
   await graphHandler.saveGrid(gridExport);
 

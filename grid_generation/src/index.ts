@@ -38,7 +38,7 @@ export interface GridGenArgs {
   overwriteImages: boolean;
 }
 
-export async function main(args: GridGenArgs): Promise<GridExport> {
+export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
   if (!args.gridDate || !args.graphHandler) {
     console.error("Missing gridDate or graphHandler");
     return;
