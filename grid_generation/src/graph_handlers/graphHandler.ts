@@ -11,6 +11,8 @@ export default abstract class GraphHandler {
 
   abstract saveGrid(grid: GridExport): Promise<void>;
 
+  // TODO: This method should exist at the TMDB level, not at the movie level
+  // and not at the generic level
   /**
    * Create a graph object from a list of actors with their credits.
    *
