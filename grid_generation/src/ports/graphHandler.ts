@@ -1,6 +1,6 @@
 import DataScraper from "./dataScraper";
 import DataStoreHandler from "./dataStoreHandler";
-import { Graph } from "./interfaces/graph";
+import { AxisEntity, Connection, Graph } from "./interfaces/graph";
 
 export default abstract class GraphHandler {
   protected dataStoreHandler: DataStoreHandler;
@@ -21,16 +21,53 @@ export default abstract class GraphHandler {
     return this.dataStoreHandler.loadGraph();
   }
 
-  // TODO: Add "addAxisEntityToGraph", "addConnectionToGraph", "addLinkToGraph",
-  // methods
-}
+  /**
+   * Add an axis entity to the graph.
+   *
+   * @param graph the graph to which the axis entity will be added
+   * @param id the id of the axis entity
+   * @param name the name of the axis entity
+   * @param entityType the entityType of the axis entity
+   */
+  addAxisEntityToGraph(graph: Graph, id: string, name: string, entityType: string): void {
+    if (graph.axisEntities[id]) {
+      throw new RepeatError(`Axis entity with id ${id} already exists: ${graph.axisEntities[id].name}`);
+    }
 
-class DBGraphHandler extends GraphHandler {
-  async init(): Promise<void> {
-    // Initialize the database connection
+    graph.axisEntities[id] = { id, name, entityType, connections: {} };
   }
 
-  async populateDataStore(): Promise<void> {
-    // Populate the database with actors and credits
+  /**
+   * Add a connection to the graph.
+   *
+   * @param graph the graph to which the connection will be added
+   * @param id the id of the connection
+   * @param name the name of the connection
+   * @param entityType the entityType of the connection
+   */
+  addConnectionToGraph(graph: Graph, id: string, name: string, entityType: string): void {
+    if (graph.connections[id]) {
+      throw new RepeatError(`Connection with id ${id} already exists: ${graph.connections[id].name}`);
+    }
+
+    graph.connections[id] = { id, name, entityType, connections: {} };
+  }
+
+  /**
+   * Connect an axis entity and a connection.
+   *
+   * @param axisEntity the axis entity to which the connection will be linked
+   * @param connection the connection to which the axis entity will be linked
+   */
+  linkAxisEntityAndConnection(axisEntity: AxisEntity, connection: Connection): void {
+    axisEntity.connections[connection.id] = connection;
+    connection.connections[axisEntity.id] = axisEntity;
+  }
+}
+
+export class RepeatError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RepeatError";
   }
 }
