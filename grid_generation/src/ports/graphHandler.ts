@@ -30,12 +30,14 @@ export default abstract class GraphHandler {
    * @param name the name of the axis entity
    * @param entityType the entityType of the axis entity
    */
-  addAxisEntityToGraph(graph: Graph, id: string, name: string, entityType: string): void {
+  addAxisEntityToGraph(graph: Graph, id: string, name: string, entityType: string): AxisEntity {
     if (graph.axisEntities[id]) {
       throw new RepeatError(`Axis entity with id ${id} already exists: ${graph.axisEntities[id].name}`);
     }
 
     graph.axisEntities[id] = { id, name, entityType, connections: {} };
+
+    return graph.axisEntities[id];
   }
 
   /**
@@ -46,12 +48,14 @@ export default abstract class GraphHandler {
    * @param name the name of the connection
    * @param entityType the entityType of the connection
    */
-  addConnectionToGraph(graph: Graph, id: string, name: string, entityType: string): void {
+  addConnectionToGraph(graph: Graph, id: string, name: string, entityType: string): Connection {
     if (graph.connections[id]) {
       throw new RepeatError(`Connection with id ${id} already exists: ${graph.connections[id].name}`);
     }
 
     graph.connections[id] = { id, name, entityType, connections: {} };
+
+    return graph.connections[id];
   }
 
   /**

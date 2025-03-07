@@ -1,3 +1,4 @@
+import { Category } from "src/categories";
 import GraphHandler from "../../ports/graphHandler";
 import MovieDataScraper from "../data_scrapers/movies/movieDataScraper";
 import MovieDataStoreHandler from "../data_store_handlers/movies/movieDataStoreHandler";
@@ -23,6 +24,27 @@ export default class MovieGraphHandler extends GraphHandler {
     return this.dataStoreHandler.loadGraph();
   }
 
-  // TODO: This class should contain stuff about categories, merging extra credit info, etc.
-  // Because that stuff should not exist at the level above (generic graphHandler)
+  /**
+   * Add categories to a graph.
+   *
+   * NOTE: This method modifies the graph in place.
+   *
+   * @param categories the categories to add to the graph
+   * @param graph the graph to which the categories will be added
+   */
+  addCategoriesToGraph(categories: { [key: number]: Category }, graph: ActorCreditGraph): void {
+    // iterate over (id, category) key value pairs in allCategories
+    for (const [id, category] of Object.entries(categories)) {
+      // Add the category to the graph
+      const categoryAxisEntity = super.addAxisEntityToGraph(graph, id, category.name, "category");
+
+      // Iterate over all credits in the graph
+      for (const credit of Object.values(graph.connections)) {
+        if (category.creditFilter(credit)) {
+          // Add the category as a connection to the credit
+          super.linkAxisEntityAndConnection(categoryAxisEntity, credit);
+        }
+      }
+    }
+  }
 }
