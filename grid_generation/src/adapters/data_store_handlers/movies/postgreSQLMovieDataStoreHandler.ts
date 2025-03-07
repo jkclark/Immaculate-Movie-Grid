@@ -1,7 +1,7 @@
 import { initializeDataSource } from "common/src/db/connect";
 import { DataSource } from "typeorm";
 
-export default class PostgreSQLHandler {
+export default class PostgreSQLMovieDataStoreHandler {
   private dataSource: DataSource;
 
   async init() {
