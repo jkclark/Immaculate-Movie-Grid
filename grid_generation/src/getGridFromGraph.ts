@@ -27,11 +27,11 @@ export function getGridFromGraph(
   const startingAxisEntity = axisEntitiesOfType[Math.floor(Math.random() * axisEntitiesOfType.length)];
   if ("name" in startingAxisEntity) {
     console.log(
-      `Starting with ${startingAxisEntity.name} with ${Object.keys(startingAxisEntity.connections).length} connections`
+      `Starting with ${startingAxisEntity.name} with ${Object.keys(startingAxisEntity.links).length} connections`
     );
   } else {
     console.log(
-      `Starting with ${startingAxisEntity.id} with ${Object.keys(startingAxisEntity.connections).length} connections`
+      `Starting with ${startingAxisEntity.id} with ${Object.keys(startingAxisEntity.links).length} connections`
     );
   }
 
@@ -52,7 +52,7 @@ export function getGridFromGraph(
     const mostRecentAxisEntity = fillDirection === "down" ? across[across.length - 1] : down[down.length - 1];
     const [fillAxis, compareAxis] = fillDirection === "down" ? [down, across] : [across, down];
 
-    let mostRecentAxisEntityConnections = Object.values(mostRecentAxisEntity.connections);
+    let mostRecentAxisEntityConnections = Object.values(mostRecentAxisEntity.links);
     // Randomize order of connections, if random is true
     if (random) {
       mostRecentAxisEntityConnections = randomizeListOrder(mostRecentAxisEntityConnections);
@@ -155,7 +155,7 @@ function getConnectedAxisEntitiesList(
   random: boolean
 ): GraphEntity[] {
   // Filter out axis entities whose type has a weight of 0
-  const validConnections = Object.values(connection.connections).filter(
+  const validConnections = Object.values(connection.links).filter(
     (axisEntity) => axisEntityTypeWeights[axisEntity.entityType] > 0
   );
 
@@ -265,12 +265,12 @@ function axisEntitiesShareConnection(
   axisEntity2: GraphEntity,
   excludeConnections: UsedConnectionsWithAxisEntities
 ): string {
-  for (const connection of Object.values(axisEntity1.connections)) {
+  for (const connection of Object.values(axisEntity1.links)) {
     if (Object.keys(excludeConnections).includes(connection.id)) {
       continue;
     }
 
-    if (axisEntity2.connections[connection.id]) {
+    if (axisEntity2.links[connection.id]) {
       return connection.id;
     }
   }

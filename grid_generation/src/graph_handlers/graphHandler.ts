@@ -50,7 +50,7 @@ export default abstract class GraphHandler {
       throw new RepeatError(`Actor with id ${id} already exists: ${graph.actors[id].name}`);
     }
 
-    graph.actors[id] = { id, name, connections: {}, entityType: "actor" };
+    graph.actors[id] = { id, name, links: {}, entityType: "actor" };
   }
 
   addCategoryToGraph(graph: ActorCreditGraph, id: string, name: string): void {
@@ -58,7 +58,7 @@ export default abstract class GraphHandler {
       throw new RepeatError(`Category with id ${id} already exists: ${graph.actors[id].name}`);
     }
 
-    graph.actors[id] = { id, name, connections: {}, entityType: "category" };
+    graph.actors[id] = { id, name, links: {}, entityType: "category" };
   }
 
   addCreditToGraph(credit: Credit, graph: ActorCreditGraph): void {
@@ -70,7 +70,7 @@ export default abstract class GraphHandler {
     }
     graph.credits[creditUniqueString] = {
       ...credit,
-      connections: {},
+      links: {},
       entityType: "credit",
     };
   }
@@ -79,8 +79,8 @@ export default abstract class GraphHandler {
     const creditUniqueString = getCreditUniqueString(credit);
     const actorNode: ActorNode = graph.actors[actorId];
     const creditNode: CreditNode = graph.credits[creditUniqueString];
-    actorNode.connections[creditUniqueString] = creditNode;
-    creditNode.connections[actorId] = actorNode;
+    actorNode.links[creditUniqueString] = creditNode;
+    creditNode.links[actorId] = actorNode;
   }
 
   /**

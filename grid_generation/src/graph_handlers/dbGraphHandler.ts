@@ -240,7 +240,7 @@ export default class DBGraphHandler extends GraphHandler {
   async writeCreditsToDB(graph: ActorCreditGraph): Promise<void> {
     console.log("Table: credits");
     const creditsNoActorsNoGenres = Object.values(graph.credits).map((credit) => {
-      const { genre_ids, connections, ...rest } = credit;
+      const { genre_ids, links: connections, ...rest } = credit;
       return {
         id: parseInt(credit.id),
         ...rest,
@@ -307,7 +307,7 @@ export default class DBGraphHandler extends GraphHandler {
       // many-to-many relationships, but since we're only inserting the data and not doing
       // anything else with it, we can just pass the IDs.
       const actorCreditRelationships: Partial<ActorOrCategoryCreditJoin>[] = [];
-      for (const credit of Object.values(actor.connections)) {
+      for (const credit of Object.values(actor.links)) {
         const actorCreditRelationship: Partial<ActorOrCategoryCreditJoin> = {
           actor_category_id: parseInt(actor.id),
           credit_id: parseInt(credit.id),

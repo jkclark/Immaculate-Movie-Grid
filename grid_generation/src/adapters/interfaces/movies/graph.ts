@@ -8,10 +8,10 @@ export interface ActorCreditGraph extends Graph {
 
 export interface ActorNode extends GraphEntity {
   name: string;
-  connections: { [key: string]: CreditNode };
+  links: { [key: string]: CreditNode };
 }
 
 export interface CreditNode extends Credit, GraphEntity {
   name: string; // Because Credit has name required and GraphEntity does not
-  connections: { [key: string]: ActorNode };
+  links: { [key: string]: ActorNode };
 }

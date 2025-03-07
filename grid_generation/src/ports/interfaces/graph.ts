@@ -4,11 +4,26 @@
  * different sets of nodes, and we could generate a grid with either set as the axis entities and the other
  * as the connections.
  */
-export interface GraphEntity {
+
+/***** For describing a graph's data *****/
+export interface GraphEntityData {
   id: string;
-  connections: { [key: string]: Connection };
   entityType: string;
   name?: string;
+}
+
+export type AxisEntityData = GraphEntityData;
+export type ConnectionData = GraphEntityData;
+
+export interface GraphData {
+  axisEntities: { [key: string]: AxisEntityData };
+  connections: { [key: string]: ConnectionData };
+}
+/*****************************************/
+
+/***** For an actual graph *****/
+export interface GraphEntity extends GraphEntityData {
+  links: { [key: string]: Connection };
 }
 
 export type AxisEntity = GraphEntity;
@@ -18,3 +33,4 @@ export interface Graph {
   axisEntities: { [key: string]: AxisEntity };
   connections: { [key: string]: Connection };
 }
+/*******************************/

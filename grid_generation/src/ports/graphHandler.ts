@@ -35,7 +35,7 @@ export default abstract class GraphHandler {
       throw new RepeatError(`Axis entity with id ${id} already exists: ${graph.axisEntities[id].name}`);
     }
 
-    graph.axisEntities[id] = { id, name, entityType, connections: {} };
+    graph.axisEntities[id] = { id, name, entityType, links: {} };
 
     return graph.axisEntities[id];
   }
@@ -53,7 +53,7 @@ export default abstract class GraphHandler {
       throw new RepeatError(`Connection with id ${id} already exists: ${graph.connections[id].name}`);
     }
 
-    graph.connections[id] = { id, name, entityType, connections: {} };
+    graph.connections[id] = { id, name, entityType, links: {} };
 
     return graph.connections[id];
   }
@@ -65,8 +65,8 @@ export default abstract class GraphHandler {
    * @param connection the connection to which the axis entity will be linked
    */
   linkAxisEntityAndConnection(axisEntity: AxisEntity, connection: Connection): void {
-    axisEntity.connections[connection.id] = connection;
-    connection.connections[axisEntity.id] = axisEntity;
+    axisEntity.links[connection.id] = connection;
+    connection.links[axisEntity.id] = axisEntity;
   }
 
   /**
@@ -87,22 +87,22 @@ export default abstract class GraphHandler {
       // Create a new axis entity in the copy
       graphCopy.axisEntities[axisEntityId] = {
         ...axisEntity,
-        connections: {},
+        links: {},
       };
 
-      for (const connectionId in axisEntity.connections) {
+      for (const connectionId in axisEntity.links) {
         // If we haven't seen this connection yet, create a new connection in the copy
         if (!graphCopy.connections[connectionId]) {
           graphCopy.connections[connectionId] = {
             ...graph.connections[connectionId],
-            connections: {},
+            links: {},
           };
         }
 
         // Add the link between the axis entity and the connection
         // TODO: Can we use the linkAxisEntityAndConnection method here?
-        graphCopy.axisEntities[axisEntityId].connections[connectionId] = graphCopy.connections[connectionId];
-        graphCopy.connections[connectionId].connections[axisEntityId] = graphCopy.axisEntities[axisEntityId];
+        graphCopy.axisEntities[axisEntityId].links[connectionId] = graphCopy.connections[connectionId];
+        graphCopy.connections[connectionId].links[axisEntityId] = graphCopy.axisEntities[axisEntityId];
       }
     }
 

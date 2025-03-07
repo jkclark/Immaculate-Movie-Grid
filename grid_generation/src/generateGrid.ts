@@ -9,14 +9,7 @@ import {
   GridExport,
   serializeGridExport,
 } from "common/src/interfaces";
-import {
-  Connection,
-  getGridFromGraph,
-  Graph,
-  GraphEntity,
-  Grid,
-  UsedConnectionsWithAxisEntities,
-} from "./getGridFromGraph";
+import { getGridFromGraph, Grid, UsedConnectionsWithAxisEntities } from "./getGridFromGraph";
 import GraphHandler from "./graph_handlers/graphHandler";
 import { getAndSaveAllImagesForGrid } from "./images";
 import {
@@ -26,6 +19,7 @@ import {
   deepCopyActorCreditGraph,
   getCreditUniqueString,
 } from "./interfaces";
+import { Connection, Graph, GraphEntity } from "./ports/interfaces/graph";
 import { writeTextToS3 } from "./s3";
 
 dotenv.config();
@@ -158,7 +152,7 @@ function removeInvalidCredits(
   // Collect the actor IDs and credit IDs to be deleted
   for (const [creditUniqueString, credit] of Object.entries(graphCopy.credits)) {
     if (!creditFilter(credit)) {
-      for (const actorId of Object.keys(credit.connections)) {
+      for (const actorId of Object.keys(credit.links)) {
         if (!creditIdsToDeleteByActor[actorId]) {
           creditIdsToDeleteByActor[actorId] = [];
         }
@@ -170,9 +164,9 @@ function removeInvalidCredits(
 
   // Delete the connections from all actors
   for (const [actorId, creditUniqueStrings] of Object.entries(creditIdsToDeleteByActor)) {
-    if (graphCopy.actors[actorId] && graphCopy.actors[actorId].connections) {
+    if (graphCopy.actors[actorId] && graphCopy.actors[actorId].links) {
       for (const creditUniqueString of creditUniqueStrings) {
-        delete graphCopy.actors[actorId].connections[creditUniqueString];
+        delete graphCopy.actors[actorId].links[creditUniqueString];
       }
     }
   }
@@ -191,7 +185,7 @@ function removeActorsWithoutEnoughCredits(graph: ActorCreditGraph, minCredits: n
   // Remove any actors who now have fewer than 3 connections
   const actorsToRemove: string[] = [];
   for (const [actorId, actor] of Object.entries(graph.actors)) {
-    if (Object.keys(actor.connections).length < minCredits) {
+    if (Object.keys(actor.links).length < minCredits) {
       actorsToRemove.push(actorId);
     }
   }
@@ -199,8 +193,8 @@ function removeActorsWithoutEnoughCredits(graph: ActorCreditGraph, minCredits: n
   for (const actorId of actorsToRemove) {
     // Remove the actor's connections
     const actor = graph.actors[actorId];
-    for (const creditId of Object.keys(actor.connections)) {
-      delete graph.credits[creditId].connections[actorId];
+    for (const creditId of Object.keys(actor.links)) {
+      delete graph.credits[creditId].links[actorId];
     }
 
     // Remove the actor from the filtered graph
@@ -211,7 +205,7 @@ function removeActorsWithoutEnoughCredits(graph: ActorCreditGraph, minCredits: n
   // because we've removed the last ones, so we need to remove them from the graph
   const creditsToRemove: string[] = [];
   for (const [creditId, credit] of Object.entries(graph.credits)) {
-    if (Object.keys(credit.connections).length === 0) {
+    if (Object.keys(credit.links).length === 0) {
       creditsToRemove.push(creditId);
     }
   }
@@ -424,11 +418,11 @@ function getGridExportFromGridGraphAndCategories(
       // Only iterate over the axis entity with fewer connections
       // This is particularly useful when a category with a lot of connections is present
       const [axisEntityWithFewerConnections, axisEntityWithMoreConnections] =
-        Object.keys(acrossAxisEntity.connections).length < Object.keys(downAxisEntity.connections).length
+        Object.keys(acrossAxisEntity.links).length < Object.keys(downAxisEntity.links).length
           ? [acrossAxisEntity, downAxisEntity]
           : [downAxisEntity, acrossAxisEntity];
-      for (const creditUniqueString of Object.keys(axisEntityWithFewerConnections.connections)) {
-        if (axisEntityWithMoreConnections.connections[creditUniqueString]) {
+      for (const creditUniqueString of Object.keys(axisEntityWithFewerConnections.links)) {
+        if (axisEntityWithMoreConnections.links[creditUniqueString]) {
           const creditIdNum = parseInt(creditUniqueString.split("-")[1]);
           const credit = graph.credits[creditUniqueString];
           // Create the credit if it doesn't already exist

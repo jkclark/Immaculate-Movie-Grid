@@ -28,7 +28,7 @@ async function main() {
     graph.actors[id] = {
       id,
       name,
-      connections: {},
+      links: {},
       entityType: "actor",
     };
   }
