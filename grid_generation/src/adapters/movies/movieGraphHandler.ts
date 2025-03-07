@@ -1,6 +1,6 @@
+import MovieDataScraper from "../../adapters/movies/movieDataScraper";
 import DataStoreHandler from "../../ports/dataStoreHandler";
 import GraphHandler from "../../ports/graphHandler";
-import MovieDataScraper from "../../ports/movies/movieDataScraper";
 
 export default class MovieGraphHandler extends GraphHandler {
   protected dataScraper: MovieDataScraper;
