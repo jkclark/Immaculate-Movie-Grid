@@ -64,6 +64,46 @@ export default abstract class GraphHandler {
     axisEntity.connections[connection.id] = connection;
     connection.connections[axisEntity.id] = axisEntity;
   }
+
+  /**
+   * Create a deep copy of a graph.
+   *
+   * @param graph the graph to be copied
+   * @returns a deep copy of the graph
+   */
+  deepCopyGraph(graph: Graph): Graph {
+    const graphCopy: Graph = {
+      axisEntities: {},
+      connections: {},
+    };
+
+    for (const axisEntityId in graph.axisEntities) {
+      const axisEntity = graph.axisEntities[axisEntityId];
+
+      // Create a new axis entity in the copy
+      graphCopy.axisEntities[axisEntityId] = {
+        ...axisEntity,
+        connections: {},
+      };
+
+      for (const connectionId in axisEntity.connections) {
+        // If we haven't seen this connection yet, create a new connection in the copy
+        if (!graphCopy.connections[connectionId]) {
+          graphCopy.connections[connectionId] = {
+            ...graph.connections[connectionId],
+            connections: {},
+          };
+        }
+
+        // Add the link between the axis entity and the connection
+        // TODO: Can we use the linkAxisEntityAndConnection method here?
+        graphCopy.axisEntities[axisEntityId].connections[connectionId] = graphCopy.connections[connectionId];
+        graphCopy.connections[connectionId].connections[axisEntityId] = graphCopy.axisEntities[axisEntityId];
+      }
+    }
+
+    return graphCopy;
+  }
 }
 
 export class RepeatError extends Error {
