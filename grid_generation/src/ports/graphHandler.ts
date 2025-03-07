@@ -11,12 +11,13 @@ export default abstract class GraphHandler {
     this.dataScraper = dataScraper;
   }
 
-  abstract init(): Promise<void>;
+  async init(): Promise<void> {
+    await this.dataStoreHandler.init();
+  }
 
-  // Requires data store handler and data scraper
+  /* To be implemented by subclasses */
   abstract populateDataStore(): Promise<void>;
 
-  // Requires only data store handler
   async loadGraph(): Promise<Graph> {
     return this.dataStoreHandler.loadGraph();
   }
