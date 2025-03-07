@@ -1,6 +1,6 @@
 import DataScraper from "./dataScraper";
 import DataStoreHandler from "./dataStoreHandler";
-import { AxisEntity, Connection, Graph } from "./interfaces/graph";
+import { AxisEntity, Connection, Graph, GraphData } from "./interfaces/graph";
 
 export default abstract class GraphHandler {
   protected dataStoreHandler: DataStoreHandler;
@@ -19,7 +19,18 @@ export default abstract class GraphHandler {
   abstract populateDataStore(): Promise<void>;
 
   async loadGraph(): Promise<Graph> {
-    return this.dataStoreHandler.loadGraph();
+    const graphData = await this.dataStoreHandler.getGraphData();
+
+    return this.buildGraphFromGraphData(graphData);
+  }
+
+  buildGraphFromGraphData(graphData: GraphData): Graph {
+    // TODO: Take buildGraphFromDBEntities in dbGraphHandler.ts as a starting point
+    // for this method's implementation
+    return {
+      axisEntities: {},
+      connections: {},
+    };
   }
 
   /**

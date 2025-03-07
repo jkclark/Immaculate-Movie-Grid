@@ -1,4 +1,5 @@
 import { initializeDataSource } from "common/src/db/connect";
+import { GraphData } from "src/ports/interfaces/graph";
 import { DataSource } from "typeorm";
 
 export default class PostgreSQLMovieDataStoreHandler {
@@ -8,7 +9,7 @@ export default class PostgreSQLMovieDataStoreHandler {
     this.dataSource = await initializeDataSource();
   }
 
-  async loadGraph() {
+  async getGraphData(): Promise<GraphData> {
     return {
       axisEntities: {},
       connections: {},

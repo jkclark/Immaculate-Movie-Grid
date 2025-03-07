@@ -1,6 +1,6 @@
 import DataStoreHandler from "src/ports/dataStoreHandler";
-import { ActorCreditGraph } from "../movies/interfaces/graph";
+import { GraphData } from "src/ports/interfaces/graph";
 
 export default abstract class MovieDataStoreHandler extends DataStoreHandler {
-  abstract loadGraph(): Promise<ActorCreditGraph>;
+  abstract getGraphData(): Promise<GraphData>;
 }
