@@ -20,10 +20,6 @@ export default class MovieGraphHandler extends GraphHandler {
     return;
   }
 
-  async loadGraph(): Promise<ActorCreditGraph> {
-    return this.dataStoreHandler.loadGraph();
-  }
-
   /**
    * Add categories to a graph.
    *
@@ -36,7 +32,11 @@ export default class MovieGraphHandler extends GraphHandler {
     // iterate over (id, category) key value pairs in allCategories
     for (const [id, category] of Object.entries(categories)) {
       // Add the category to the graph
-      const categoryAxisEntity = super.addAxisEntityToGraph(graph, id, category.name, "category");
+      const categoryAxisEntity = super.addAxisEntityToGraph(graph, {
+        ...category,
+        id: id.toString(), // Categories have numeric IDs
+        entityType: "category",
+      });
 
       // Iterate over all credits in the graph
       for (const credit of Object.values(graph.connections)) {

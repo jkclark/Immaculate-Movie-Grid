@@ -6,6 +6,11 @@
  */
 
 /***** For describing a graph's data *****/
+/**
+ * The data structure for the graph is a dictionary of axis entities and connections, where each entity
+ * has a unique id, a name, and an entity type. The links are a list of (axisEntityId, connectionId) pairs,
+ * where each pair represents a link between an axis entity and a connection.
+ */
 export interface GraphEntityData {
   id: string;
   entityType: string;
@@ -14,10 +19,15 @@ export interface GraphEntityData {
 
 export type AxisEntityData = GraphEntityData;
 export type ConnectionData = GraphEntityData;
+export interface LinkData {
+  axisEntityId: string;
+  connectionId: string;
+}
 
 export interface GraphData {
   axisEntities: { [key: string]: AxisEntityData };
   connections: { [key: string]: ConnectionData };
+  links: LinkData[];
 }
 /*****************************************/
 

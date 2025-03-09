@@ -1,6 +1,6 @@
 import DataScraper from "./dataScraper";
 import DataStoreHandler from "./dataStoreHandler";
-import { AxisEntity, Connection, Graph, GraphData } from "./interfaces/graph";
+import { AxisEntity, AxisEntityData, Connection, ConnectionData, Graph, GraphData } from "./interfaces/graph";
 
 export default abstract class GraphHandler {
   protected dataStoreHandler: DataStoreHandler;
@@ -24,9 +24,61 @@ export default abstract class GraphHandler {
     return this.buildGraphFromGraphData(graphData);
   }
 
+  /**
+   * Build a graph from graph data.
+   *
+   * The graph data is a dictionary of axis entities and connections, where each entity
+   * has a unique ID, among other things. The links are a list of (axisEntityId, connectionId) pairs,
+   * where each pair represents a link between an axis entity and a connection.
+   *
+   * @param graphData the data to build the graph from
+   * @returns the populated graph
+   */
   buildGraphFromGraphData(graphData: GraphData): Graph {
-    // TODO: Take buildGraphFromDBEntities in dbGraphHandler.ts as a starting point
-    // for this method's implementation
+    const graph: Graph = this.createEmptyGraph();
+
+    // Add all axis entities to the graph
+    for (const axisEntityId in Object.keys(graphData.axisEntities)) {
+      const axisEntityDatum = graphData.axisEntities[axisEntityId];
+      try {
+        this.addAxisEntityToGraph(graph, axisEntityDatum);
+      } catch (error) {
+        if (!(error instanceof RepeatError)) {
+          throw error;
+        }
+      }
+    }
+
+    // Add all connections to the graph
+    for (const connectionId in Object.keys(graphData.connections)) {
+      const connectionDatum = graphData.connections[connectionId];
+      try {
+        this.addConnectionToGraph(graph, connectionDatum);
+      } catch (error) {
+        if (!(error instanceof RepeatError)) {
+          throw error;
+        }
+      }
+    }
+
+    // Add all links to the graph
+    for (const link of graphData.links) {
+      const axisEntity = graph.axisEntities[link.axisEntityId];
+      const connection = graph.connections[link.connectionId];
+      if (axisEntity && connection) {
+        this.linkAxisEntityAndConnection(axisEntity, connection);
+      }
+    }
+
+    return graph;
+  }
+
+  /**
+   * Create an empty graph.
+   *
+   * @returns an empty graph
+   */
+  createEmptyGraph(): Graph {
     return {
       axisEntities: {},
       connections: {},
@@ -41,12 +93,14 @@ export default abstract class GraphHandler {
    * @param name the name of the axis entity
    * @param entityType the entityType of the axis entity
    */
-  addAxisEntityToGraph(graph: Graph, id: string, name: string, entityType: string): AxisEntity {
+  addAxisEntityToGraph(graph: Graph, axisEntityData: AxisEntityData): AxisEntity {
+    const id = axisEntityData.id;
+
     if (graph.axisEntities[id]) {
       throw new RepeatError(`Axis entity with id ${id} already exists: ${graph.axisEntities[id].name}`);
     }
 
-    graph.axisEntities[id] = { id, name, entityType, links: {} };
+    graph.axisEntities[id] = { ...axisEntityData, links: {} };
 
     return graph.axisEntities[id];
   }
@@ -59,12 +113,14 @@ export default abstract class GraphHandler {
    * @param name the name of the connection
    * @param entityType the entityType of the connection
    */
-  addConnectionToGraph(graph: Graph, id: string, name: string, entityType: string): Connection {
+  addConnectionToGraph(graph: Graph, connectionData: ConnectionData): Connection {
+    const id = connectionData.id;
+
     if (graph.connections[id]) {
       throw new RepeatError(`Connection with id ${id} already exists: ${graph.connections[id].name}`);
     }
 
-    graph.connections[id] = { id, name, entityType, links: {} };
+    graph.connections[id] = { ...connectionData, links: {} };
 
     return graph.connections[id];
   }
