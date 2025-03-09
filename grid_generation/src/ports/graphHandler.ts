@@ -38,7 +38,7 @@ export default abstract class GraphHandler {
     const graph: Graph = this.createEmptyGraph();
 
     // Add all axis entities to the graph
-    for (const axisEntityId in Object.keys(graphData.axisEntities)) {
+    for (const axisEntityId of Object.keys(graphData.axisEntities)) {
       const axisEntityDatum = graphData.axisEntities[axisEntityId];
       try {
         this.addAxisEntityToGraph(graph, axisEntityDatum);
@@ -50,7 +50,7 @@ export default abstract class GraphHandler {
     }
 
     // Add all connections to the graph
-    for (const connectionId in Object.keys(graphData.connections)) {
+    for (const connectionId of Object.keys(graphData.connections)) {
       const connectionDatum = graphData.connections[connectionId];
       try {
         this.addConnectionToGraph(graph, connectionDatum);
