@@ -1,4 +1,4 @@
-import { GraphData } from "./interfaces/graph";
+import { GraphData } from "./graph";
 
 export default abstract class DataStoreHandler {
   abstract init(): Promise<void>;

@@ -5,8 +5,12 @@ import { ActorOrCategoryCreditJoin } from "common/src/db/models/ActorsCategories
 import { Credit } from "common/src/db/models/Credit";
 import { CreditGenreJoin } from "common/src/db/models/CreditsGenresJoin";
 import { Genre } from "common/src/db/models/Genre";
-import { ActorOrCategoryGraphEntityData, CreditGraphEntityData } from "src/adapters/interfaces/movies/graph";
-import { AxisEntityData, GraphData, LinkData } from "src/ports/interfaces/graph";
+import {
+  ActorCreditGraphData,
+  ActorOrCategoryGraphEntityData,
+  CreditGraphEntityData,
+} from "src/adapters/graph/movies/graph";
+import { LinkData } from "src/ports/graph";
 import { DataSource } from "typeorm";
 import MovieDataStoreHandler from "./movieDataStoreHandler";
 
@@ -31,13 +35,13 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
    *
    * @returns The data for for the graph for movie-grid generation.
    */
-  async getGraphData(): Promise<GraphData> {
+  async getGraphData(): Promise<ActorCreditGraphData> {
     const allDBEntities = await this.getAllDBEntities();
 
     // Create actor/category axis entity data
     const axisEntities: { [key: string]: ActorOrCategoryGraphEntityData } = {};
     for (const actorOrCategory of allDBEntities.actorsAndCategories) {
-      const actorOrCategoryAxisEntityDatum: AxisEntityData = {
+      const actorOrCategoryAxisEntityDatum: ActorOrCategoryGraphEntityData = {
         id: actorOrCategory.id.toString(),
         name: actorOrCategory.name,
         entityType: actorOrCategory.id < 0 ? "category" : "actor",

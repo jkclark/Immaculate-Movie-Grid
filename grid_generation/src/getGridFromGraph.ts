@@ -1,4 +1,4 @@
-import { Connection, Graph, GraphEntity } from "./ports/interfaces/graph";
+import { Connection, Graph, GraphEntity } from "./ports/graph";
 
 export interface UsedConnectionsWithAxisEntities {
   [key: string]: Set<string>;

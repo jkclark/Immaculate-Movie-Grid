@@ -19,7 +19,7 @@ import {
   deepCopyActorCreditGraph,
   getCreditUniqueString,
 } from "./interfaces";
-import { Connection, Graph, GraphEntity } from "./ports/interfaces/graph";
+import { Connection, Graph, GraphEntity } from "./ports/graph";
 import { writeTextToS3 } from "./s3";
 
 dotenv.config();

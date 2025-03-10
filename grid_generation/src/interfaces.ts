@@ -1,4 +1,4 @@
-import { GraphEntity } from "./ports/interfaces/graph";
+import { GraphEntity } from "./ports/graph";
 
 export interface Actor {
   id: string;
