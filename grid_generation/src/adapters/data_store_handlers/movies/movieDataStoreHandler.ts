@@ -1,6 +1,9 @@
+import { MovieGraphData } from "src/adapters/graph/movies/graph";
 import DataStoreHandler from "src/ports/dataStoreHandler";
 
 export default abstract class MovieDataStoreHandler extends DataStoreHandler {
+  abstract getGraphData(): Promise<MovieGraphData>;
+
   /**
    * Get a credit's unique ID.
    *
