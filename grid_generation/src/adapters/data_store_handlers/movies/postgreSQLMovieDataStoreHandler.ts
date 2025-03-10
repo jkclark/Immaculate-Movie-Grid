@@ -9,7 +9,7 @@ import {
   ActorOrCategoryGraphEntityData,
   CreditGraphEntityData,
   MovieGraphData,
-} from "src/adapters/graph/movies/graph";
+} from "src/adapters/graph/movies";
 import { LinkData } from "src/ports/graph";
 import { DataSource } from "typeorm";
 import MovieDataStoreHandler from "./movieDataStoreHandler";

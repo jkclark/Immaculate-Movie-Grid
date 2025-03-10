@@ -1,4 +1,4 @@
-import { MovieGraphData } from "src/adapters/graph/movies/graph";
+import { MovieGraphData } from "src/adapters/graph/movies";
 import DataStoreHandler from "src/ports/dataStoreHandler";
 
 export default abstract class MovieDataStoreHandler extends DataStoreHandler {
