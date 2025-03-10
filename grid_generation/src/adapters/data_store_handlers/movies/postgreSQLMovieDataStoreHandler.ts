@@ -101,7 +101,22 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
    *
    * @param graphData The data for the graph for movie-grid generation.
    */
-  async storeGraphData(graphData: MovieGraphDataWithGenres): Promise<void> {}
+  async storeGraphData(graphData: MovieGraphDataWithGenres): Promise<void> {
+    // Write actors and categories to the database
+    await this.writeActorsAndCategoriesToDB(Object.values(graphData.axisEntities));
+
+    // Write credits to the database
+    await this.writeCreditsToDB(Object.values(graphData.connections));
+
+    // Write genres to the database
+    await this.writeGenresToDB(graphData.genres);
+
+    // Write (actor/category)-credit relationship to the database
+    await this.writeActorCreditRelationshipsToDB(graphData.links);
+
+    // Write credit-genre relationships to the database
+    await this.writeCreditGenreRelationshipsToDB(graphData.connections);
+  }
 
   /********** For reading from the database **********/
   async getAllDBEntities(): Promise<AllDBEntities> {
@@ -166,5 +181,17 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
   /***************************************************/
 
   /********** For writing to the database **********/
+  async writeActorsAndCategoriesToDB(actorsAndCategories: ActorOrCategoryGraphEntityData[]) {}
+
+  async writeCreditsToDB(credits: CreditGraphEntityData[]) {}
+
+  async writeGenresToDB(genres: { [key: number]: string }) {}
+
+  async writeActorCreditRelationshipsToDB(links: LinkData[]) {}
+
+  // NOTE: Unlike when we write the actor-credit relationships (which uses links),
+  // here we directly use the genre_ids from the connections. This is a departure from the
+  // pattern, but I think it's okay for now.
+  async writeCreditGenreRelationshipsToDB(connections: { [key: string]: CreditGraphEntityData }) {}
   /*************************************************/
 }
