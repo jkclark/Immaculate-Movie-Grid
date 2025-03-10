@@ -1,8 +1,8 @@
-import { ActorCreditGraphData } from "src/adapters/graph/movies/graph";
+import { MovieGraphData } from "src/adapters/graph/movies/graph";
 import MovieDataScraper from "./movieDataScraper";
 
 export default class TMDBDataScraper extends MovieDataScraper {
-  async scrapeData(): Promise<ActorCreditGraphData> {
+  async scrapeData(): Promise<MovieGraphData> {
     return {
       axisEntities: {},
       connections: {},

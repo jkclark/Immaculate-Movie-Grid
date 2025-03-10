@@ -7,7 +7,7 @@ export interface CreditGraphEntityData extends GraphEntityData {
   genre_ids: number[];
 }
 
-export interface ActorCreditGraphData extends GraphData {
+export interface MovieGraphData extends GraphData {
   axisEntities: { [key: string]: ActorOrCategoryGraphEntityData };
   connections: { [key: string]: CreditGraphEntityData };
   links: LinkData[];

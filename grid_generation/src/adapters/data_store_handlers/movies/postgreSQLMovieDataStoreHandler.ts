@@ -6,9 +6,9 @@ import { Credit } from "common/src/db/models/Credit";
 import { CreditGenreJoin } from "common/src/db/models/CreditsGenresJoin";
 import { Genre } from "common/src/db/models/Genre";
 import {
-  ActorCreditGraphData,
   ActorOrCategoryGraphEntityData,
   CreditGraphEntityData,
+  MovieGraphData,
 } from "src/adapters/graph/movies/graph";
 import { LinkData } from "src/ports/graph";
 import { DataSource } from "typeorm";
@@ -35,7 +35,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
    *
    * @returns The data for for the graph for movie-grid generation.
    */
-  async getGraphData(): Promise<ActorCreditGraphData> {
+  async getGraphData(): Promise<MovieGraphData> {
     const allDBEntities = await this.getAllDBEntities();
 
     // Create actor/category axis entity data
