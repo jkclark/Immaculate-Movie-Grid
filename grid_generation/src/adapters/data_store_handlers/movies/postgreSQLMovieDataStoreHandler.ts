@@ -9,6 +9,7 @@ import {
   ActorOrCategoryGraphEntityData,
   CreditGraphEntityData,
   MovieGraphData,
+  MovieGraphDataWithGenres,
 } from "src/adapters/graph/movies";
 import { LinkData } from "src/ports/graph";
 import { DataSource } from "typeorm";
@@ -100,7 +101,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
    *
    * @param graphData The data for the graph for movie-grid generation.
    */
-  async storeGraphData(graphData: MovieGraphData): Promise<void> {}
+  async storeGraphData(graphData: MovieGraphDataWithGenres): Promise<void> {}
 
   /********** For reading from the database **********/
   async getAllDBEntities(): Promise<AllDBEntities> {
