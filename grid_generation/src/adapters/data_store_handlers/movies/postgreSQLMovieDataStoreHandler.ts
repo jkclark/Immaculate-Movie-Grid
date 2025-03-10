@@ -95,6 +95,14 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     };
   }
 
+  /**
+   * Store the graph data in the database.
+   *
+   * @param graphData The data for the graph for movie-grid generation.
+   */
+  async storeGraphData(graphData: MovieGraphData): Promise<void> {}
+
+  /********** For reading from the database **********/
   async getAllDBEntities(): Promise<AllDBEntities> {
     return {
       actorsAndCategories: await this.getAllActorsAndCategories(),
@@ -154,4 +162,8 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
       {}
     );
   }
+  /***************************************************/
+
+  /********** For writing to the database **********/
+  /*************************************************/
 }
