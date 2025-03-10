@@ -2,14 +2,14 @@ import { Credit } from "src/interfaces";
 import { Graph, GraphData, GraphEntity, GraphEntityData, LinkData } from "src/ports/graph";
 
 /***** For describing a graph's data *****/
-export type ActorOrCategoryGraphEntityData = GraphEntityData;
-export interface CreditGraphEntityData extends GraphEntityData {
+export type ActorOrCategoryData = GraphEntityData;
+export interface CreditData extends GraphEntityData {
   genre_ids: number[];
 }
 
 export interface MovieGraphData extends GraphData {
-  axisEntities: { [key: string]: ActorOrCategoryGraphEntityData };
-  connections: { [key: string]: CreditGraphEntityData };
+  axisEntities: { [key: string]: ActorOrCategoryData };
+  connections: { [key: string]: CreditData };
   links: LinkData[];
 }
 

@@ -6,8 +6,8 @@ import { Credit } from "common/src/db/models/Credit";
 import { CreditGenreJoin } from "common/src/db/models/CreditsGenresJoin";
 import { Genre } from "common/src/db/models/Genre";
 import {
-  ActorOrCategoryGraphEntityData,
-  CreditGraphEntityData,
+  ActorOrCategoryData,
+  CreditData,
   MovieGraphData,
   MovieGraphDataWithGenres,
 } from "src/adapters/graph/movies";
@@ -40,9 +40,9 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     const allDBEntities = await this.getAllDBEntities();
 
     // Create actor/category axis entity data
-    const axisEntities: { [key: string]: ActorOrCategoryGraphEntityData } = {};
+    const axisEntities: { [key: string]: ActorOrCategoryData } = {};
     for (const actorOrCategory of allDBEntities.actorsAndCategories) {
-      const actorOrCategoryAxisEntityDatum: ActorOrCategoryGraphEntityData = {
+      const actorOrCategoryAxisEntityDatum: ActorOrCategoryData = {
         id: actorOrCategory.id.toString(),
         name: actorOrCategory.name,
         entityType: actorOrCategory.id < 0 ? "category" : "actor",
@@ -52,9 +52,9 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     }
 
     // Create credit connection data
-    const connections: { [key: string]: CreditGraphEntityData } = {};
+    const connections: { [key: string]: CreditData } = {};
     for (const credit of allDBEntities.credits) {
-      const creditConnectionDatum: CreditGraphEntityData = {
+      const creditConnectionDatum: CreditData = {
         ...credit,
         // Remember to use the unique ID
         id: super.getCreditUniqueId(credit.type, credit.id.toString()),
@@ -181,9 +181,9 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
   /***************************************************/
 
   /********** For writing to the database **********/
-  async writeActorsAndCategoriesToDB(actorsAndCategories: ActorOrCategoryGraphEntityData[]) {}
+  async writeActorsAndCategoriesToDB(actorsAndCategories: ActorOrCategoryData[]) {}
 
-  async writeCreditsToDB(credits: CreditGraphEntityData[]) {}
+  async writeCreditsToDB(credits: CreditData[]) {}
 
   async writeGenresToDB(genres: { [key: number]: string }) {}
 
@@ -192,6 +192,6 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
   // NOTE: Unlike when we write the actor-credit relationships (which uses links),
   // here we directly use the genre_ids from the connections. This is a departure from the
   // pattern, but I think it's okay for now.
-  async writeCreditGenreRelationshipsToDB(connections: { [key: string]: CreditGraphEntityData }) {}
+  async writeCreditGenreRelationshipsToDB(connections: { [key: string]: CreditData }) {}
   /*************************************************/
 }
