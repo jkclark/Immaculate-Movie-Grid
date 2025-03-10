@@ -1,8 +1,8 @@
-import { Credit, CreditNode, CreditRating } from "./interfaces";
+import { Credit, CreditNode, CreditRating, CreditType } from "./interfaces";
 import { getMovieRating, getTVDetails, getTVRating } from "./tmdbAPI";
 
 export interface CreditExtraInfo {
-  type: "movie" | "tv";
+  type: CreditType;
   id: string;
   rating: CreditRating;
   last_air_date?: string;

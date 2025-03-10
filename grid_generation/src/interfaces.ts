@@ -6,8 +6,10 @@ export interface Actor {
   credits: Set<Credit>;
 }
 
+export type CreditType = "movie" | "tv";
+
 export interface Credit {
-  type: "movie" | "tv";
+  type: CreditType;
   id: string;
   name: string;
   genre_ids: number[];
@@ -32,7 +34,7 @@ export type CreditRating =
   | "NR";
 
 interface CreditOnlyIdAndType {
-  type: "movie" | "tv";
+  type: CreditType;
   id: string;
 }
 
