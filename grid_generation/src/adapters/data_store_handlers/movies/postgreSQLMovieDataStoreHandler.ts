@@ -8,6 +8,7 @@ import { Genre } from "common/src/db/models/Genre";
 import { ActorOrCategoryGraphEntityData, CreditGraphEntityData } from "src/adapters/interfaces/movies/graph";
 import { AxisEntityData, GraphData, LinkData } from "src/ports/interfaces/graph";
 import { DataSource } from "typeorm";
+import MovieDataStoreHandler from "./movieDataStoreHandler";
 
 interface AllDBEntities {
   actorsAndCategories: ActorOrCategory[];
@@ -17,7 +18,7 @@ interface AllDBEntities {
   creditGenreRelationships: CreditGenreJoin[];
 }
 
-export default class PostgreSQLMovieDataStoreHandler {
+export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandler {
   private READ_BATCH_SIZE = 500;
   private dataSource: DataSource;
 
@@ -50,7 +51,8 @@ export default class PostgreSQLMovieDataStoreHandler {
     for (const credit of allDBEntities.credits) {
       const creditConnectionDatum: CreditGraphEntityData = {
         ...credit,
-        id: credit.id.toString(),
+        // Remember to use the unique ID
+        id: super.getCreditUniqueId(credit.type, credit.id.toString()),
         name: credit.name,
         entityType: "credit",
         genre_ids: [], // To be populated later
@@ -63,13 +65,21 @@ export default class PostgreSQLMovieDataStoreHandler {
     const links: LinkData[] = [];
     for (const actorCreditRelationship of allDBEntities.actorCreditRelationships) {
       const actorOrCategoryId = actorCreditRelationship.actorOrCategory.id.toString();
-      const creditId = actorCreditRelationship.credit.id.toString();
+      // Remember to use the unique ID
+      const creditId = super.getCreditUniqueId(
+        actorCreditRelationship.credit_type,
+        actorCreditRelationship.credit.id.toString()
+      );
       links.push({ axisEntityId: actorOrCategoryId, connectionId: creditId });
     }
 
     // Add genres to credits
     for (const creditGenreRelationship of allDBEntities.creditGenreRelationships) {
-      const creditId = creditGenreRelationship.credit.id.toString();
+      // Remember to use the unique ID
+      const creditId = super.getCreditUniqueId(
+        creditGenreRelationship.credit_type,
+        creditGenreRelationship.credit.id.toString()
+      );
       const genreId = creditGenreRelationship.genre.id;
       connections[creditId].genre_ids.push(genreId);
     }
