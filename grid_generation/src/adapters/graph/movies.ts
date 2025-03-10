@@ -28,7 +28,7 @@ export interface MovieGraphDataWithGenres extends MovieGraphData {
 /*****************************************/
 
 /***** For an actual graph *****/
-export interface ActorCreditGraph extends Graph {
+export interface MovieGraph extends Graph {
   axisEntities: { [key: string]: ActorNode };
   connections: { [key: string]: CreditNode };
 }
