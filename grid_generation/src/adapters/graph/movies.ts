@@ -1,15 +1,46 @@
-import { Credit } from "src/interfaces";
 import { Graph, GraphData, GraphEntity, GraphEntityData, LinkData } from "src/ports/graph";
 
 /***** For describing a graph's data *****/
-export type ActorOrCategoryData = GraphEntityData;
-export interface CreditData extends GraphEntityData {
+const CREDIT_RATINGS = [
+  "G",
+  "PG",
+  "PG-13",
+  "R",
+  "TV-Y",
+  "TV-Y7",
+  "TV-G",
+  "TV-PG",
+  "TV-14",
+  "TV-MA",
+  "NR",
+] as const;
+export type CreditRating = (typeof CREDIT_RATINGS)[number];
+
+export function isCreditRating(rating: string): rating is CreditRating {
+  return CREDIT_RATINGS.includes(rating as CreditRating);
+}
+
+export interface Credit {
+  id: string; // Remember, id is "movie-123" or "tv-456"
+  name: string;
   genre_ids: number[];
+  popularity: number;
+  release_date: string;
+
+  rating?: CreditRating;
+  last_air_date?: string;
+}
+
+export type ActorOrCategoryData = GraphEntityData;
+export interface CreditData extends Credit, GraphEntityData {
+  name: string; // Because Credit has name required and GraphEntity does not
 }
 
 export interface MovieGraphData extends GraphData {
   axisEntities: { [key: string]: ActorOrCategoryData };
   connections: { [key: string]: CreditData };
+  // For movies/tv shows, the credit IDs for links should be of the form
+  // "movie-123" or "tv0456".
   links: LinkData[];
 }
 

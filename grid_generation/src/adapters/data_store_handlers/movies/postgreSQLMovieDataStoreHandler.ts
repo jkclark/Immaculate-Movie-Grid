@@ -1,5 +1,5 @@
 import { initializeDataSource } from "common/src/db/connect";
-import { batchReadFromDB } from "common/src/db/crud";
+import { batchReadFromDB, batchWriteToDB } from "common/src/db/crud";
 import { ActorOrCategory } from "common/src/db/models/ActorOrCategory";
 import { ActorOrCategoryCreditJoin } from "common/src/db/models/ActorsCategoriesCreditsJoin";
 import { Credit } from "common/src/db/models/Credit";
@@ -8,9 +8,12 @@ import { Genre } from "common/src/db/models/Genre";
 import {
   ActorOrCategoryData,
   CreditData,
+  CreditRating,
+  isCreditRating,
   MovieGraphData,
   MovieGraphDataWithGenres,
 } from "src/adapters/graph/movies";
+import { CreditType } from "src/interfaces";
 import { LinkData } from "src/ports/graph";
 import { DataSource } from "typeorm";
 import MovieDataStoreHandler from "./movieDataStoreHandler";
@@ -24,6 +27,7 @@ interface AllDBEntities {
 }
 
 export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandler {
+  private WRITE_BATCH_SIZE = 500;
   private READ_BATCH_SIZE = 500;
   private dataSource: DataSource;
 
@@ -54,13 +58,25 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     // Create credit connection data
     const connections: { [key: string]: CreditData } = {};
     for (const credit of allDBEntities.credits) {
+      if (!isCreditRating(credit.rating)) {
+        throw new Error(`Invalid credit rating: ${credit.rating}`);
+      }
+
+      // Outgoing credits only have an ID field, so we have to merge them into one.
+      const { type, ...creditWithoutType } = credit;
       const creditConnectionDatum: CreditData = {
-        ...credit,
-        // Remember to use the unique ID
+        ...creditWithoutType,
         id: super.getCreditUniqueId(credit.type, credit.id.toString()),
         name: credit.name,
         entityType: "credit",
-        genre_ids: [], // To be populated later
+        genre_ids: [], // To be populated later in this method
+
+        // Because release_date and last_air_date are dates in the database
+        release_date: credit.release_date.toISOString().split("T")[0],
+        last_air_date: credit.last_air_date?.toISOString().split("T")[0],
+
+        // Because rating is a string (not explicitly "G", "PG", etc.) in the database
+        rating: credit.rating as CreditRating,
       };
 
       connections[creditConnectionDatum.id] = creditConnectionDatum;
@@ -80,7 +96,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
 
     // Add genres to credits
     for (const creditGenreRelationship of allDBEntities.creditGenreRelationships) {
-      // Remember to use the unique ID
+      // Outgoing credits only have an ID field, so we have to merge them into one.
       const creditId = super.getCreditUniqueId(
         creditGenreRelationship.credit_type,
         creditGenreRelationship.credit.id.toString()
@@ -181,17 +197,93 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
   /***************************************************/
 
   /********** For writing to the database **********/
-  async writeActorsAndCategoriesToDB(actorsAndCategories: ActorOrCategoryData[]) {}
+  async writeActorsAndCategoriesToDB(actorsAndCategories: ActorOrCategoryData[]) {
+    await batchWriteToDB(
+      actorsAndCategories,
+      this.dataSource.getRepository(ActorOrCategory),
+      this.WRITE_BATCH_SIZE,
+      ["id"]
+    );
+  }
 
-  async writeCreditsToDB(credits: CreditData[]) {}
+  async writeCreditsToDB(credits: CreditData[]) {
+    // Credits in the database have separate ID and type fields,
+    // so we have to split the ID field into id and type.
+    const creditsWithSplitIds = credits.map((credit) => {
+      const [creditType, creditId] = credit.id.split("-");
+      return {
+        ...credit,
+        id: parseInt(creditId),
+        type: creditType as CreditType,
+      };
+    });
 
-  async writeGenresToDB(genres: { [key: number]: string }) {}
+    await batchWriteToDB(creditsWithSplitIds, this.dataSource.getRepository(Credit), this.WRITE_BATCH_SIZE, [
+      "id",
+      "type",
+    ]);
+  }
 
-  async writeActorCreditRelationshipsToDB(links: LinkData[]) {}
+  async writeGenresToDB(genres: { [key: number]: string }) {
+    const genresList: Genre[] = [];
+    for (const genreId in genres) {
+      genresList.push({ id: parseInt(genreId), name: genres[parseInt(genreId)] });
+    }
+
+    await batchWriteToDB(genresList, this.dataSource.getRepository(Genre), this.WRITE_BATCH_SIZE, ["id"]);
+  }
+
+  // NOTE: This also includes category-credit relationships
+  async writeActorCreditRelationshipsToDB(links: LinkData[]) {
+    // NOTE: Normally, we'd also have to pass the actual entities associated with the
+    // many-to-many relationships, but since we're only inserting the data and not doing
+    // anything else with it, we can just pass the IDs. That's why we're using Partial.
+    const actorCreditRelationships: Partial<ActorOrCategoryCreditJoin>[] = [];
+    for (const link of links) {
+      // Credits in the database have separate ID and type fields,
+      // so we have to split the ID field into id and type.
+      const [creditIdNum, creditType] = link.connectionId.split("-");
+
+      actorCreditRelationships.push({
+        actor_category_id: parseInt(link.axisEntityId),
+        credit_id: parseInt(creditIdNum),
+        credit_type: creditType,
+      });
+    }
+
+    await batchWriteToDB(
+      actorCreditRelationships,
+      this.dataSource.getRepository(ActorOrCategoryCreditJoin),
+      this.WRITE_BATCH_SIZE,
+      ["actor_category_id", "credit_id", "credit_type"]
+    );
+  }
 
   // NOTE: Unlike when we write the actor-credit relationships (which uses links),
   // here we directly use the genre_ids from the connections. This is a departure from the
   // pattern, but I think it's okay for now.
-  async writeCreditGenreRelationshipsToDB(connections: { [key: string]: CreditData }) {}
+  async writeCreditGenreRelationshipsToDB(connections: { [key: string]: CreditData }) {
+    // NOTE: Normally, we'd also have to pass the actual entities associated with the
+    // many-to-many relationships, but since we're only inserting the data and not doing
+    // anything else with it, we can just pass the IDs. That's why we're using Partial.
+    const creditGenreRelationships: Partial<CreditGenreJoin>[] = [];
+    for (const creditId in connections) {
+      const [creditIdNum, creditType] = creditId.split("-");
+      for (const genreId of connections[creditId].genre_ids) {
+        creditGenreRelationships.push({
+          credit_id: parseInt(creditIdNum),
+          credit_type: creditType,
+          genre_id: genreId,
+        });
+      }
+    }
+
+    await batchWriteToDB(
+      creditGenreRelationships,
+      this.dataSource.getRepository(CreditGenreJoin),
+      this.WRITE_BATCH_SIZE,
+      ["credit_id", "credit_type", "genre_id"]
+    );
+  }
   /*************************************************/
 }
