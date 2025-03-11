@@ -1,6 +1,12 @@
 import { Graph, GraphData, GraphEntity, GraphEntityData, LinkData } from "src/ports/graph";
 
 /***** For describing a graph's data *****/
+export interface Actor {
+  id: string;
+  name: string;
+  credits: Set<Credit>;
+}
+
 const CREDIT_RATINGS = [
   "G",
   "PG",
