@@ -1,10 +1,10 @@
 import { Graph, GraphData, GraphEntity, GraphEntityData, LinkData } from "src/ports/graph";
 
 /***** For describing a graph's data *****/
-export interface Actor {
-  id: string;
-  name: string;
-  credits: Set<Credit>;
+export enum MovieGraphEntityType {
+  ACTOR = "actor",
+  CATEGORY = "category",
+  CREDIT = "credit",
 }
 
 const CREDIT_RATINGS = [

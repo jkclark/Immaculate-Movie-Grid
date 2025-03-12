@@ -12,6 +12,7 @@ import {
   isCreditRating,
   MovieGraphData,
   MovieGraphDataWithGenres,
+  MovieGraphEntityType,
 } from "src/adapters/graph/movies";
 import { CreditType } from "src/interfaces";
 import { LinkData } from "src/ports/graph";
@@ -49,7 +50,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
       const actorOrCategoryAxisEntityDatum: ActorOrCategoryData = {
         id: actorOrCategory.id.toString(),
         name: actorOrCategory.name,
-        entityType: actorOrCategory.id < 0 ? "category" : "actor",
+        entityType: actorOrCategory.id < 0 ? MovieGraphEntityType.CATEGORY : MovieGraphEntityType.ACTOR,
       };
 
       axisEntities[actorOrCategoryAxisEntityDatum.id] = actorOrCategoryAxisEntityDatum;

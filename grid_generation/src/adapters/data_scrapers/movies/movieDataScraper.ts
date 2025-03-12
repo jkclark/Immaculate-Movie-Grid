@@ -5,7 +5,7 @@ import {
   MovieGraphDataWithGenres,
 } from "src/adapters/graph/movies";
 import DataScraper from "src/ports/dataScraper";
-import { AxisEntityData, ConnectionData, LinkData } from "src/ports/graph";
+import { ConnectionData, LinkData } from "src/ports/graph";
 
 export default abstract class MovieDataScraper extends DataScraper {
   /**
@@ -58,11 +58,13 @@ export default abstract class MovieDataScraper extends DataScraper {
    */
   abstract getGenres(): Promise<{ [key: number]: string }>;
 
-  async getNewAxisEntities(): Promise<{ [key: string]: AxisEntityData }> {
+  async getNewAxisEntities(): Promise<{ [key: string]: ActorOrCategoryData }> {
     return await this.getNewActors();
   }
 
-  async getConnectionsForAxisEntitiesWithLinks(axisEntities: { [key: string]: AxisEntityData }): Promise<{
+  async getConnectionsForAxisEntitiesWithLinks(axisEntities: {
+    [key: string]: ActorOrCategoryData;
+  }): Promise<{
     connections: { [key: string]: ConnectionData };
     links: LinkData[];
   }> {

@@ -1,9 +1,20 @@
-import { Actor, Credit, CreditRating, MovieGraphDataWithGenres } from "src/adapters/graph/movies";
+import {
+  ActorOrCategoryData,
+  Credit,
+  CreditData,
+  CreditRating,
+  MovieGraphEntityType,
+} from "src/adapters/graph/movies";
+import { LinkData } from "src/ports/graph";
 import MovieDataScraper from "./movieDataScraper";
 
-type CreditType = "movie" | "tv";
+interface Actor extends ActorOrCategoryData {
+  credits: Set<Credit>;
+}
+
+type TMDBCreditType = "movie" | "tv";
 interface TMDBCredit extends Credit {
-  type: CreditType;
+  type: TMDBCreditType;
 }
 
 interface CreditExtraInfo {
@@ -12,24 +23,67 @@ interface CreditExtraInfo {
 }
 
 export default class TMDBDataScraper extends MovieDataScraper {
-  // TODO: Make sure to use the "movie-123" format for credit IDs.
-
-  // TODO: The TMDB API data can return duplicate genre IDs for a credit, so we need to
-  // deduplicate them.
-
   protected readonly BASE_URL = "https://api.themoviedb.org/3";
 
-  async scrapeData(): Promise<MovieGraphDataWithGenres> {
+  /**
+   * It turns out that credits can have genres that are not in the TMDB API's list of genres.
+   * Thus, we have to iterate over all credits to get all unique genres. Otherwise, there can exist genres
+   * on credits that are not in the genres table.
+   *
+   * In order to fit this issue into the greater structure of the movie-data-scraping algorithm,
+   * we have to save all the unique genres when we first get credits. These will just be IDs with "" for their names.
+   * Later when we actually fetch the list of genres, we'll update the names of these genres. Any genres that still
+   * don't have names will be entered into the database that way.
+   */
+  protected allGenres: { [key: number]: string } = {};
+
+  async getNewActors(): Promise<{ [key: string]: ActorOrCategoryData }> {
+    return await this.getPopularActors();
+  }
+
+  async getCreditsForActorsWithLinks(actors: {
+    [key: string]: ActorOrCategoryData;
+  }): Promise<{ connections: { [key: string]: CreditData }; links: LinkData[] }> {
+    // Get all credit info from TMDB API
+    const actorsWithCredits = await this.getAllActorInformation(Object.keys(actors).map(Number));
+
+    // Create connections and links
+    const connections: { [key: string]: CreditData } = {};
+    const links: LinkData[] = [];
+    for (const actor of Object.values(actorsWithCredits)) {
+      for (const credit of actor.credits) {
+        // Save the credit information
+        connections[credit.id] = {
+          ...credit,
+          entityType: MovieGraphEntityType.CREDIT,
+        };
+
+        // Add the link between actor and credit
+        links.push({
+          axisEntityId: actor.id,
+          connectionId: credit.id,
+        });
+
+        // Add the genre IDs to the list of all genres
+        // See note above for more details
+        for (const genreId of credit.genre_ids) {
+          this.allGenres[genreId] = "";
+        }
+      }
+    }
+
+    return { connections: connections, links: links };
+  }
+
+  async getGenres(): Promise<{ [key: number]: string }> {
     return {
-      axisEntities: {},
-      connections: {},
-      links: [],
-      genres: {},
+      ...this.allGenres,
+      ...(await this.getAllGenres()),
     };
   }
 
-  async getPopularActors(): Promise<Actor[]> {
-    const actors: Actor[] = [];
+  async getPopularActors(): Promise<{ [key: string]: ActorOrCategoryData }> {
+    const actorData: { [key: string]: ActorOrCategoryData } = {};
     const MIN_PERSON_POPULARITY = 50;
     const MIN_CREDIT_POPULARITY = 40;
     const VALID_ORIGINAL_LANGUAGE = "en";
@@ -46,14 +100,14 @@ export default class TMDBDataScraper extends MovieDataScraper {
               responseCredit.popularity >= MIN_CREDIT_POPULARITY &&
               responseCredit.original_language === VALID_ORIGINAL_LANGUAGE
             ) {
-              const actor: Actor = {
+              const actorDatum: ActorOrCategoryData = {
                 id: responseActor.id.toString(),
+                entityType: MovieGraphEntityType.ACTOR,
                 name: responseActor.name,
-                credits: new Set(),
               };
-              actors.push(actor);
+              actorData[actorDatum.id] = actorDatum;
 
-              console.log(`Found qualifying actor ${actor.name}`);
+              console.log(`Found qualifying actor ${actorDatum.name}`);
 
               break;
             }
@@ -63,14 +117,14 @@ export default class TMDBDataScraper extends MovieDataScraper {
         // Once we've gone below the minimum popularity threshold, we can break out of the loop
         // because the results are sorted by popularity
         else {
-          return actors;
+          return actorData;
         }
       }
 
       page++;
     }
 
-    return actors;
+    return actorData;
   }
 
   /**
@@ -81,9 +135,9 @@ export default class TMDBDataScraper extends MovieDataScraper {
    * @param actorIds the list of actor IDs to get information for
    * @returns A promise that resolves to a list of actors with their credits
    */
-  async getAllActorInformation(actorIds: number[]): Promise<Actor[]> {
+  async getAllActorInformation(actorIds: number[]): Promise<{ [key: string]: Actor }> {
     const BATCH_SIZE = 10;
-    const actorsWithCredits: Actor[] = [];
+    const actorsWithCredits: { [key: string]: Actor } = {};
 
     for (let i = 0; i < actorIds.length; i += BATCH_SIZE) {
       const batch = actorIds.slice(i, i + BATCH_SIZE);
@@ -94,7 +148,9 @@ export default class TMDBDataScraper extends MovieDataScraper {
       });
 
       const batchResults = await Promise.all(batchPromises);
-      actorsWithCredits.push(...batchResults);
+      for (const actor of batchResults) {
+        actorsWithCredits[actor.id] = actor;
+      }
     }
 
     console.log(`Got info for ${actorsWithCredits.length} actors`);
@@ -116,12 +172,20 @@ export default class TMDBDataScraper extends MovieDataScraper {
   async getActorById(id: number): Promise<Actor> {
     const url = `${this.BASE_URL}/person/${id}?language=en-US`;
     const responseJson = await this.getFromTMDBAPIJson(url);
-    const actor: Actor = { id: responseJson.id.toString(), name: responseJson.name, credits: new Set() };
+    const actor: Actor = {
+      id: responseJson.id.toString(),
+      name: responseJson.name,
+      entityType: MovieGraphEntityType.ACTOR,
+      credits: new Set(),
+    };
     return actor;
   }
 
   /**
    * Get a set of movie and TV show credits for an actor.
+   *
+   * From the first time we see the credit, we set its ID to
+   * the "movie-123" or "tv-456" format.
    *
    * @param actor the actor for whom to get credits
    * @returns a set of credits for the actor
@@ -141,9 +205,12 @@ export default class TMDBDataScraper extends MovieDataScraper {
         type: responseCredit.media_type,
         id: responseCredit.id.toString(),
         name: responseCredit.title || responseCredit.name,
-        genre_ids: responseCredit.genre_ids || [],
         popularity: responseCredit.popularity || 0,
         release_date: responseCredit.release_date || responseCredit.first_air_date || null,
+
+        // The TMDB API data can return duplicate genre IDs for a credit, so we need to
+        // deduplicate them.
+        genre_ids: this.deduplicateNumberList(responseCredit.genre_ids || []),
       };
 
       if (this.isCreditLegit(tmdbCredit)) {
@@ -190,6 +257,38 @@ export default class TMDBDataScraper extends MovieDataScraper {
     };
   }
 
+  /**
+   * Get a list of all genres from the TMDB API.
+   *
+   * TMDB provides two lists for genres: one for movies and one for TV.
+   * As far as I can tell, genres which exist in both lists have the same ID.
+   * This function prioritizes the movie list, overwriting any genre with the same ID
+   * in the TV list.
+   *
+   * @returns a dictionary of genre IDs and names
+   */
+  async getAllGenres(): Promise<{ [key: number]: string }> {
+    const genres: { [id: number]: string } = {};
+
+    // TV
+    const tvGenresListURL = `${this.BASE_URL}/genre/tv/list`;
+    const tvGenresResponseJSON = await this.getFromTMDBAPIJson(tvGenresListURL);
+
+    for (const genre of tvGenresResponseJSON.genres) {
+      genres[genre.id] = genre.name;
+    }
+
+    // Movies
+    const movieGenresListURL = `${this.BASE_URL}/genre/movie/list`;
+    const movieGenresResponseJSON = await this.getFromTMDBAPIJson(movieGenresListURL);
+
+    for (const genre of movieGenresResponseJSON.genres) {
+      genres[genre.id] = genre.name;
+    }
+
+    return genres;
+  }
+
   async getFromTMDBAPIJson(url: string): Promise<any> {
     const response = await this.getFromTMDBAPI(url);
     return await response.json();
@@ -205,6 +304,10 @@ export default class TMDBDataScraper extends MovieDataScraper {
     };
 
     return await fetch(url, options);
+  }
+
+  deduplicateNumberList(nums: number[]): number[] {
+    return Array.from(new Set(nums));
   }
 
   /**
