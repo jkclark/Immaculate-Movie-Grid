@@ -22,6 +22,10 @@ interface CreditExtraInfo {
   last_air_date?: string;
 }
 
+interface TVDetails {
+  last_air_date: string;
+}
+
 export default class TMDBDataScraper extends MovieDataScraper {
   protected readonly BASE_URL = "https://api.themoviedb.org/3";
 
@@ -72,6 +76,17 @@ export default class TMDBDataScraper extends MovieDataScraper {
       }
     }
 
+    // Get extra info for credits
+    const creditExtraInfo = await this.getAllCreditExtraInfo(connections);
+
+    // Merge the extra info with the connections
+    for (const creditId of Object.keys(creditExtraInfo)) {
+      connections[creditId] = {
+        ...connections[creditId],
+        ...creditExtraInfo[creditId],
+      };
+    }
+
     return { connections: connections, links: links };
   }
 
@@ -84,12 +99,14 @@ export default class TMDBDataScraper extends MovieDataScraper {
 
   async getPopularActors(): Promise<{ [key: string]: ActorOrCategoryData }> {
     const actorData: { [key: string]: ActorOrCategoryData } = {};
-    const MIN_PERSON_POPULARITY = 50;
+    const MIN_PERSON_POPULARITY = 3; // Seems that the range changes dramatically over time
     const MIN_CREDIT_POPULARITY = 40;
     const VALID_ORIGINAL_LANGUAGE = "en";
 
     let page = 1;
-    while (page <= 500) {
+    // TODO: Remove this debugging change
+    // while (page <= 500) {
+    while (page <= 10) {
       const url = `${this.BASE_URL}/person/popular?page=${page}`;
       const responseJson = await this.getFromTMDBAPIJson(url);
 
@@ -245,17 +262,179 @@ export default class TMDBDataScraper extends MovieDataScraper {
     return isMovieOrTV && isNotTalkShow && isNotNewsShow && isNotIgnoredTVShow;
   }
 
+  /************************* vvv Extra info vvv *************************/
+
+  /**
+   * Get extra info for credits.
+   *
+   * @param credits the credits to get extra info for
+   * @returns a dictionary of credit IDs and their extra info
+   */
   async getAllCreditExtraInfo(credits: {
-    [key: string]: CreditExtraInfo;
+    [key: string]: CreditData;
   }): Promise<{ [key: string]: CreditExtraInfo }> {
-    return {};
+    let creditExtraInfo: { [key: string]: CreditExtraInfo } = {};
+
+    const numCredits = Object.keys(credits).length;
+    console.log(`Getting extra info for ${numCredits} credits`);
+
+    let currentCount = 0;
+    const tenPercentIncrement = numCredits / 10;
+    let nextTenPercentMilestone = tenPercentIncrement;
+
+    const creditKeys = Object.keys(credits);
+    const BATCH_SIZE = 75; // Number of requests to send simultaneously
+
+    for (let i = 0; i < creditKeys.length; i += BATCH_SIZE) {
+      const batch = creditKeys.slice(i, i + BATCH_SIZE);
+      const batchPromises = batch.map(async (creditUniqueString) => {
+        const info = await this.getCreditExtraInfo(credits[creditUniqueString]);
+        creditExtraInfo[creditUniqueString] = info;
+
+        currentCount++;
+        if (currentCount >= nextTenPercentMilestone) {
+          console.log(`Progress: ${((currentCount / numCredits) * 100).toFixed(2)}%`);
+          nextTenPercentMilestone += tenPercentIncrement;
+        }
+      });
+
+      await Promise.all(batchPromises);
+    }
+
+    return creditExtraInfo;
   }
 
+  /**
+   * Get extra info about a single credit.
+   *
+   * @param credit the credit to get extra info for
+   * @returns the extra info for the credit
+   */
   async getCreditExtraInfo(credit: Credit): Promise<CreditExtraInfo> {
+    const { type, id } = this.getTypeAndIdFromCreditUniqueId(credit.id);
+    if (type === "movie") {
+      return this.getMovieExtraInfo(id);
+    }
+
+    return this.getTVExtraInfo(id);
+  }
+
+  /**
+   * Get extra info for a movie.
+   *
+   * @param id the ID of the movie to get extra info for
+   * @returns the extra info for the movie
+   */
+  async getMovieExtraInfo(id: string): Promise<CreditExtraInfo> {
     return {
-      rating: undefined,
+      rating: await this.getMovieRating(id),
     };
   }
+
+  /**
+   * Get extra info for a TV show.
+   *
+   * @param id the ID of the TV show to get extra info for
+   * @returns the extra info for the TV show
+   */
+  async getTVExtraInfo(id: string): Promise<CreditExtraInfo> {
+    const details = await this.getTVDetails(id);
+
+    return {
+      rating: await this.getTVRating(id),
+      ...details,
+    };
+  }
+
+  /**
+   * Get the rating for a movie.
+   *
+   * Movie ratings are stored per release date, per country.
+   * Here we query the release_dates endpoint, find the most recent release
+   * date for the US *with a rating*, and return the rating for that release.
+   *
+   * @param id the ID of the movie to get the rating for
+   * @returns the rating for the movie
+   */
+  async getMovieRating(id: string): Promise<CreditRating> {
+    /** Movie ratings are stored per release date, per country.
+     *  Here we query the release_dates endpoint, find the most recent release
+     *  date for the US, and return the rating for that release.
+     **/
+    const url = `${this.BASE_URL}/movie/${id}/release_dates`;
+    const responseJson = await this.getFromTMDBAPIJson(url);
+
+    // Sometimes there are no release dates for a movie
+    if (!responseJson.results) {
+      console.error(`No release dates found for movie ${id}`);
+      return undefined;
+    }
+
+    let rating = undefined;
+    let maxDate = undefined;
+    responseJson.results.forEach((result) => {
+      if (result.iso_3166_1 === "US") {
+        result.release_dates.forEach((release) => {
+          if (release.certification && (!maxDate || release.release_date > maxDate)) {
+            maxDate = release.release_date;
+            rating = release.certification;
+          }
+        });
+      }
+    });
+    return rating;
+  }
+
+  /**
+   * Get the rating for a TV show.
+   *
+   * TV show ratings are stored per country.
+   * Here we query the content_ratings endpoint, find the rating for the US,
+   * and return that rating.
+   *
+   * @param id the ID of the TV show to get the rating for
+   * @returns the rating for the TV show
+   */
+  async getTVRating(id: string): Promise<CreditRating> {
+    // Get the rating for this TV show
+    const url = `${this.BASE_URL}/tv/${id}/content_ratings`;
+    const responseJson = await this.getFromTMDBAPIJson(url);
+
+    // Sometimes there are no ratings for a TV show
+    if (!responseJson.results) {
+      console.error(`No ratings found for TV show ${id}`);
+      return undefined;
+    }
+
+    let rating = undefined;
+    responseJson.results.forEach((result) => {
+      if (result.iso_3166_1 === "US") {
+        if (rating && rating != "NR" && result.rating != "NR") {
+          console.log(`Multiple ratings found for TV show: ${id}`);
+        }
+
+        if (!rating || rating == "NR") {
+          rating = result.rating;
+        }
+      }
+    });
+
+    return rating;
+  }
+
+  /**
+   * Get details for a TV show.
+   *
+   * @param id the ID of the TV show to get details for
+   * @returns the details for the TV show
+   */
+  async getTVDetails(id: string): Promise<TVDetails> {
+    const url = `${this.BASE_URL}/tv/${id}`;
+    const responseJson = await this.getFromTMDBAPIJson(url);
+    return { last_air_date: responseJson.last_air_date || null };
+  }
+
+  /************************* ^^^ Extra info ^^^ *************************/
 
   /**
    * Get a list of all genres from the TMDB API.
@@ -322,6 +501,17 @@ export default class TMDBDataScraper extends MovieDataScraper {
    */
   getCreditUniqueId(creditType: string, creditId: string): string {
     return `${creditType}-${creditId}`;
+  }
+
+  /**
+   * Split a credit's unique ID into its original TMDB type and ID.
+   *
+   * @param creditUniqueId the unique ID of a credit
+   * @returns the type and ID of the credit
+   */
+  getTypeAndIdFromCreditUniqueId(creditUniqueId: string): { type: string; id: string } {
+    const [type, id] = creditUniqueId.split("-");
+    return { type, id };
   }
 }
 

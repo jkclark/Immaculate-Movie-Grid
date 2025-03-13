@@ -14,26 +14,25 @@
  * we run the populateDataStore script, which happens daily.
  */
 
-import DBGraphHandler from "../graph_handlers/dbGraphHandler";
-import { ActorCreditGraph } from "../interfaces";
+import PostgreSQLMovieDataStoreHandler from "src/adapters/data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
+import { ActorOrCategoryData, MovieGraphEntityType } from "src/adapters/graph/movies";
 import { famousActorIdsToNames } from "./famousActorIdsToNames";
 
 async function main() {
-  const dbGraphHandler: DBGraphHandler = new DBGraphHandler();
-  await dbGraphHandler.init();
+  const dataStoreHandler = new PostgreSQLMovieDataStoreHandler();
 
-  const graph: ActorCreditGraph = { actors: {}, credits: {} };
+  await dataStoreHandler.init();
 
-  for (const [id, name] of Object.entries(famousActorIdsToNames)) {
-    graph.actors[id] = {
-      id,
-      name,
-      links: {},
-      entityType: "actor",
-    };
+  const actorData: ActorOrCategoryData[] = [];
+  for (const [actorId, actorName] of Object.entries(famousActorIdsToNames)) {
+    actorData.push({
+      id: actorId,
+      name: actorName,
+      entityType: MovieGraphEntityType.ACTOR,
+    });
   }
 
-  await dbGraphHandler.writeActorsToDB(graph);
+  await dataStoreHandler.writeActorsAndCategoriesToDB(actorData);
 }
 
 if (require.main === module) {

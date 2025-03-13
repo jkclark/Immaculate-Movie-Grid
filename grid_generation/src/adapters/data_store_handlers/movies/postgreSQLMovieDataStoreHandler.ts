@@ -16,7 +16,7 @@ import {
 } from "src/adapters/graph/movies";
 import { CreditType } from "src/interfaces";
 import { LinkData } from "src/ports/graph";
-import { DataSource } from "typeorm";
+import { DataSource, LessThan, MoreThanOrEqual } from "typeorm";
 import MovieDataStoreHandler from "./movieDataStoreHandler";
 
 interface AllDBEntities {
@@ -25,6 +25,28 @@ interface AllDBEntities {
   genres: Genre[];
   actorCreditRelationships: ActorOrCategoryCreditJoin[];
   creditGenreRelationships: CreditGenreJoin[];
+}
+
+/**
+ * This is a decorator that makes sure that the data source is initialized before calling the method.
+ */
+function ensureInitialized(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+
+  descriptor.value = function (...args: any[]) {
+    if (!this.dataSource) {
+      throw new DataSourceNotInitializedError();
+    }
+    return originalMethod.apply(this, args);
+  };
+
+  return descriptor;
+}
+
+class DataSourceNotInitializedError extends Error {
+  constructor() {
+    super("Data source is not initialized. Please call init() first.");
+  }
 }
 
 export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandler {
@@ -36,11 +58,26 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     this.dataSource = await initializeDataSource();
   }
 
+  @ensureInitialized
+  async getExistingNonCategoryAxisEntities(): Promise<{ [key: string]: ActorOrCategoryData }> {
+    const existingActors: { [key: string]: ActorOrCategoryData } = {};
+    for (const actor of await this.getAllActors()) {
+      existingActors[actor.id.toString()] = {
+        id: actor.id.toString(),
+        name: actor.name,
+        entityType: MovieGraphEntityType.ACTOR,
+      };
+    }
+
+    return existingActors;
+  }
+
   /**
    * Convert the data from the database into a format that can be used to generate a movie grid.
    *
    * @returns The data for for the graph for movie-grid generation.
    */
+  @ensureInitialized
   async getGraphData(): Promise<MovieGraphData> {
     const allDBEntities = await this.getAllDBEntities();
 
@@ -118,6 +155,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
    *
    * @param graphData The data for the graph for movie-grid generation.
    */
+  @ensureInitialized
   async storeGraphData(graphData: MovieGraphDataWithGenres): Promise<void> {
     // Write actors and categories to the database
     await this.writeActorsAndCategoriesToDB(Object.values(graphData.axisEntities));
@@ -147,12 +185,26 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
   }
 
   async getAllActorsAndCategories(): Promise<ActorOrCategory[]> {
+    return [...(await this.getAllActors()), ...(await this.getAllCategories())];
+  }
+
+  async getAllActors(): Promise<ActorOrCategory[]> {
     return await batchReadFromDB(
       this.dataSource.getRepository(ActorOrCategory),
       this.READ_BATCH_SIZE,
       { id: "ASC" },
       [],
-      {}
+      { id: MoreThanOrEqual(0) }
+    );
+  }
+
+  async getAllCategories(): Promise<ActorOrCategory[]> {
+    return await batchReadFromDB(
+      this.dataSource.getRepository(ActorOrCategory),
+      this.READ_BATCH_SIZE,
+      { id: "ASC" },
+      [],
+      { id: LessThan(0) }
     );
   }
 
@@ -243,12 +295,12 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     for (const link of links) {
       // Credits in the database have separate ID and type fields,
       // so we have to split the ID field into id and type.
-      const [creditIdNum, creditType] = link.connectionId.split("-");
+      const { type, id } = super.getTypeAndIdFromCreditUniqueId(link.connectionId);
 
       actorCreditRelationships.push({
         actor_category_id: parseInt(link.axisEntityId),
-        credit_id: parseInt(creditIdNum),
-        credit_type: creditType,
+        credit_id: parseInt(id),
+        credit_type: type,
       });
     }
 
