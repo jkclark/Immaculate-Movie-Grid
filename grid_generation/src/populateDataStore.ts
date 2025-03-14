@@ -30,15 +30,7 @@ async function main2() {
 
   // Save data to DB
   await dataStoreHandler.storeGraphData(graphData);
-
-  // JOSH: I'm currently testing the code for populateDataStore (no categories yet)
-  // and it seems that links may have a duplicate entry, which is causing an error when
-  // writing the actor-credit relationships to the database.
-  //
-  // Next step: Try to find the duplicate to confirm that TMDB actors can have more than one
-  // credit with the same type/id. If that's the case, we just have to deduplicate the links
-  // before passing them to the data store handler. If that's not the case, we have to figure
-  // out why we're getting this duplicate error.
+}
 
 function getGraphHandler(args: fetchDataArgs): GraphHandler {
   if (args.graphMode === "db") {

@@ -206,4 +206,38 @@ function deepCopyGraph(graph: Graph): Graph {
 
   return graphCopy;
 }
+
+/**
+ * Deduplicate a list of links.
+ *
+ * The delimiter should be a string that is not found in the axis entity ID or connection ID.
+ *
+ * @param links the links to deduplicate
+ * @param delimiter the delimiter used to separate the axis entity ID and connection ID
+ * @returns a deduplicated list of links
+ */
+export function deduplicateLinkData(links: LinkData[], delimiter: string): LinkData[] {
+  // Deduplicate the links
+  const linksSet: Set<string> = new Set();
+  for (const link of links) {
+    linksSet.add(combineLinkDataIntoString(link, delimiter));
+  }
+
+  // Convert the set back into a list
+  const deduplicatedLinks: LinkData[] = [];
+  for (const linkString of linksSet) {
+    deduplicatedLinks.push(splitLinkDataString(linkString, delimiter));
+  }
+
+  return deduplicatedLinks;
+}
+
+function combineLinkDataIntoString(link: LinkData, delimiter: string): string {
+  return `${link.axisEntityId}${delimiter}${link.connectionId}`;
+}
+
+function splitLinkDataString(linkString: string, delimiter: string): LinkData {
+  const [axisEntityId, connectionId] = linkString.split(delimiter);
+  return { axisEntityId, connectionId };
+}
 /*****************************************/

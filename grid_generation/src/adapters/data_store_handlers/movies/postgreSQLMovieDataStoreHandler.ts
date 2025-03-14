@@ -263,11 +263,11 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     // Credits in the database have separate ID and type fields,
     // so we have to split the ID field into id and type.
     const creditsWithSplitIds = credits.map((credit) => {
-      const [creditType, creditId] = credit.id.split("-");
+      const { type, id } = super.getTypeAndIdFromCreditUniqueId(credit.id);
       return {
         ...credit,
-        id: parseInt(creditId),
-        type: creditType as CreditType,
+        id: parseInt(id),
+        type: type as CreditType,
       };
     });
 
@@ -321,11 +321,11 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     // anything else with it, we can just pass the IDs. That's why we're using Partial.
     const creditGenreRelationships: Partial<CreditGenreJoin>[] = [];
     for (const creditId in connections) {
-      const [creditIdNum, creditType] = creditId.split("-");
+      const { type, id } = super.getTypeAndIdFromCreditUniqueId(creditId);
       for (const genreId of connections[creditId].genre_ids) {
         creditGenreRelationships.push({
-          credit_id: parseInt(creditIdNum),
-          credit_type: creditType,
+          credit_id: parseInt(id),
+          credit_type: type,
           genre_id: genreId,
         });
       }

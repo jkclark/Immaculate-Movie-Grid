@@ -5,11 +5,11 @@ import {
   CreditRating,
   MovieGraphEntityType,
 } from "src/adapters/graph/movies";
-import { LinkData } from "src/ports/graph";
+import { deduplicateLinkData, LinkData } from "src/ports/graph";
 import MovieDataScraper from "./movieDataScraper";
 
 interface Actor extends ActorOrCategoryData {
-  credits: Set<Credit>;
+  credits: Credit[];
 }
 
 type TMDBCreditType = "movie" | "tv";
@@ -76,6 +76,9 @@ export default class TMDBDataScraper extends MovieDataScraper {
       }
     }
 
+    // Deduplicate the list of links
+    const deduplicatedLinks: LinkData[] = deduplicateLinkData(links, "/");
+
     // Get extra info for credits
     const creditExtraInfo = await this.getAllCreditExtraInfo(connections);
 
@@ -87,7 +90,7 @@ export default class TMDBDataScraper extends MovieDataScraper {
       };
     }
 
-    return { connections: connections, links: links };
+    return { connections: connections, links: deduplicatedLinks };
   }
 
   async getGenres(): Promise<{ [key: number]: string }> {
@@ -104,9 +107,7 @@ export default class TMDBDataScraper extends MovieDataScraper {
     const VALID_ORIGINAL_LANGUAGE = "en";
 
     let page = 1;
-    // TODO: Remove this debugging change
-    // while (page <= 500) {
-    while (page <= 10) {
+    while (page <= 500) {
       const url = `${this.BASE_URL}/person/popular?page=${page}`;
       const responseJson = await this.getFromTMDBAPIJson(url);
 
@@ -160,7 +161,9 @@ export default class TMDBDataScraper extends MovieDataScraper {
       const batch = actorIds.slice(i, i + BATCH_SIZE);
       const batchPromises = batch.map(async (inputActor) => {
         const outputActor = await this.getActorWithCreditsById(inputActor);
-        console.log(`Got actor ${outputActor.name} with ${outputActor.credits.size} credits`);
+        console.log(
+          `Got ${outputActor.credits.length.toString().padEnd(3)} credits for actor ${outputActor.name}`
+        );
         return outputActor;
       });
 
@@ -170,7 +173,7 @@ export default class TMDBDataScraper extends MovieDataScraper {
       }
     }
 
-    console.log(`Got info for ${actorsWithCredits.length} actors`);
+    console.log(`Got info for ${Object.keys(actorsWithCredits).length} actors`);
 
     return actorsWithCredits;
   }
@@ -193,7 +196,7 @@ export default class TMDBDataScraper extends MovieDataScraper {
       id: responseJson.id.toString(),
       name: responseJson.name,
       entityType: MovieGraphEntityType.ACTOR,
-      credits: new Set(),
+      credits: [],
     };
     return actor;
   }
@@ -207,11 +210,11 @@ export default class TMDBDataScraper extends MovieDataScraper {
    * @param actor the actor for whom to get credits
    * @returns a set of credits for the actor
    */
-  async getActorCredits(actor: Actor): Promise<Set<Credit>> {
+  async getActorCredits(actor: Actor): Promise<Credit[]> {
     const url = `${this.BASE_URL}/person/${actor.id}/combined_credits?language=en-US`;
     const responseJson = await this.getFromTMDBAPIJson(url);
 
-    const credits: Set<Credit> = new Set();
+    const credits: Credit[] = [];
     if (!responseJson["cast"]) {
       console.error(`No credits found for actor ${actor.id}`);
       return credits;
@@ -232,7 +235,7 @@ export default class TMDBDataScraper extends MovieDataScraper {
 
       if (this.isCreditLegit(tmdbCredit)) {
         const { type, ...tmdbCreditWithoutType } = tmdbCredit;
-        credits.add({
+        credits.push({
           ...tmdbCreditWithoutType,
           id: this.getCreditUniqueId(tmdbCredit.type, tmdbCredit.id),
         });
