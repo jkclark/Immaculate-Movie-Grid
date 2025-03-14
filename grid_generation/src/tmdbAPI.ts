@@ -1,6 +1,5 @@
 import { getFromTMDBAPI, getFromTMDBAPIJson } from "common/src/api";
 import { Readable } from "node:stream";
-import { ignoredTVShowIds } from "./ignoredTVShows";
 import { Actor, Credit, CreditRating } from "./interfaces";
 
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -297,3 +296,9 @@ export async function getAllGenres(): Promise<{ [key: number]: string }> {
 
   return genres;
 }
+
+// A list of specific TV shows that we don't want to include in our system at all
+const ignoredTVShowIds = new Set([
+  27023, // The Oscars
+  28464, // The Emmy Awards
+]);
