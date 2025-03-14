@@ -12,10 +12,9 @@ import {
   isCreditRating,
   MovieGraphData,
   MovieGraphDataWithGenres,
-  MovieGraphEntityType,
 } from "src/adapters/graph/movies";
 import { CreditType } from "src/interfaces";
-import { LinkData } from "src/ports/graph";
+import { EntityType, LinkData } from "src/ports/graph";
 import { DataSource, LessThan, MoreThanOrEqual } from "typeorm";
 import MovieDataStoreHandler from "./movieDataStoreHandler";
 
@@ -65,7 +64,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
       existingActors[actor.id.toString()] = {
         id: actor.id.toString(),
         name: actor.name,
-        entityType: MovieGraphEntityType.ACTOR,
+        entityType: EntityType.NON_CATEGORY,
       };
     }
 
@@ -87,7 +86,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
       const actorOrCategoryAxisEntityDatum: ActorOrCategoryData = {
         id: actorOrCategory.id.toString(),
         name: actorOrCategory.name,
-        entityType: actorOrCategory.id < 0 ? MovieGraphEntityType.CATEGORY : MovieGraphEntityType.ACTOR,
+        entityType: actorOrCategory.id < 0 ? EntityType.CATEGORY : EntityType.NON_CATEGORY,
       };
 
       axisEntities[actorOrCategoryAxisEntityDatum.id] = actorOrCategoryAxisEntityDatum;
@@ -106,7 +105,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
         ...creditWithoutType,
         id: super.getCreditUniqueId(credit.type, credit.id.toString()),
         name: credit.name,
-        entityType: "credit",
+        entityType: EntityType.CONNECTION,
         genre_ids: [], // To be populated later in this method
 
         // Because release_date and last_air_date are dates in the database

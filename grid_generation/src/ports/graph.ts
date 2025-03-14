@@ -11,10 +11,16 @@
  * has a unique id, a name, and an entity type. The links are a list of (axisEntityId, connectionId) pairs,
  * where each pair represents a link between an axis entity and a connection.
  */
+export enum EntityType {
+  NON_CATEGORY = "non-category",
+  CATEGORY = "category",
+  CONNECTION = "connection",
+}
+
 export interface GraphEntityData {
   id: string;
-  entityType: string;
-  name?: string;
+  name: string;
+  entityType: EntityType;
 }
 
 export type AxisEntityData = GraphEntityData;

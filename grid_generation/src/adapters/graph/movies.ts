@@ -1,12 +1,6 @@
 import { Graph, GraphData, GraphEntity, GraphEntityData, LinkData } from "src/ports/graph";
 
 /***** For describing a graph's data *****/
-export enum MovieGraphEntityType {
-  ACTOR = "actor",
-  CATEGORY = "category",
-  CREDIT = "credit",
-}
-
 const CREDIT_RATINGS = [
   "G",
   "PG",
@@ -38,9 +32,7 @@ export interface Credit {
 }
 
 export type ActorOrCategoryData = GraphEntityData;
-export interface CreditData extends Credit, GraphEntityData {
-  name: string; // Because Credit has name required and GraphEntity does not
-}
+export interface CreditData extends Credit, GraphEntityData {}
 
 export interface MovieGraphData extends GraphData {
   axisEntities: { [key: string]: ActorOrCategoryData };
@@ -76,7 +68,6 @@ export interface ActorNode extends GraphEntity {
 }
 
 export interface CreditNode extends Credit, GraphEntity {
-  name: string; // Because Credit has name required and GraphEntity does not
   links: { [key: string]: ActorNode };
 }
 /*******************************/

@@ -15,7 +15,8 @@
  */
 
 import PostgreSQLMovieDataStoreHandler from "src/adapters/data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
-import { ActorOrCategoryData, MovieGraphEntityType } from "src/adapters/graph/movies";
+import { ActorOrCategoryData } from "src/adapters/graph/movies";
+import { EntityType } from "src/ports/graph";
 import { famousActorIdsToNames } from "./famousActorIdsToNames";
 
 async function main() {
@@ -28,7 +29,7 @@ async function main() {
     actorData.push({
       id: actorId,
       name: actorName,
-      entityType: MovieGraphEntityType.ACTOR,
+      entityType: EntityType.NON_CATEGORY,
     });
   }
 

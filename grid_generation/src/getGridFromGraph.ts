@@ -25,15 +25,9 @@ export function getGridFromGraph(
     (entity) => entity.entityType === startingAxisEntityType
   );
   const startingAxisEntity = axisEntitiesOfType[Math.floor(Math.random() * axisEntitiesOfType.length)];
-  if ("name" in startingAxisEntity) {
-    console.log(
-      `Starting with ${startingAxisEntity.name} with ${Object.keys(startingAxisEntity.links).length} connections`
-    );
-  } else {
-    console.log(
-      `Starting with ${startingAxisEntity.id} with ${Object.keys(startingAxisEntity.links).length} connections`
-    );
-  }
+  console.log(
+    `Starting with ${startingAxisEntity.name} with ${Object.keys(startingAxisEntity.links).length} connections`
+  );
 
   // Add starting axis entity to across
   across.push(startingAxisEntity);

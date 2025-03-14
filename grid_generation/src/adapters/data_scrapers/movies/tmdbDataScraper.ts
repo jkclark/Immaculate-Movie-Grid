@@ -1,11 +1,5 @@
-import {
-  ActorOrCategoryData,
-  Credit,
-  CreditData,
-  CreditRating,
-  MovieGraphEntityType,
-} from "src/adapters/graph/movies";
-import { deduplicateLinkData, LinkData } from "src/ports/graph";
+import { ActorOrCategoryData, Credit, CreditData, CreditRating } from "src/adapters/graph/movies";
+import { deduplicateLinkData, EntityType, LinkData } from "src/ports/graph";
 import MovieDataScraper from "./movieDataScraper";
 
 interface Actor extends ActorOrCategoryData {
@@ -59,7 +53,7 @@ export default class TMDBDataScraper extends MovieDataScraper {
         // Save the credit information
         connections[credit.id] = {
           ...credit,
-          entityType: MovieGraphEntityType.CREDIT,
+          entityType: EntityType.CONNECTION,
         };
 
         // Add the link between actor and credit
@@ -120,7 +114,7 @@ export default class TMDBDataScraper extends MovieDataScraper {
             ) {
               const actorDatum: ActorOrCategoryData = {
                 id: responseActor.id.toString(),
-                entityType: MovieGraphEntityType.ACTOR,
+                entityType: EntityType.NON_CATEGORY,
                 name: responseActor.name,
               };
               actorData[actorDatum.id] = actorDatum;
@@ -195,7 +189,7 @@ export default class TMDBDataScraper extends MovieDataScraper {
     const actor: Actor = {
       id: responseJson.id.toString(),
       name: responseJson.name,
-      entityType: MovieGraphEntityType.ACTOR,
+      entityType: EntityType.NON_CATEGORY,
       credits: [],
     };
     return actor;

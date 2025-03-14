@@ -1,4 +1,5 @@
 import { GridExport } from "common/src/interfaces";
+import { EntityType } from "src/ports/graph";
 import { CreditExtraInfo } from "../creditExtraInfo";
 import { Actor, ActorCreditGraph, ActorNode, Credit, CreditNode, getCreditUniqueString } from "../interfaces";
 
@@ -50,7 +51,7 @@ export default abstract class GraphHandler {
       throw new RepeatError(`Actor with id ${id} already exists: ${graph.actors[id].name}`);
     }
 
-    graph.actors[id] = { id, name, links: {}, entityType: "actor" };
+    graph.actors[id] = { id, name, links: {}, entityType: EntityType.NON_CATEGORY };
   }
 
   addCategoryToGraph(graph: ActorCreditGraph, id: string, name: string): void {
@@ -58,7 +59,7 @@ export default abstract class GraphHandler {
       throw new RepeatError(`Category with id ${id} already exists: ${graph.actors[id].name}`);
     }
 
-    graph.actors[id] = { id, name, links: {}, entityType: "category" };
+    graph.actors[id] = { id, name, links: {}, entityType: EntityType.CATEGORY };
   }
 
   addCreditToGraph(credit: Credit, graph: ActorCreditGraph): void {
@@ -71,7 +72,7 @@ export default abstract class GraphHandler {
     graph.credits[creditUniqueString] = {
       ...credit,
       links: {},
-      entityType: "credit",
+      entityType: EntityType.CONNECTION,
     };
   }
 

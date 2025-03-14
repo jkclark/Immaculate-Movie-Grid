@@ -5,7 +5,7 @@ import { GameType, InvalidGameTypeError, isValidGameType } from "./gameTypes";
 import { Category } from "./ports/categories";
 import DataScraper from "./ports/dataScraper";
 import DataStoreHandler from "./ports/dataStoreHandler";
-import { GraphData } from "./ports/graph";
+import { EntityType, GraphData } from "./ports/graph";
 
 interface PopulateDataStoreArgs {
   dataScraper: DataScraper;
@@ -50,9 +50,7 @@ export function addCategoriesToGraphDataInPlace(
     graphData.axisEntities[id] = {
       id: id,
       name: category.name,
-      // entityType doesn't actually matter for data-storing purposes.
-      // Going to refactor this in a future commit
-      entityType: "",
+      entityType: EntityType.CATEGORY,
     };
 
     /* Add category connections */
