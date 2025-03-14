@@ -8,7 +8,7 @@ import { Genre } from "common/src/db/models/Genre";
 import { Grid } from "common/src/db/models/Grid";
 import { GridExport } from "common/src/interfaces";
 import { DataSource, MoreThan } from "typeorm";
-import { allCategories } from "../categories";
+import { allMovieCategories } from "../adapters/categories/movies";
 import { getAllCreditExtraInfo } from "../creditExtraInfo";
 import { ActorCreditGraph, getCreditUniqueString } from "../interfaces";
 import { getAllActorInformation, getAllGenres, getPopularActors } from "../tmdbAPI";
@@ -127,13 +127,13 @@ export default class DBGraphHandler extends GraphHandler {
    */
   addCategoriesToGraph(graph: ActorCreditGraph): void {
     // iterate over (id, category) key value pairs in allCategories
-    for (const [id, category] of Object.entries(allCategories)) {
+    for (const [id, category] of Object.entries(allMovieCategories)) {
       // Add the category to the graph
       super.addCategoryToGraph(graph, id, category.name);
 
       // Iterate over all credits in the graph
       for (const credit of Object.values(graph.credits)) {
-        if (category.creditFilter(credit)) {
+        if (category.connectionFilter(credit)) {
           // Add the category as a connection to the credit
           super.addLinkToGraph(graph, id, credit);
         }

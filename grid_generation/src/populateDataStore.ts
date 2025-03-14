@@ -1,16 +1,20 @@
+import { allMovieCategories } from "./adapters/categories/movies";
 import TMDBDataScraper from "./adapters/data_scrapers/movies/tmdbDataScraper";
 import PostgreSQLMovieDataStoreHandler from "./adapters/data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
 import { GameType, InvalidGameTypeError, isValidGameType } from "./gameTypes";
+import { Category } from "./ports/categories";
 import DataScraper from "./ports/dataScraper";
 import DataStoreHandler from "./ports/dataStoreHandler";
+import { GraphData } from "./ports/graph";
 
 interface PopulateDataStoreArgs {
   dataScraper: DataScraper;
   dataStoreHandler: DataStoreHandler;
+  categories: { [key: number]: Category };
 }
 
 async function main(args: PopulateDataStoreArgs) {
-  const { dataScraper, dataStoreHandler } = args;
+  const { dataScraper, dataStoreHandler, categories } = args;
 
   // Initialize dataStoreHandler
   await dataStoreHandler.init();
@@ -21,10 +25,46 @@ async function main(args: PopulateDataStoreArgs) {
   // Fetch data from TMDB
   const graphData = await dataScraper.scrapeData(existingActors);
 
-  // TODO: Incorporate categories
+  // Incorporate categories
+  addCategoriesToGraphDataInPlace(categories, graphData);
 
   // Save data to DB
   await dataStoreHandler.storeGraphData(graphData);
+}
+
+/**
+ * Add categories to the graph data.
+ *
+ * NOTE: This function modifies the graphData in place.
+ *
+ * @param categories the categories to add
+ * @param graphData the graph data to add the categories to
+ * @returns the updated graph data with the categories added
+ */
+export function addCategoriesToGraphDataInPlace(
+  categories: { [key: number]: Category },
+  graphData: GraphData
+): void {
+  for (const [id, category] of Object.entries(categories)) {
+    /* Add category axis entity */
+    graphData.axisEntities[id] = {
+      id: id,
+      name: category.name,
+      // entityType doesn't actually matter for data-storing purposes.
+      // Going to refactor this in a future commit
+      entityType: "",
+    };
+
+    /* Add category connections */
+    for (const connection of Object.values(graphData.connections)) {
+      if (category.connectionFilter(connection)) {
+        graphData.links.push({
+          axisEntityId: id,
+          connectionId: connection.id,
+        });
+      }
+    }
+  }
 }
 
 function processCLIArgs(): PopulateDataStoreArgs {
@@ -47,16 +87,19 @@ function processCLIArgs(): PopulateDataStoreArgs {
 
   let dataScraper: DataScraper;
   let dataStoreHandler: DataStoreHandler;
+  let categories: { [key: number]: Category };
 
   // Movies
   if (args[0] === GameType.MOVIES) {
     dataScraper = new TMDBDataScraper();
     dataStoreHandler = new PostgreSQLMovieDataStoreHandler();
+    categories = allMovieCategories;
   }
 
   return {
     dataScraper: dataScraper,
     dataStoreHandler: dataStoreHandler,
+    categories: categories,
   };
 }
 
