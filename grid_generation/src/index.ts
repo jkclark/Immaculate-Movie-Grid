@@ -249,7 +249,12 @@ function isLegitMovie(credit: CreditNode): boolean {
   const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(parseInt(credit.id));
 
   // Still need to tweak this
-  const MINIMUM_POPULARITY = 40;
+  // TODO: It seems that on or around 3/11/2025, TMDB drastically changed the way popularity worked,
+  // lowering the values for actors and credits alike. This resulted in several grid-generation
+  // failures. I've now set this value to 0, but clearly, we need a better way of using this popularity
+  // value, or we need not to use it at all. One option is to say that a movie or TV show should be in
+  // the top X% (maybe 20?) of all movies or TV shows in terms of popularity.
+  const MINIMUM_POPULARITY = 0;
   const popularEnough = credit.popularity > MINIMUM_POPULARITY;
 
   return !isInvalidGenre && !isInvalidMovie && popularEnough;
