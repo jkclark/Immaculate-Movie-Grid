@@ -1,6 +1,9 @@
 import { AxisEntityData, GraphData } from "./graph";
 
 export default abstract class DataStoreHandler {
+  // We need to have this as a separate method (and not just
+  // put its contents in the constructor) because constructors
+  // cannot be async.
   abstract init(): Promise<void>;
 
   /**
