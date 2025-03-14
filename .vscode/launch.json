@@ -4,7 +4,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Compile & Generate Grid",
+            "name": "Generate grid",
             "preLaunchTask": "npm: build", // run this task before launching the program
             "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/lambdas/generateGridLambda.js", // the program to debug
             "outFiles": [
@@ -22,7 +22,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Compile & Populate Data Store",
+            "name": "Populate data store",
             "preLaunchTask": "npm: build", // run this task before launching the program
             "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/populateDataStore.js", // the program to debug
             "outFiles": [
@@ -33,6 +33,19 @@
             "args": [
                 "db"
             ],
+            "console": "integratedTerminal",
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Add famous actors",
+            "preLaunchTask": "npm: build", // run this task before launching the program
+            "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/famous_actors/addFamousActorsToDB.js", // the program to debug
+            "outFiles": [
+                "${workspaceFolder}/grid_generation/dist/**/*.js"
+            ], // the location of the compiled JavaScript files
+            "sourceMaps": true, // enable source maps to allow debugging of the original TypeScript files
+            "cwd": "${workspaceFolder}/grid_generation", // the current working directory for the debug process
             "console": "integratedTerminal",
         },
     ]
