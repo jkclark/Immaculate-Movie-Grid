@@ -1,25 +1,18 @@
 import TMDBDataScraper from "./adapters/data_scrapers/movies/tmdbDataScraper";
 import PostgreSQLMovieDataStoreHandler from "./adapters/data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
-import DBGraphHandler from "./graph_handlers/dbGraphHandler";
-import GraphHandler from "./graph_handlers/graphHandler";
+import { GameType, InvalidGameTypeError, isValidGameType } from "./gameTypes";
+import DataScraper from "./ports/dataScraper";
+import DataStoreHandler from "./ports/dataStoreHandler";
 
-interface fetchDataArgs {
-  graphMode: "db";
+interface PopulateDataStoreArgs {
+  dataScraper: DataScraper;
+  dataStoreHandler: DataStoreHandler;
 }
 
-async function main(args: fetchDataArgs) {
-  const graphHandler = getGraphHandler(args);
+async function main(args: PopulateDataStoreArgs) {
+  const { dataScraper, dataStoreHandler } = args;
 
-  await graphHandler.init();
-
-  await graphHandler.populateDataStore();
-}
-
-async function main2() {
-  // Initialize
-  const dataScraper = new TMDBDataScraper();
-  const dataStoreHandler = new PostgreSQLMovieDataStoreHandler();
-
+  // Initialize dataStoreHandler
   await dataStoreHandler.init();
 
   // Get existing actors
@@ -28,34 +21,45 @@ async function main2() {
   // Fetch data from TMDB
   const graphData = await dataScraper.scrapeData(existingActors);
 
+  // TODO: Incorporate categories
+
   // Save data to DB
   await dataStoreHandler.storeGraphData(graphData);
 }
 
-function getGraphHandler(args: fetchDataArgs): GraphHandler {
-  if (args.graphMode === "db") {
-    return new DBGraphHandler();
-  }
-}
-
-function processCLIArgs(): fetchDataArgs {
+function processCLIArgs(): PopulateDataStoreArgs {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    throw new Error("Usage: npx ts-node populateDataStore.ts <graphMode>");
+    const errorMessage =
+      "\n**************************************************\n" +
+      "Usage: npx ts-node populateDataStore.ts <gameType>\n" +
+      "\n" +
+      `gameType must be one of: [${Object.values(GameType).join(", ")}]\n` +
+      "\n" +
+      "**************************************************\n";
+
+    throw new Error(errorMessage);
   }
 
-  if (args[0] !== "db") {
-    throw new Error("graphMode must be 'db'");
+  if (!isValidGameType(args[0])) {
+    throw new InvalidGameTypeError(args[0]);
   }
 
-  const graphMode = args[0];
+  let dataScraper: DataScraper;
+  let dataStoreHandler: DataStoreHandler;
+
+  // Movies
+  if (args[0] === GameType.MOVIES) {
+    dataScraper = new TMDBDataScraper();
+    dataStoreHandler = new PostgreSQLMovieDataStoreHandler();
+  }
 
   return {
-    graphMode,
+    dataScraper: dataScraper,
+    dataStoreHandler: dataStoreHandler,
   };
 }
 
 if (require.main === module) {
-  // main(processCLIArgs());
-  main2();
+  main(processCLIArgs());
 }
