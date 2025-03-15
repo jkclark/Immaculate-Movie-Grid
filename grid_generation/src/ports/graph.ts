@@ -39,7 +39,7 @@ export interface GraphData {
 
 /***** For an actual graph *****/
 export interface GraphEntity extends GraphEntityData {
-  links: { [key: string]: Connection };
+  links: { [key: string]: GraphEntity };
 }
 
 export type AxisEntity = GraphEntity;
@@ -174,6 +174,94 @@ class RepeatError extends Error {
 
 /***** Other graph-related functions *****/
 /**
+ * Deduplicate a list of links.
+ *
+ * The delimiter should be a string that is not found in the axis entity ID or connection ID.
+ *
+ * @param links the links to deduplicate
+ * @param delimiter the delimiter used to separate the axis entity ID and connection ID
+ * @returns a deduplicated list of links
+ */
+export function deduplicateLinkData(links: LinkData[], delimiter: string): LinkData[] {
+  // Deduplicate the links
+  const linksSet: Set<string> = new Set();
+  for (const link of links) {
+    linksSet.add(combineLinkDataIntoString(link, delimiter));
+  }
+
+  // Convert the set back into a list
+  const deduplicatedLinks: LinkData[] = [];
+  for (const linkString of linksSet) {
+    deduplicatedLinks.push(splitLinkDataString(linkString, delimiter));
+  }
+
+  return deduplicatedLinks;
+}
+
+function combineLinkDataIntoString(link: LinkData, delimiter: string): string {
+  return `${link.axisEntityId}${delimiter}${link.connectionId}`;
+}
+
+function splitLinkDataString(linkString: string, delimiter: string): LinkData {
+  const [axisEntityId, connectionId] = linkString.split(delimiter);
+  return { axisEntityId, connectionId };
+}
+
+/**
+ * Prune a graph by removing axis entities that have fewer than `minAxisEntityConnections` connections.
+ *
+ * In order for an axis entity to fit into a grid, it needs to have at least as many connection as the
+ * length of an axis of the grid. For example, if the grid is 3x3, any axis entity that could exist in a valid
+ * grid must have at least 3 connections. This function prunes the graph by removing axis entities that
+ * do not meet this requirement.
+ *
+ * In the output graph, it's possible that there remain connections that have only one associated
+ * axis entity. This is OK, even though they will never end up in a grid; the main goal is to ensure that all
+ * *axis entities* present in the graph have the potential to be part of a valid grid.
+ *
+ * @param graph the graph to be pruned
+ * @param minAxisEntityConnections the minimum number of connections an axis entity must have to be kept in the graph
+ * @returns a graph with only axis entities that have at least `minAxisEntityConnections` connections
+ */
+export function pruneGraph(graph: Graph, minAxisEntityConnections: number): Graph {
+  /* Start by making a deep copy of the graph */
+  const prunedGraph: Graph = deepCopyGraph(graph);
+
+  /* Get a list of all axis entities to remove */
+  const axisEntityIdsToRemove: string[] = [];
+  for (const [axisEntityId, axisEntity] of Object.entries(prunedGraph.axisEntities)) {
+    if (Object.keys(axisEntity.links).length < minAxisEntityConnections) {
+      axisEntityIdsToRemove.push(axisEntityId);
+    }
+  }
+
+  /* Remove axis entities from their connections' links and from the graph */
+  for (const axisEntityId of axisEntityIdsToRemove) {
+    const axisEntity = prunedGraph.axisEntities[axisEntityId];
+    for (const connectionId of Object.keys(axisEntity.links)) {
+      const connection = prunedGraph.connections[connectionId];
+      delete connection.links[axisEntityId];
+    }
+
+    delete prunedGraph.axisEntities[axisEntityId];
+  }
+
+  /* Remove any connections that are left with no links */
+  const connectionIdsToRemove: string[] = [];
+  for (const [connectionId, connection] of Object.entries(prunedGraph.connections)) {
+    if (Object.keys(connection.links).length === 0) {
+      connectionIdsToRemove.push(connectionId);
+    }
+  }
+
+  for (const connectionId of connectionIdsToRemove) {
+    delete prunedGraph.connections[connectionId];
+  }
+
+  return prunedGraph;
+}
+
+/**
  * Create a deep copy of a graph.
  *
  * @param graph the graph to be copied
@@ -213,37 +301,4 @@ function deepCopyGraph(graph: Graph): Graph {
   return graphCopy;
 }
 
-/**
- * Deduplicate a list of links.
- *
- * The delimiter should be a string that is not found in the axis entity ID or connection ID.
- *
- * @param links the links to deduplicate
- * @param delimiter the delimiter used to separate the axis entity ID and connection ID
- * @returns a deduplicated list of links
- */
-export function deduplicateLinkData(links: LinkData[], delimiter: string): LinkData[] {
-  // Deduplicate the links
-  const linksSet: Set<string> = new Set();
-  for (const link of links) {
-    linksSet.add(combineLinkDataIntoString(link, delimiter));
-  }
-
-  // Convert the set back into a list
-  const deduplicatedLinks: LinkData[] = [];
-  for (const linkString of linksSet) {
-    deduplicatedLinks.push(splitLinkDataString(linkString, delimiter));
-  }
-
-  return deduplicatedLinks;
-}
-
-function combineLinkDataIntoString(link: LinkData, delimiter: string): string {
-  return `${link.axisEntityId}${delimiter}${link.connectionId}`;
-}
-
-function splitLinkDataString(linkString: string, delimiter: string): LinkData {
-  const [axisEntityId, connectionId] = linkString.split(delimiter);
-  return { axisEntityId, connectionId };
-}
 /*****************************************/
