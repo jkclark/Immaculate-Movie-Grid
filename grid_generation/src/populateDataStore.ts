@@ -1,7 +1,7 @@
+import { GameType, InvalidGameTypeError, isValidGameType } from "common/src/gameTypes";
 import { allMovieCategories } from "./adapters/categories/movies";
 import TMDBDataScraper from "./adapters/data_scrapers/movies/tmdbDataScraper";
 import PostgreSQLMovieDataStoreHandler from "./adapters/data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
-import { GameType, InvalidGameTypeError, isValidGameType } from "./gameTypes";
 import { Category } from "./ports/categories";
 import DataScraper from "./ports/dataScraper";
 import DataStoreHandler from "./ports/dataStoreHandler";
