@@ -1,17 +1,8 @@
 import * as dotenv from "dotenv";
 import "node-fetch";
-import * as readline from "readline";
 
-import {
-  ActorExport,
-  CategoryExport,
-  CreditExport,
-  GridExport,
-  serializeGridExport,
-} from "common/src/interfaces";
-import { getGridFromGraph, Grid, UsedConnectionsWithAxisEntities } from "./getGridFromGraph";
-import GraphHandler from "./graph_handlers/graphHandler";
-import { getAndSaveAllImagesForGrid } from "./images";
+import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
+import { Grid, UsedConnectionsWithAxisEntities } from "./getGridFromGraph";
 import {
   ActorCreditGraph,
   ActorNode,
@@ -19,27 +10,33 @@ import {
   deepCopyActorCreditGraph,
   getCreditUniqueString,
 } from "./interfaces";
-import { Connection, Graph, GraphEntity } from "./ports/graph";
-import { writeTextToS3 } from "./s3";
+import DataStoreHandler from "./ports/dataStoreHandler";
+import { buildGraphFromGraphData, Connection, Graph, GraphData, GraphEntity } from "./ports/graph";
 
 dotenv.config();
 
 export interface GridGenArgs {
+  dataStoreHandler: DataStoreHandler;
   gridDate: string;
-  graphHandler: GraphHandler;
   autoYes: boolean;
   autoRetry: boolean;
   overwriteImages: boolean;
 }
 
+export async function generateGridNEW(): Promise<void> {}
+
 export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
-  if (!args.gridDate || !args.graphHandler) {
-    console.error("Missing gridDate or graphHandler");
+  return;
+  if (!args.gridDate || !args.dataStoreHandler) {
+    console.error("Missing gridDate or dataStoreHandler");
     return;
   }
 
-  const graph = await args.graphHandler.loadGraph();
+  const graphData: GraphData = await args.dataStoreHandler.getGraphData();
 
+  const graph = buildGraphFromGraphData(graphData);
+
+  /*
   // Filter the graph to exclude connections that don't pass a given "credit filter"
   const filteredGraph: ActorCreditGraph = prefilterGraph(graph, isLegitMovie);
 
@@ -102,6 +99,7 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
   await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${args.gridDate}.json`);
 
   return gridExport;
+  */
 }
 
 function prefilterGraph(

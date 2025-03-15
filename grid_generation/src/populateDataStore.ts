@@ -70,9 +70,9 @@ function processCLIArgs(): PopulateDataStoreArgs {
   if (args.length < 1) {
     const errorMessage =
       "\n**************************************************\n" +
-      "Usage: npx ts-node populateDataStore.ts <gameType>\n" +
+      "Usage: npx ts-node populateDataStore.ts <game-type>\n" +
       "\n" +
-      `gameType must be one of: [${Object.values(GameType).join(", ")}]\n` +
+      `game-type must be one of: [${Object.values(GameType).join(", ")}]\n` +
       "\n" +
       "**************************************************\n";
 

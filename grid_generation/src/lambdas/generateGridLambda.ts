@@ -1,44 +1,31 @@
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
-import { generateGrid } from "../generateGrid";
-import DBGraphHandler from "../graph_handlers/dbGraphHandler";
-import GraphHandler from "../graph_handlers/graphHandler";
+import { GameType, InvalidGameTypeError, isValidGameType } from "common/src/gameTypes";
+import PostgreSQLMovieDataStoreHandler from "src/adapters/data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
+import { generateGrid, GridGenArgs } from "../generateGrid";
 
 interface EventGridGenArgs {
+  gameType: GameType;
   gridDate: string;
-  graphMode: "db";
   autoYes: boolean;
   autoRetry: boolean;
   overwriteImages: boolean;
 }
 
-type GraphModeType = EventGridGenArgs["graphMode"];
-
 interface EventWithGridGenArgs extends APIGatewayProxyEvent, EventGridGenArgs {}
 
 export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, context: Context) => {
-  const eventArgs: EventGridGenArgs = getEventArgs(event);
+  const gridGenArgs: GridGenArgs = processEventArgs(event);
 
-  const graphHandler = getGraphHandler(eventArgs.graphMode);
-
-  await graphHandler.init();
-
-  const gridGenArgs = {
-    ...eventArgs,
-    graphHandler,
-  };
-
-  const gridExport = await generateGrid(gridGenArgs);
-
-  await graphHandler.saveGrid(gridExport);
+  await generateGrid(gridGenArgs);
 
   return {
     statusCode: 200,
   };
 };
 
-function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
-  // If gridDate is not provided, set the date to tomorrow's date
+function processEventArgs(event: EventWithGridGenArgs): GridGenArgs {
+  /* If gridDate is not provided, set the date to tomorrow's date */
   let gridDate = event.gridDate;
   if (!gridDate) {
     const tomorrow = new Date();
@@ -53,25 +40,24 @@ function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
     }
   }
 
-  // All other arguments are required, enforce that here
-  const required_args = ["graphMode", "autoYes", "overwriteImages"];
-  if (!required_args.every((arg) => event.hasOwnProperty(arg))) {
-    throw new Error(`Missing required arguments: ${required_args.join(", ")}`);
+  /* Make sure gameType is valid */
+  if (!isValidGameType(event.gameType)) {
+    throw new InvalidGameTypeError(event.gameType);
+  }
+
+  /* Get the adapters for the given game type */
+  let dataStoreHandler;
+  if (event.gameType === GameType.MOVIES) {
+    dataStoreHandler = new PostgreSQLMovieDataStoreHandler();
   }
 
   return {
+    dataStoreHandler,
     gridDate,
-    graphMode: event.graphMode,
     autoYes: event.autoYes,
     autoRetry: event.autoRetry,
     overwriteImages: event.overwriteImages,
   };
-}
-
-function getGraphHandler(graphMode: GraphModeType): GraphHandler {
-  if (graphMode === "db") {
-    return new DBGraphHandler();
-  }
 }
 
 /**
@@ -80,16 +66,35 @@ function getGraphHandler(graphMode: GraphModeType): GraphHandler {
  *******************************************************
  */
 
-function processCLIArgs(): [string, GraphModeType, boolean, boolean, boolean] {
+interface ParsedCLIArgs {
+  gameType: GameType;
+  gridDate: string;
+  autoYes: boolean;
+  autoRetry: boolean;
+  overwriteImages: boolean;
+}
+
+function processCLIArgs(): ParsedCLIArgs {
   const args = process.argv.slice(2);
+  let gameType: GameType = null;
   let gridDate = null;
-  let graphMode: GraphModeType = null;
   let autoYes: boolean = false;
   let autoRetry: boolean = false;
   let overwriteImages = false;
 
+  const usageErrorMessage =
+    "Usage: npm run generate-grid -- <game-type> <grid-date> [--auto-yes] [--auto-retry] [--overwrite-images]\n\n" +
+    `game-type          must be one of: [${Object.values(GameType).join(", ")}]\n` +
+    "grid-date          in the format YYYY-MM-DD\n" +
+    "--auto-yes         accept generated grids automatically\n" +
+    "--auto-retry       try again in the event of a failure to generate a grid\n" +
+    "--overwrite-images ignore existing images in S3\n";
+
+  // TODO: Josh we were working on cleaning up this CLI argument parsing
+  // I need to make this error printout like the one in populateDataStore
+  // gameType and gridDate should be required, everything else should not
   if (args.length < 2) {
-    return [gridDate, graphMode, autoYes, autoRetry, overwriteImages];
+    throw new Error(usageErrorMessage);
   }
 
   for (let i = 0; i < args.length; i++) {
@@ -99,24 +104,24 @@ function processCLIArgs(): [string, GraphModeType, boolean, boolean, boolean] {
       autoYes = true;
     } else if (args[i] === "--auto-retry") {
       autoRetry = true;
+    } else if (!gameType) {
+      if (args[i] === GameType.MOVIES) {
+        gameType = args[i] as GameType;
+      } else {
+        throw new Error(usageErrorMessage);
+      }
     } else if (!gridDate) {
       gridDate = args[i];
-    } else if (!graphMode) {
-      if (args[i] === "db") {
-        graphMode = args[i] as GraphModeType;
-      } else {
-        console.error(
-          "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--overwrite-images]\n" +
-            "\ngrid-date should be supplied in the format YYYY-MM-DD\n" +
-            "graph-mode should be 'db'\n" +
-            "--overwrite-images will ignore existing images in S3\n"
-        );
-        return [null, null, null, null, null];
-      }
     }
   }
 
-  return [gridDate, graphMode, autoYes, autoRetry, overwriteImages];
+  return {
+    gameType,
+    gridDate,
+    autoYes,
+    autoRetry,
+    overwriteImages,
+  };
 }
 
 if (require.main === module) {
@@ -217,13 +222,13 @@ if (require.main === module) {
   };
 
   // Add the CLI arguments to the event object
-  const cliArgs = processCLIArgs();
+  const cliArgs: ParsedCLIArgs = processCLIArgs();
   const customEvent = event as EventWithGridGenArgs;
-  customEvent.gridDate = cliArgs[0];
-  customEvent.graphMode = cliArgs[1];
-  customEvent.autoYes = cliArgs[2];
-  customEvent.autoRetry = cliArgs[3];
-  customEvent.overwriteImages = cliArgs[4];
+  customEvent.gameType = cliArgs.gameType;
+  customEvent.gridDate = cliArgs.gridDate;
+  customEvent.autoYes = cliArgs.autoYes;
+  customEvent.autoRetry = cliArgs.autoRetry;
+  customEvent.overwriteImages = cliArgs.overwriteImages;
 
   generateGridHandler(customEvent, null, null);
 }
