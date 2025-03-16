@@ -14,6 +14,7 @@
             "cwd": "${workspaceFolder}/grid_generation", // the current working directory for the debug process
             "args": [
                 "movies",
+                "3",
                 "9999-01-01",
                 "--auto-retry"
             ],

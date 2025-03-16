@@ -7,6 +7,7 @@ import { generateGrid, GridGenArgs } from "../generateGrid";
 
 interface EventGridGenArgs {
   gameType: GameType;
+  gridSize: number;
   gridDate: string;
   autoYes: boolean;
   autoRetry: boolean;
@@ -26,6 +27,11 @@ export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, 
 };
 
 function processEventArgs(event: EventWithGridGenArgs): GridGenArgs {
+  /* Make sure gameType is valid */
+  if (!isValidGameType(event.gameType)) {
+    throw new InvalidGameTypeError(event.gameType);
+  }
+
   /* If gridDate is not provided, set the date to tomorrow's date */
   let gridDate = event.gridDate;
   if (!gridDate) {
@@ -41,11 +47,6 @@ function processEventArgs(event: EventWithGridGenArgs): GridGenArgs {
     }
   }
 
-  /* Make sure gameType is valid */
-  if (!isValidGameType(event.gameType)) {
-    throw new InvalidGameTypeError(event.gameType);
-  }
-
   /* Get the adapters for the given game type */
   let dataStoreHandler;
   let connectionFilter;
@@ -57,6 +58,7 @@ function processEventArgs(event: EventWithGridGenArgs): GridGenArgs {
   return {
     dataStoreHandler,
     connectionFilter,
+    gridSize: event.gridSize,
     gridDate,
     autoYes: event.autoYes,
     autoRetry: event.autoRetry,
@@ -72,6 +74,7 @@ function processEventArgs(event: EventWithGridGenArgs): GridGenArgs {
 
 interface ParsedCLIArgs {
   gameType: GameType;
+  gridSize: number;
   gridDate: string;
   autoYes: boolean;
   autoRetry: boolean;
@@ -81,14 +84,16 @@ interface ParsedCLIArgs {
 function processCLIArgs(): ParsedCLIArgs {
   const args = process.argv.slice(2);
   let gameType: GameType = null;
+  let gridSize: number = null;
   let gridDate = null;
   let autoYes: boolean = false;
   let autoRetry: boolean = false;
   let overwriteImages = false;
 
   const usageErrorMessage =
-    "Usage: npm run generate-grid -- <game-type> <grid-date> [--auto-yes] [--auto-retry] [--overwrite-images]\n\n" +
+    "Usage: npm run generate-grid -- <game-type> <grid-size> <grid-date> [--auto-yes] [--auto-retry] [--overwrite-images]\n\n" +
     `game-type          must be one of: [${Object.values(GameType).join(", ")}]\n` +
+    "grid-size          the length of one side of the grid (e.g., 3 for a 3x3 grid)\n" +
     "grid-date          in the format YYYY-MM-DD\n" +
     "--auto-yes         accept generated grids automatically\n" +
     "--auto-retry       try again in the event of a failure to generate a grid\n" +
@@ -114,6 +119,11 @@ function processCLIArgs(): ParsedCLIArgs {
       } else {
         throw new Error(usageErrorMessage);
       }
+    } else if (!gridSize) {
+      gridSize = parseInt(args[i]);
+      if (isNaN(gridSize)) {
+        throw new Error(usageErrorMessage);
+      }
     } else if (!gridDate) {
       gridDate = args[i];
     }
@@ -121,6 +131,7 @@ function processCLIArgs(): ParsedCLIArgs {
 
   return {
     gameType,
+    gridSize,
     gridDate,
     autoYes,
     autoRetry,
@@ -229,6 +240,7 @@ if (require.main === module) {
   const cliArgs: ParsedCLIArgs = processCLIArgs();
   const customEvent = event as EventWithGridGenArgs;
   customEvent.gameType = cliArgs.gameType;
+  customEvent.gridSize = cliArgs.gridSize;
   customEvent.gridDate = cliArgs.gridDate;
   customEvent.autoYes = cliArgs.autoYes;
   customEvent.autoRetry = cliArgs.autoRetry;

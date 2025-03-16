@@ -20,6 +20,7 @@ dotenv.config();
 export interface GridGenArgs {
   dataStoreHandler: DataStoreHandler;
   connectionFilter: (connection: Connection) => boolean;
+  gridSize: number;
   gridDate: string;
   autoYes: boolean;
   autoRetry: boolean;
@@ -44,7 +45,7 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
   const graph = buildGraphFromGraphData(graphData);
 
   /* Filter the graph to exclude connections that don't pass the connection filter */
-  const filteredGraph: Graph = prefilterGraph(graph, args.connectionFilter, 3);
+  const filteredGraph: Graph = prefilterGraph(graph, args.connectionFilter, args.gridSize);
 
   /*
   // Get a generic graph from the actor credit graph
