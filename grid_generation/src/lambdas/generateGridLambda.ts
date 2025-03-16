@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
 import { GameType, InvalidGameTypeError, isValidGameType } from "common/src/gameTypes";
 import PostgreSQLMovieDataStoreHandler from "src/adapters/data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
-import { isCreditValidForGridGen } from "src/adapters/graph/movies";
+import { isCreditValidForGridGen, MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO } from "src/adapters/graph/movies";
 import { generateGrid, GridGenArgs } from "../generateGrid";
 
 interface EventGridGenArgs {
@@ -50,15 +50,18 @@ function processEventArgs(event: EventWithGridGenArgs): GridGenArgs {
   /* Get the adapters for the given game type */
   let dataStoreHandler;
   let connectionFilter;
+  let axisEntityTypeWeightInfo;
   if (event.gameType === GameType.MOVIES) {
     dataStoreHandler = new PostgreSQLMovieDataStoreHandler();
     connectionFilter = isCreditValidForGridGen;
+    axisEntityTypeWeightInfo = MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO;
   }
 
   return {
     dataStoreHandler,
     connectionFilter,
     gridSize: event.gridSize,
+    axisEntityTypeWeightInfo,
     gridDate,
     autoYes: event.autoYes,
     autoRetry: event.autoRetry,

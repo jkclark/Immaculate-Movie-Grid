@@ -1,4 +1,12 @@
-import { Graph, GraphData, GraphEntity, GraphEntityData, LinkData } from "src/ports/graph";
+import {
+  AxisEntityTypeWeightInfo,
+  EntityType,
+  Graph,
+  GraphData,
+  GraphEntity,
+  GraphEntityData,
+  LinkData,
+} from "src/ports/graph";
 
 /***** For describing a graph's data *****/
 const CREDIT_RATINGS = [
@@ -71,6 +79,17 @@ export interface ActorNode extends GraphEntity {
 export interface CreditNode extends Credit, GraphEntity {
   links: { [key: string]: ActorNode };
 }
+/*******************************/
+
+/***** Grid generation *****/
+const MOVIES_AXIS_ENTITY_TYPE_WEIGHTS_YES_CATEGORIES: { [key: string]: number } = {
+  [EntityType.NON_CATEGORY]: 0.95,
+  [EntityType.CATEGORY]: 0.05,
+};
+export const MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO: AxisEntityTypeWeightInfo = {
+  chanceOfNoCategories: 0.4,
+  axisEntityTypeWeights: MOVIES_AXIS_ENTITY_TYPE_WEIGHTS_YES_CATEGORIES,
+};
 
 /**
  * Determine if a credit should be used during grid generation.
@@ -114,7 +133,9 @@ export function isCreditValidForGridGen(credit: Credit): boolean {
 
   return !isInvalidGenre && !isInvalidMovie && popularEnough;
 }
+/***************************/
 
+/***** Other functions *****/
 /**
  * Split a credit's unique ID into its type and ID.
  *
@@ -127,4 +148,4 @@ export function getTypeAndIdFromCreditUniqueId(creditUniqueId: string): { type: 
   const [type, id] = creditUniqueId.split("-");
   return { type, id };
 }
-/*******************************/
+/***************************/

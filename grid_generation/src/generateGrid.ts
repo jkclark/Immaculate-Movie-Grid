@@ -1,14 +1,17 @@
 import * as dotenv from "dotenv";
 import "node-fetch";
+import * as readline from "readline";
 
 import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
 import { Grid, UsedConnectionsWithAxisEntities } from "./getGridFromGraph";
-import { ActorCreditGraph, ActorNode, deepCopyActorCreditGraph, getCreditUniqueString } from "./interfaces";
+import { ActorCreditGraph, ActorNode } from "./interfaces";
 import DataStoreHandler from "./ports/dataStoreHandler";
 import {
+  AxisEntityTypeWeightInfo,
   buildGraphFromGraphData,
   Connection,
   deepCopyGraph,
+  EntityType,
   Graph,
   GraphData,
   GraphEntity,
@@ -21,16 +24,22 @@ export interface GridGenArgs {
   dataStoreHandler: DataStoreHandler;
   connectionFilter: (connection: Connection) => boolean;
   gridSize: number;
+  axisEntityTypeWeightInfo: AxisEntityTypeWeightInfo;
   gridDate: string;
   autoYes: boolean;
   autoRetry: boolean;
   overwriteImages: boolean;
 }
 
-export async function generateGridNEW(): Promise<void> {}
-
 export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
-  if (!args.gridDate || !args.dataStoreHandler) {
+  /* Make sure we have all the required arguments */
+  if (
+    !args.dataStoreHandler ||
+    !args.connectionFilter ||
+    !args.gridSize ||
+    !args.axisEntityTypeWeightInfo ||
+    !args.gridDate
+  ) {
     console.error("Missing gridDate or dataStoreHandler");
     return;
   }
@@ -47,19 +56,16 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
   /* Filter the graph to exclude connections that don't pass the connection filter */
   const filteredGraph: Graph = prefilterGraph(graph, args.connectionFilter, args.gridSize);
 
-  /*
-  // Get a generic graph from the actor credit graph
-  const genericGraph: Graph = getGenericGraphFromActorCreditGraph(filteredGraph);
-
-  // Set up readline interface
+  /* Set up readline interface */
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
-  // Get axis entity type weights
-  const axisEntityTypeWeights = getAxisEntityTypeWeights();
+  /* Get axis entity type weights */
+  const axisEntityTypeWeights = getAxisEntityTypeWeights(args.axisEntityTypeWeightInfo);
 
+  /*
   // Generate across/down until the user approves
   let grid: Grid;
   do {
@@ -184,26 +190,6 @@ function removeInvalidConnections(
   return graphWithoutInvalidConnections;
 }
 
-function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {
-  // Copy input graph
-  const graphCopy: ActorCreditGraph = deepCopyActorCreditGraph(graph);
-
-  const genericGraph: Graph = {
-    axisEntities: graphCopy.actors,
-    connections: graphCopy.credits,
-  };
-
-  // For the generic algorithm, connections' IDs must be the same as their keys
-  // in the connections object. This was a problem because we use keys like 'movie-123'
-  // everywhere, but the IDs in the connections object are just '123'.
-  for (const credit of Object.values(graphCopy.credits)) {
-    const uniqueString = getCreditUniqueString(credit);
-    genericGraph.connections[uniqueString].id = uniqueString;
-  }
-
-  return genericGraph;
-}
-
 /**
  * Get a dictionary of weights for each entity type for use in the grid generation algorithm.
  *
@@ -214,24 +200,21 @@ function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {
  *
  * @returns A dictionary of weights for each entity type for use in the grid generation algorithm.
  */
-function getAxisEntityTypeWeights(): { [key: string]: number } {
-  const CHANCE_OF_NO_CATEGORIES = 0.4;
-
+function getAxisEntityTypeWeights(axisEntityTypeWeightInfo: AxisEntityTypeWeightInfo): {
+  [key: string]: number;
+} {
   // No categories
-  if (Math.random() < CHANCE_OF_NO_CATEGORIES) {
+  if (Math.random() < axisEntityTypeWeightInfo.chanceOfNoCategories) {
     console.log("Categories included? No");
     return {
-      actor: 1,
-      category: 0,
+      [EntityType.NON_CATEGORY]: 1.0,
+      [EntityType.CATEGORY]: 0.0,
     };
   }
 
   // Categories included
   console.log("Categories included? Yes");
-  return {
-    actor: 0.95,
-    category: 0.05,
-  };
+  return axisEntityTypeWeightInfo.axisEntityTypeWeights;
 }
 
 function printGrid(grid: Grid, graph: ActorCreditGraph): void {

@@ -172,6 +172,21 @@ class RepeatError extends Error {
 }
 /***********************************************************/
 
+/***** Grid generation *****/
+/**
+ * chanceOfNoCategories: the chance that we will generate a grid without categories
+ *
+ * axisEntityTypeWeightsYesCategories: the weights for axis entity types when generating a grid with categories
+ *
+ * There is no `axisEntityTypeWeightsNoCategories` because if there are no categories, the weights will always be
+ * 1 and 0 for non-categories and categories, respectively.
+ */
+export interface AxisEntityTypeWeightInfo {
+  chanceOfNoCategories: number;
+  axisEntityTypeWeights: { [key: string]: number };
+}
+/***************************/
+
 /***** Other graph-related functions *****/
 /**
  * Deduplicate a list of links.
