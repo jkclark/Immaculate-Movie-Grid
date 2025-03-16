@@ -28,7 +28,7 @@ export async function batchReadFromDB<T extends ObjectLiteral>(
     }
   }
 
-  console.log(`total fetched items: ${items.length}`);
+  console.log(`Fetched ${items.length.toString().padEnd(7)} ${repository.metadata.name}'s`);
 
   return items;
 }
