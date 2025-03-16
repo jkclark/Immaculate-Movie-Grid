@@ -3,20 +3,23 @@ import "node-fetch";
 
 import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
 import { Grid, UsedConnectionsWithAxisEntities } from "./getGridFromGraph";
-import {
-  ActorCreditGraph,
-  ActorNode,
-  CreditNode,
-  deepCopyActorCreditGraph,
-  getCreditUniqueString,
-} from "./interfaces";
+import { ActorCreditGraph, ActorNode, deepCopyActorCreditGraph, getCreditUniqueString } from "./interfaces";
 import DataStoreHandler from "./ports/dataStoreHandler";
-import { buildGraphFromGraphData, Connection, Graph, GraphData, GraphEntity } from "./ports/graph";
+import {
+  buildGraphFromGraphData,
+  Connection,
+  deepCopyGraph,
+  Graph,
+  GraphData,
+  GraphEntity,
+  pruneGraph,
+} from "./ports/graph";
 
 dotenv.config();
 
 export interface GridGenArgs {
   dataStoreHandler: DataStoreHandler;
+  connectionFilter: (connection: Connection) => boolean;
   gridDate: string;
   autoYes: boolean;
   autoRetry: boolean;
@@ -26,20 +29,24 @@ export interface GridGenArgs {
 export async function generateGridNEW(): Promise<void> {}
 
 export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
-  return;
   if (!args.gridDate || !args.dataStoreHandler) {
     console.error("Missing gridDate or dataStoreHandler");
     return;
   }
 
+  /* Initialize the data store handler */
+  await args.dataStoreHandler.init();
+
+  /* Get the data from the data store */
   const graphData: GraphData = await args.dataStoreHandler.getGraphData();
 
+  /* Build the graph from the data */
   const graph = buildGraphFromGraphData(graphData);
 
-  /*
-  // Filter the graph to exclude connections that don't pass a given "credit filter"
-  const filteredGraph: ActorCreditGraph = prefilterGraph(graph, isLegitMovie);
+  /* Filter the graph to exclude connections that don't pass the connection filter */
+  const filteredGraph: Graph = prefilterGraph(graph, args.connectionFilter, 3);
 
+  /*
   // Get a generic graph from the actor credit graph
   const genericGraph: Graph = getGenericGraphFromActorCreditGraph(filteredGraph);
 
@@ -102,154 +109,78 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
   */
 }
 
-function prefilterGraph(
-  graph: ActorCreditGraph,
-  creditFilter: (credit: Connection) => boolean
-): ActorCreditGraph {
-  console.log("--- Start prefiltering graph ---");
-
-  const numStartingCredits = Object.keys(graph.credits).length;
-  const numStartingActors = Object.keys(graph.actors).length;
-  console.log(`Starting with ${numStartingActors} actors`);
-  console.log(`Starting with ${numStartingCredits} credits`);
-
-  // Remove any credits that don't pass the credit filter
-  const filteredGraphNoInvalidCredits = removeInvalidCredits(graph, creditFilter);
-
-  // Remove actors who now have fewer than 3 connections
-  const filteredGraphNoInvalidCreditsNoSparseActors = removeActorsWithoutEnoughCredits(
-    filteredGraphNoInvalidCredits,
-    3
-  );
-
-  console.log(
-    `Filtered out ${numStartingActors - Object.keys(filteredGraphNoInvalidCreditsNoSparseActors.actors).length} actors`
-  );
-  console.log(
-    `Filtered out ${numStartingCredits - Object.keys(filteredGraphNoInvalidCreditsNoSparseActors.credits).length} credits`
-  );
-  console.log(`Ending with ${Object.keys(filteredGraphNoInvalidCreditsNoSparseActors.actors).length} actors`);
-  console.log(
-    `Ending with ${Object.keys(filteredGraphNoInvalidCreditsNoSparseActors.credits).length} credits`
-  );
-  console.log("--- End prefiltering graph ---");
-
-  return filteredGraphNoInvalidCreditsNoSparseActors;
-}
-
-function removeInvalidCredits(
-  graph: ActorCreditGraph,
-  creditFilter: (credit: Connection) => boolean
-): ActorCreditGraph {
-  // Copy input graph
-  const graphCopy: ActorCreditGraph = deepCopyActorCreditGraph(graph);
-
-  const creditIdsToDeleteByActor: { [actorId: string]: string[] } = {};
-  const creditsToDelete: string[] = [];
-
-  // Collect the actor IDs and credit IDs to be deleted
-  for (const [creditUniqueString, credit] of Object.entries(graphCopy.credits)) {
-    if (!creditFilter(credit)) {
-      for (const actorId of Object.keys(credit.links)) {
-        if (!creditIdsToDeleteByActor[actorId]) {
-          creditIdsToDeleteByActor[actorId] = [];
-        }
-        creditIdsToDeleteByActor[actorId].push(creditUniqueString);
-      }
-      creditsToDelete.push(creditUniqueString);
-    }
-  }
-
-  // Delete the connections from all actors
-  for (const [actorId, creditUniqueStrings] of Object.entries(creditIdsToDeleteByActor)) {
-    if (graphCopy.actors[actorId] && graphCopy.actors[actorId].links) {
-      for (const creditUniqueString of creditUniqueStrings) {
-        delete graphCopy.actors[actorId].links[creditUniqueString];
-      }
-    }
-  }
-
-  // Delete the credits from the filtered graph
-  for (const creditUniqueString of creditsToDelete) {
-    if (graphCopy.credits[creditUniqueString]) {
-      delete graphCopy.credits[creditUniqueString];
-    }
-  }
-
-  return graphCopy;
-}
-
-function removeActorsWithoutEnoughCredits(graph: ActorCreditGraph, minCredits: number): ActorCreditGraph {
-  // Remove any actors who now have fewer than 3 connections
-  const actorsToRemove: string[] = [];
-  for (const [actorId, actor] of Object.entries(graph.actors)) {
-    if (Object.keys(actor.links).length < minCredits) {
-      actorsToRemove.push(actorId);
-    }
-  }
-
-  for (const actorId of actorsToRemove) {
-    // Remove the actor's connections
-    const actor = graph.actors[actorId];
-    for (const creditId of Object.keys(actor.links)) {
-      delete graph.credits[creditId].links[actorId];
-    }
-
-    // Remove the actor from the filtered graph
-    delete graph.actors[actorId];
-  }
-
-  // At this point, it's possible that some credits have no actors
-  // because we've removed the last ones, so we need to remove them from the graph
-  const creditsToRemove: string[] = [];
-  for (const [creditId, credit] of Object.entries(graph.credits)) {
-    if (Object.keys(credit.links).length === 0) {
-      creditsToRemove.push(creditId);
-    }
-  }
-
-  for (const creditId of creditsToRemove) {
-    delete graph.credits[creditId];
-  }
-
-  return graph;
-}
-
 /**
- * Determine if a movie credit is "legit" based on certain criteria.
+ * Get a graph that has had "invalid" connections removed and then pruned.
  *
- * Currently, we check that:
- * - None of the movie's genres are in a list of invalid genres
- * - The movie is not in a list of invalid movies
+ * In general, the data store will contain information about a lot of connections, some of which
+ * we might not want to include as candidates during grid generation. This function creates a copy
+ * of the input graph, removes any connections that aren't "valid" according to a filtering function,
+ * and then further removes any axis entities that subsequently don't have enough connections to be
+ * included in a grid.
  *
- * @param credit The credit to check
- * @returns true if the credit is "legit", false otherwise
+ * Since connections cannot be reused in a grid, the minimum number of connections for an axis entity
+ * to fit into a grid is the size of the grid (e.g., 3 for a 3x3 grid).
+ *
+ * @param graph the graph to be filtered
+ * @param connectionFilter the function used to filter connections
+ * @param minimumConnections the minimum number of connections an axis entity must have to be kept in the graph
+ * @returns a graph that has been filtered based on the connectionFilter, and then pruned
  */
-function isLegitMovie(credit: CreditNode): boolean {
-  if (!(credit.type === "movie")) {
-    return false;
+function prefilterGraph(
+  graph: Graph,
+  connectionFilter: (connection: Connection) => boolean,
+  minimumConnections: number
+): Graph {
+  /* Remove "invalid" connections */
+  const graphWithoutInvalidConnections: Graph = removeInvalidConnections(graph, connectionFilter);
+
+  /* Remove axis entities that subsequently don't have enough connections */
+  const prunedGraph: Graph = pruneGraph(graphWithoutInvalidConnections, minimumConnections);
+
+  return prunedGraph;
+}
+
+function removeInvalidConnections(
+  graph: Graph,
+  connectionFilter: (connection: Connection) => boolean
+): Graph {
+  const graphWithoutInvalidConnections: Graph = deepCopyGraph(graph);
+
+  const connectionIdsToDelete: string[] = [];
+  const connectionIdsToDeletePerAxisEntity: { [axisEntityId: string]: string[] } = {};
+
+  /* Collect the axis entity IDs and connection IDs to be deleted */
+  for (const [connectionId, connection] of Object.entries(graphWithoutInvalidConnections.connections)) {
+    if (!connectionFilter(connection)) {
+      // Remove the connection from all axis entities
+      for (const axisEntityId of Object.keys(connection.links)) {
+        // If this axis entity ID doesn't already have a list of connection IDs to delete, create one
+        if (!connectionIdsToDeletePerAxisEntity[axisEntityId]) {
+          connectionIdsToDeletePerAxisEntity[axisEntityId] = [];
+        }
+
+        // Add the connection ID to the list for this axis entity
+        connectionIdsToDeletePerAxisEntity[axisEntityId].push(connectionId);
+      }
+
+      // Add the connection ID to the list of connections to delete
+      connectionIdsToDelete.push(connectionId);
+    }
   }
 
-  const INVALID_MOVIE_GENRE_IDS: number[] = [
-    99, // Documentary
-  ];
-  const isInvalidGenre: boolean = credit.genre_ids.some((id) => INVALID_MOVIE_GENRE_IDS.includes(id));
+  /* Delete the connections from all axis entities */
+  for (const [axisEntityId, connectionIds] of Object.entries(connectionIdsToDeletePerAxisEntity)) {
+    for (const connectionId of connectionIds) {
+      delete graphWithoutInvalidConnections.axisEntities[axisEntityId].links[connectionId];
+    }
+  }
 
-  const INVALID_MOVIE_IDS: number[] = [
-    10788, // Kambakkht Ishq
-  ];
-  const isInvalidMovie: boolean = INVALID_MOVIE_IDS.includes(parseInt(credit.id));
+  /* Delete the connections from the filtered graph */
+  for (const connectionId of connectionIdsToDelete) {
+    delete graphWithoutInvalidConnections.connections[connectionId];
+  }
 
-  // Still need to tweak this
-  // TODO: It seems that on or around 3/11/2025, TMDB drastically changed the way popularity worked,
-  // lowering the values for actors and credits alike. This resulted in several grid-generation
-  // failures. I've now set this value to 0, but clearly, we need a better way of using this popularity
-  // value, or we need not to use it at all. One option is to say that a movie or TV show should be in
-  // the top X% (maybe 20?) of all movies or TV shows in terms of popularity.
-  const MINIMUM_POPULARITY = 0;
-  const popularEnough = credit.popularity > MINIMUM_POPULARITY;
-
-  return !isInvalidGenre && !isInvalidMovie && popularEnough;
+  return graphWithoutInvalidConnections;
 }
 
 function getGenericGraphFromActorCreditGraph(graph: ActorCreditGraph): Graph {

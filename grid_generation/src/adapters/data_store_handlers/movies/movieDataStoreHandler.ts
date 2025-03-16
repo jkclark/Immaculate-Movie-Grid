@@ -12,10 +12,4 @@ export default abstract class MovieDataStoreHandler extends DataStoreHandler {
   getCreditUniqueId(creditType: string, creditId: string): string {
     return `${creditType}-${creditId}`;
   }
-
-  // TODO: Remove this function when removing 'type' from 'credit' in the database
-  getTypeAndIdFromCreditUniqueId(creditUniqueId: string): { type: string; id: string } {
-    const [type, id] = creditUniqueId.split("-");
-    return { type, id };
-  }
 }

@@ -9,6 +9,7 @@ import {
   ActorOrCategoryData,
   CreditData,
   CreditRating,
+  getTypeAndIdFromCreditUniqueId,
   isCreditRating,
   MovieGraphData,
   MovieGraphDataWithGenres,
@@ -95,7 +96,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     // Create credit connection data
     const connections: { [key: string]: CreditData } = {};
     for (const credit of allDBEntities.credits) {
-      if (!isCreditRating(credit.rating)) {
+      if (credit.rating && !isCreditRating(credit.rating)) {
         throw new Error(`Invalid credit rating: ${credit.rating}`);
       }
 
@@ -109,11 +110,11 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
         genre_ids: [], // To be populated later in this method
 
         // Because release_date and last_air_date are dates in the database
-        release_date: credit.release_date.toISOString().split("T")[0],
+        release_date: credit.release_date?.toISOString().split("T")[0],
         last_air_date: credit.last_air_date?.toISOString().split("T")[0],
 
         // Because rating is a string (not explicitly "G", "PG", etc.) in the database
-        rating: credit.rating as CreditRating,
+        rating: (credit.rating as CreditRating) || null,
       };
 
       connections[creditConnectionDatum.id] = creditConnectionDatum;
@@ -208,13 +209,22 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
   }
 
   async getAllCredits(): Promise<Credit[]> {
-    return await batchReadFromDB(
+    const credits = await batchReadFromDB(
       this.dataSource.getRepository(Credit),
       this.READ_BATCH_SIZE,
       { id: "ASC", type: "ASC" },
       [],
       {}
     );
+
+    // For whatever reason, the credits fetched here have their
+    // date fields as strings instead of Date objects. Here we convert
+    // them back to Date objects.
+    return credits.map((credit) => ({
+      ...credit,
+      release_date: credit.release_date ? new Date(credit.release_date) : null,
+      last_air_date: credit.last_air_date ? new Date(credit.last_air_date) : null,
+    }));
   }
 
   async getAllGenres(): Promise<Genre[]> {
@@ -262,7 +272,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     // Credits in the database have separate ID and type fields,
     // so we have to split the ID field into id and type.
     const creditsWithSplitIds = credits.map((credit) => {
-      const { type, id } = super.getTypeAndIdFromCreditUniqueId(credit.id);
+      const { type, id } = getTypeAndIdFromCreditUniqueId(credit.id);
       return {
         ...credit,
         id: parseInt(id),
@@ -294,7 +304,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     for (const link of links) {
       // Credits in the database have separate ID and type fields,
       // so we have to split the ID field into id and type.
-      const { type, id } = super.getTypeAndIdFromCreditUniqueId(link.connectionId);
+      const { type, id } = getTypeAndIdFromCreditUniqueId(link.connectionId);
 
       actorCreditRelationships.push({
         actor_category_id: parseInt(link.axisEntityId),
@@ -320,7 +330,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     // anything else with it, we can just pass the IDs. That's why we're using Partial.
     const creditGenreRelationships: Partial<CreditGenreJoin>[] = [];
     for (const creditId in connections) {
-      const { type, id } = super.getTypeAndIdFromCreditUniqueId(creditId);
+      const { type, id } = getTypeAndIdFromCreditUniqueId(creditId);
       for (const genreId of connections[creditId].genre_ids) {
         creditGenreRelationships.push({
           credit_id: parseInt(id),

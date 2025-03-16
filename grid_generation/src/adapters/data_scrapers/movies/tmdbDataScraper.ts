@@ -1,4 +1,10 @@
-import { ActorOrCategoryData, Credit, CreditData, CreditRating } from "src/adapters/graph/movies";
+import {
+  ActorOrCategoryData,
+  Credit,
+  CreditData,
+  CreditRating,
+  getTypeAndIdFromCreditUniqueId,
+} from "src/adapters/graph/movies";
 import { deduplicateLinkData, EntityType, LinkData } from "src/ports/graph";
 import MovieDataScraper from "./movieDataScraper";
 
@@ -308,7 +314,7 @@ export default class TMDBDataScraper extends MovieDataScraper {
    * @returns the extra info for the credit
    */
   async getCreditExtraInfo(credit: Credit): Promise<CreditExtraInfo> {
-    const { type, id } = this.getTypeAndIdFromCreditUniqueId(credit.id);
+    const { type, id } = getTypeAndIdFromCreditUniqueId(credit.id);
     if (type === "movie") {
       return this.getMovieExtraInfo(id);
     }
@@ -498,17 +504,6 @@ export default class TMDBDataScraper extends MovieDataScraper {
    */
   getCreditUniqueId(creditType: string, creditId: string): string {
     return `${creditType}-${creditId}`;
-  }
-
-  /**
-   * Split a credit's unique ID into its original TMDB type and ID.
-   *
-   * @param creditUniqueId the unique ID of a credit
-   * @returns the type and ID of the credit
-   */
-  getTypeAndIdFromCreditUniqueId(creditUniqueId: string): { type: string; id: string } {
-    const [type, id] = creditUniqueId.split("-");
-    return { type, id };
   }
 }
 

@@ -267,7 +267,7 @@ export function pruneGraph(graph: Graph, minAxisEntityConnections: number): Grap
  * @param graph the graph to be copied
  * @returns a deep copy of the graph
  */
-function deepCopyGraph(graph: Graph): Graph {
+export function deepCopyGraph(graph: Graph): Graph {
   const graphCopy: Graph = {
     axisEntities: {},
     connections: {},
@@ -300,5 +300,4 @@ function deepCopyGraph(graph: Graph): Graph {
 
   return graphCopy;
 }
-
 /*****************************************/
