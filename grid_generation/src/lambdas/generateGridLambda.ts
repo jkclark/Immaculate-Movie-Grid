@@ -90,20 +90,21 @@ function processCLIArgs(): ParsedCLIArgs {
   let autoRetry: boolean = false;
   let overwriteImages = false;
 
-  const usageErrorMessage =
+  const usageMessage =
+    "\n**************************************************\n" +
     "Usage: npm run generate-grid -- <game-type> <grid-size> <grid-date> [--auto-yes] [--auto-retry] [--overwrite-images]\n\n" +
     `game-type          must be one of: [${Object.values(GameType).join(", ")}]\n` +
     "grid-size          the length of one side of the grid (e.g., 3 for a 3x3 grid)\n" +
     "grid-date          in the format YYYY-MM-DD\n" +
     "--auto-yes         accept generated grids automatically\n" +
     "--auto-retry       try again in the event of a failure to generate a grid\n" +
-    "--overwrite-images ignore existing images in S3\n";
+    "--overwrite-images ignore existing images in S3\n" +
+    "\n" +
+    "**************************************************\n";
 
-  // TODO: Josh we were working on cleaning up this CLI argument parsing
-  // I need to make this error printout like the one in populateDataStore
-  // gameType and gridDate should be required, everything else should not
-  if (args.length < 2) {
-    throw new Error(usageErrorMessage);
+  /* gameType, gridSize and gridDate are required, everything else is not */
+  if (args.length < 3) {
+    throw new Error(`Not enough arguments\n${usageMessage}`);
   }
 
   for (let i = 0; i < args.length; i++) {
@@ -117,16 +118,20 @@ function processCLIArgs(): ParsedCLIArgs {
       if (args[i] === GameType.MOVIES) {
         gameType = args[i] as GameType;
       } else {
-        throw new Error(usageErrorMessage);
+        throw new Error(`Invalid game type: ${args[i]}\n${usageMessage}`);
       }
     } else if (!gridSize) {
       gridSize = parseInt(args[i]);
-      if (isNaN(gridSize)) {
-        throw new Error(usageErrorMessage);
+      if (isNaN(gridSize) || gridSize <= 0) {
+        throw new Error(`Invalid grid size: ${args[i]}\n${usageMessage}`);
       }
     } else if (!gridDate) {
       gridDate = args[i];
     }
+  }
+
+  if (!gameType || !gridSize || !gridDate) {
+    throw new Error(`Either gameType or gridSize or gridDate is missing/invalid\n${usageMessage}`);
   }
 
   return {
