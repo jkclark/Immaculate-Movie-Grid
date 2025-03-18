@@ -1,6 +1,6 @@
 import { GameType } from "./gameTypes";
 
-interface Axes {
+export interface Axes {
   across: string[];
   down: string[];
 }

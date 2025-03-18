@@ -1,21 +1,22 @@
+import { Axes } from "common/src/grid";
 import { Connection, Graph, GraphEntity } from "./ports/graph";
 
 export interface UsedConnectionsWithAxisEntities {
+  // This is a map of connection IDs to pairs of axis entity IDs
   [key: string]: Set<string>;
 }
 
-export interface Grid {
-  across: string[];
-  down: string[];
+export interface GridAxesWithUsedConnections {
+  axes: Axes;
   usedConnections: UsedConnectionsWithAxisEntities;
 }
 
-export function getGridFromGraph(
+export function generateRandomGridAxes(
   graph: Graph,
   size: number,
   axisEntityTypeWeights: { [key: string]: number },
   random: boolean
-): Grid {
+): GridAxesWithUsedConnections {
   const across: GraphEntity[] = [];
   const down: GraphEntity[] = [];
 
@@ -120,13 +121,15 @@ export function getGridFromGraph(
 
   if (getGridRecursively()) {
     return {
-      across: across.map((axisEntity) => axisEntity.id),
-      down: down.map((axisEntity) => axisEntity.id),
+      axes: {
+        across: across.map((axisEntity) => axisEntity.id),
+        down: down.map((axisEntity) => axisEntity.id),
+      },
       usedConnections,
     };
   }
 
-  return { across: [], down: [], usedConnections: {} };
+  return { axes: { across: [], down: [] }, usedConnections: {} };
 }
 
 /**

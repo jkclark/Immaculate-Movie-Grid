@@ -2,9 +2,12 @@ import * as dotenv from "dotenv";
 import "node-fetch";
 import * as readline from "readline";
 
-import { ActorExport, CategoryExport, CreditExport, GridExport } from "common/src/interfaces";
-import { Grid, UsedConnectionsWithAxisEntities } from "./getGridFromGraph";
-import { ActorCreditGraph, ActorNode } from "./interfaces";
+import { GridExport } from "common/src/interfaces";
+import {
+  generateRandomGridAxes,
+  GridAxesWithUsedConnections,
+  UsedConnectionsWithAxisEntities,
+} from "./getGridFromGraph";
 import DataStoreHandler from "./ports/dataStoreHandler";
 import {
   AxisEntityTypeWeightInfo,
@@ -65,15 +68,14 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
   /* Get axis entity type weights */
   const axisEntityTypeWeights = getAxisEntityTypeWeights(args.axisEntityTypeWeightInfo);
 
-  /*
-  // Generate across/down until the user approves
-  let grid: Grid;
+  /* Generate across/down until the user approves */
+  let grid: GridAxesWithUsedConnections;
   do {
     // Get a valid grid from the generic graph
-    grid = getGridFromGraph(genericGraph, 3, axisEntityTypeWeights, true);
+    grid = generateRandomGridAxes(filteredGraph, args.gridSize, axisEntityTypeWeights, true);
 
     // If no valid grid was found, exit
-    if (grid.across.length === 0 || grid.down.length === 0) {
+    if (grid.axes.across.length === 0 || grid.axes.down.length === 0) {
       console.log("No valid actor groups found");
 
       if (args.autoRetry) {
@@ -84,7 +86,7 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
       throw new NoValidActorGroupsFoundError("No valid actor groups found");
     }
 
-    printGrid(grid, filteredGraph);
+    printGridAxesWithUsedConnections(grid, filteredGraph);
 
     // If autoYes is true, skip asking the user for approval
     if (args.autoYes) {
@@ -100,6 +102,7 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
     }
   } while (true);
 
+  /*
   // Get GridExport from grid, graph, and categories
   const gridExport = getGridExportFromGridGraphAndCategories(grid, graph, args.gridDate);
 
@@ -217,8 +220,14 @@ function getAxisEntityTypeWeights(axisEntityTypeWeightInfo: AxisEntityTypeWeight
   return axisEntityTypeWeightInfo.axisEntityTypeWeights;
 }
 
-function printGrid(grid: Grid, graph: ActorCreditGraph): void {
-  const [acrossIds, downIds] = [grid.across, grid.down];
+function printGridAxesWithUsedConnections(
+  gridAxesWithUsedConnections: GridAxesWithUsedConnections,
+  graph: Graph
+): void {
+  const [acrossIds, downIds] = [
+    gridAxesWithUsedConnections.axes.across,
+    gridAxesWithUsedConnections.axes.down,
+  ];
   const across = getOriginalGraphEntitiesFromIds(acrossIds, graph);
   const down = getOriginalGraphEntitiesFromIds(downIds, graph);
   const fixedLength = 30;
@@ -227,7 +236,7 @@ function printGrid(grid: Grid, graph: ActorCreditGraph): void {
   let acrossLine = "".padEnd(fixedLength + 5);
   for (const axisEntity of across) {
     let entityString = "";
-    entityString = graph.actors[axisEntity.id].name;
+    entityString = graph.axisEntities[axisEntity.id].name;
     acrossLine += entityString.padEnd(fixedLength);
   }
 
@@ -240,7 +249,7 @@ function printGrid(grid: Grid, graph: ActorCreditGraph): void {
 
     // Print the axis entity's name
     let entityString = "";
-    entityString = graph.actors[axisEntity.id].name;
+    entityString = graph.axisEntities[axisEntity.id].name;
 
     lineString += entityString.padEnd(fixedLength);
 
@@ -249,15 +258,16 @@ function printGrid(grid: Grid, graph: ActorCreditGraph): void {
       let connectionName = findConnectionName(
         axisEntity.id,
         acrossAxisEntity.id,
-        grid.usedConnections,
+        gridAxesWithUsedConnections.usedConnections,
         graph
       );
 
       // Truncate the connection name to fit in the fixed length
       // TODO: BUG Sometimes there is no connection... don't know if this is in findConnectionName or grid alg BUG
-      // if (connectionName.length > fixedLength) {
-      //   connectionName = connectionName.slice(0, fixedLength - 3) + "...";
-      // }
+      if (connectionName.length > fixedLength - 2) {
+        connectionName = connectionName.slice(0, fixedLength - 5) + "...";
+      }
+
       lineString += connectionName.padEnd(fixedLength);
     }
 
@@ -269,7 +279,7 @@ function findConnectionName(
   axisEntityId: string,
   otherAxisEntityId: string,
   usedConnections: UsedConnectionsWithAxisEntities,
-  graph: ActorCreditGraph
+  graph: Graph
 ): string {
   // Because the keys into usedConnections are just the IDs of the connections,
   // we need to iterate over all of the values and see if the two axis entities
@@ -281,11 +291,12 @@ function findConnectionName(
       (connectionAxisEntityId1 === axisEntityId && connectionAxisEntityId2 === otherAxisEntityId) ||
       (connectionAxisEntityId1 === otherAxisEntityId && connectionAxisEntityId2 === axisEntityId)
     ) {
-      return graph.credits[connectionId].name;
+      return graph.connections[connectionId].name;
     }
   }
 }
 
+/*
 function getGridExportFromGridGraphAndCategories(
   grid: Grid,
   graph: ActorCreditGraph,
@@ -370,6 +381,7 @@ function getGridExportFromGridGraphAndCategories(
     answers,
   };
 }
+*/
 
 function sortAxisActorsFirst(axis: string[]): string[] {
   const actors = axis.filter((entity) => entity.startsWith("actor"));
@@ -377,15 +389,15 @@ function sortAxisActorsFirst(axis: string[]): string[] {
   return actors.concat(categories);
 }
 
-function getOriginalGraphEntitiesFromIds(axisEntityIds: string[], graph: ActorCreditGraph): GraphEntity[] {
+function getOriginalGraphEntitiesFromIds(axisEntityIds: string[], graph: Graph): GraphEntity[] {
   return axisEntityIds.map((id) => {
     return getOriginalGraphEntityFromId(id, graph);
   });
 }
 
-function getOriginalGraphEntityFromId(id: string, graph: ActorCreditGraph): GraphEntity {
+function getOriginalGraphEntityFromId(id: string, graph: Graph): GraphEntity {
   const idNum = parseInt(id);
-  return graph.actors[idNum.toString()];
+  return graph.axisEntities[idNum.toString()];
 }
 
 class NoValidActorGroupsFoundError extends Error {
