@@ -58,6 +58,7 @@ function processEventArgs(event: EventWithGridGenArgs): GridGenArgs {
   }
 
   return {
+    gameType: event.gameType,
     dataStoreHandler,
     connectionFilter,
     gridSize: event.gridSize,

@@ -2,6 +2,8 @@ import * as dotenv from "dotenv";
 import "node-fetch";
 import * as readline from "readline";
 
+import { GameType } from "common/src/gameTypes";
+import { Axes, Grid } from "common/src/grid";
 import { GridExport } from "common/src/interfaces";
 import {
   generateRandomGridAxes,
@@ -24,6 +26,7 @@ import {
 dotenv.config();
 
 export interface GridGenArgs {
+  gameType: GameType;
   dataStoreHandler: DataStoreHandler;
   connectionFilter: (connection: Connection) => boolean;
   gridSize: number;
@@ -69,13 +72,18 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
   const axisEntityTypeWeights = getAxisEntityTypeWeights(args.axisEntityTypeWeightInfo);
 
   /* Generate across/down until the user approves */
-  let grid: GridAxesWithUsedConnections;
+  let gridAxesWithConnections: GridAxesWithUsedConnections;
   do {
     // Get a valid grid from the generic graph
-    grid = generateRandomGridAxes(filteredGraph, args.gridSize, axisEntityTypeWeights, true);
+    gridAxesWithConnections = generateRandomGridAxes(
+      filteredGraph,
+      args.gridSize,
+      axisEntityTypeWeights,
+      true
+    );
 
     // If no valid grid was found, exit
-    if (grid.axes.across.length === 0 || grid.axes.down.length === 0) {
+    if (gridAxesWithConnections.axes.across.length === 0 || gridAxesWithConnections.axes.down.length === 0) {
       console.log("No valid actor groups found");
 
       if (args.autoRetry) {
@@ -86,7 +94,7 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
       throw new NoValidActorGroupsFoundError("No valid actor groups found");
     }
 
-    printGridAxesWithUsedConnections(grid, filteredGraph);
+    printGridAxesWithUsedConnections(gridAxesWithConnections, filteredGraph);
 
     // If autoYes is true, skip asking the user for approval
     if (args.autoYes) {
@@ -102,10 +110,24 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
     }
   } while (true);
 
-  /*
-  // Get GridExport from grid, graph, and categories
-  const gridExport = getGridExportFromGridGraphAndCategories(grid, graph, args.gridDate);
+  /* Sort axes to have categories after everything else */
+  const sortedAxes = sortAxesCategoriesLast(gridAxesWithConnections.axes, graph);
 
+  /* Get all the answers for this grid */
+  const answers: { [key: string]: Set<string> } = getGridAnswersFromAxesAndGraph(
+    gridAxesWithConnections.axes,
+    graph
+  );
+
+  /* Construct the grid object */
+  const grid: Grid = {
+    id: args.gridDate,
+    gameType: args.gameType,
+    axes: sortedAxes,
+    answers: answers,
+  };
+
+  /*
   // Get images for actors and credits and save them to S3
   await getAndSaveAllImagesForGrid(gridExport, args.overwriteImages);
 
@@ -263,7 +285,6 @@ function printGridAxesWithUsedConnections(
       );
 
       // Truncate the connection name to fit in the fixed length
-      // TODO: BUG Sometimes there is no connection... don't know if this is in findConnectionName or grid alg BUG
       if (connectionName.length > fixedLength - 2) {
         connectionName = connectionName.slice(0, fixedLength - 5) + "...";
       }
@@ -296,97 +317,82 @@ function findConnectionName(
   }
 }
 
-/*
-function getGridExportFromGridGraphAndCategories(
-  grid: Grid,
-  graph: ActorCreditGraph,
-  id: string
-): GridExport {
-  const originalGraphAcrossEntities = getOriginalGraphEntitiesFromIds(grid.across, graph);
-  const originalGraphDownEntities = getOriginalGraphEntitiesFromIds(grid.down, graph);
-  const gridAxisEntities = originalGraphAcrossEntities.concat(originalGraphDownEntities);
+/**
+ * Sort the axes to have all categories appear after other entities.
+ *
+ * @param axes the axes to sort
+ * @param graph a graph containing the entities in the axes
+ * @returns the axes with categories at the end
+ */
+function sortAxesCategoriesLast(axes: Axes, graph: Graph): Axes {
+  return {
+    across: sortAxisCategoriesLast(axes.across, graph),
+    down: sortAxisCategoriesLast(axes.down, graph),
+  };
+}
 
-  // Get the axes, actors, and categories
-  const axes: string[] = [];
-  const actors: ActorExport[] = [];
-  const categoriesExport: CategoryExport[] = [];
-  for (const axisEntity of gridAxisEntities) {
-    if (axisEntity.entityType === "category") {
-      const category: GraphEntity = graph.actors[axisEntity.id];
-      // Categories have negative IDs, so make it positive to
-      // avoid having two dashes in the string.
-      axes.push(`category-${-1 * parseInt(category.id)}`);
-      categoriesExport.push({ id: parseInt(category.id), name: category.name });
-    } else {
-      const actor: ActorNode = graph.actors[axisEntity.id];
-      axes.push(`actor-${actor.id}`);
-      actors.push({ id: parseInt(actor.id), name: actor.name });
-    }
+/**
+ * Sort an axis to have all categories appear after other entities.
+ *
+ * @param axis the axis entity IDs in the axis
+ * @param graph the graph containing the entities in the axis
+ * @returns a list of axis entity IDs with all categories at the end
+ */
+function sortAxisCategoriesLast(axis: string[], graph: Graph): string[] {
+  return [
+    ...axis.filter((id) => graph.axisEntities[id].entityType !== EntityType.CATEGORY),
+    ...axis.filter((id) => graph.axisEntities[id].entityType === EntityType.CATEGORY),
+  ];
+}
+
+/**
+ * Get all possible answers for each axis entity.
+ *
+ * The answers Set for each axis entity is the union of all connections that are shared]
+ * by that axis entity and all axis entities on the other axis.
+ *
+ * @param axes the axes to get answers for
+ * @param graph the graph containing the entities in the axes
+ * @returns a dictionary of answers for each axis entity
+ */
+function getGridAnswersFromAxesAndGraph(axes: Axes, graph: Graph): { [key: string]: Set<string> } {
+  const answers: { [key: string]: Set<string> } = {};
+
+  /* Create the empty sets for each axis entity */
+  for (const axisEntityId of axes.across) {
+    answers[axisEntityId] = new Set();
+  }
+  for (const axisEntityId of axes.down) {
+    answers[axisEntityId] = new Set();
   }
 
-  // Sort each half of axes to have all categories appear after all actors
-  const across = axes.slice(0, grid.across.length);
-  const down = axes.slice(grid.across.length);
-  const sortedAcross = sortAxisActorsFirst(across);
-  const sortedDown = sortAxisActorsFirst(down);
-  const axesActorsFirst = sortedAcross.concat(sortedDown);
+  /* Add all connections that are shared by across and down pairs */
+  for (const acrossAxisEntityId of axes.across) {
+    // Get the across axis entity
+    const acrossAxisEntity = graph.axisEntities[acrossAxisEntityId];
+    for (const downAxisEntityId of axes.down) {
+      // Get the down axis entity
+      const downAxisEntity = graph.axisEntities[downAxisEntityId];
 
-  // Create empty answer Set for each axis entity
-  const answers: { [key: number]: Set<string> } = {};
-  for (const axisEntity of gridAxisEntities) {
-    answers[axisEntity.id] = new Set();
-  }
-
-  // Create empty credits list
-  // const credits: CreditExport[] = [];
-  const credits: { [key: string]: CreditExport } = {};
-
-  // Add all credits that are shared by across and down pairs
-  for (const acrossAxisEntity of originalGraphAcrossEntities) {
-    for (const downAxisEntity of originalGraphDownEntities) {
-      // Only iterate over the axis entity with fewer connections
-      // This is particularly useful when a category with a lot of connections is present
+      // Determine which axis entity has more connections
+      // This minimizes the number of iterations we need to do
       const [axisEntityWithFewerConnections, axisEntityWithMoreConnections] =
         Object.keys(acrossAxisEntity.links).length < Object.keys(downAxisEntity.links).length
           ? [acrossAxisEntity, downAxisEntity]
           : [downAxisEntity, acrossAxisEntity];
-      for (const creditUniqueString of Object.keys(axisEntityWithFewerConnections.links)) {
-        if (axisEntityWithMoreConnections.links[creditUniqueString]) {
-          const creditIdNum = parseInt(creditUniqueString.split("-")[1]);
-          const credit = graph.credits[creditUniqueString];
-          // Create the credit if it doesn't already exist
-          const creditExport = {
-            type: credit.type,
-            id: creditIdNum,
-            name: credit.name,
-          };
-          if (!credits[creditUniqueString]) {
-            credits[creditUniqueString] = creditExport;
-          }
 
-          // Add this credit to both axis entities' answers
-          answers[acrossAxisEntity.id].add(creditUniqueString);
-          answers[downAxisEntity.id].add(creditUniqueString);
+      // Iterate over the axis entity with fewer connections, comparing with the other axis entity
+      for (const connectionId of Object.keys(axisEntityWithFewerConnections.links)) {
+        if (axisEntityWithMoreConnections.links[connectionId]) {
+          // Add this connection to both axis entities' answers
+          answers[acrossAxisEntityId].add(connectionId);
+          answers[downAxisEntityId].add(connectionId);
         }
       }
     }
   }
 
-  return {
-    id,
-    axes: axesActorsFirst,
-    actors,
-    categories: categoriesExport,
-    credits,
-    answers,
-  };
-}
-*/
-
-function sortAxisActorsFirst(axis: string[]): string[] {
-  const actors = axis.filter((entity) => entity.startsWith("actor"));
-  const categories = axis.filter((entity) => entity.startsWith("category"));
-  return actors.concat(categories);
+  return answers;
 }
 
 function getOriginalGraphEntitiesFromIds(axisEntityIds: string[], graph: Graph): GraphEntity[] {
