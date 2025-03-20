@@ -50,9 +50,6 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
     return;
   }
 
-  /* Initialize the data store handler */
-  await args.dataStoreHandler.init();
-
   /* Get the data from the data store */
   const graphData: GraphData = await args.dataStoreHandler.getGraphData();
 

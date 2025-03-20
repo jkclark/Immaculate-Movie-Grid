@@ -54,6 +54,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
   private READ_BATCH_SIZE = 500;
   private dataSource: DataSource;
 
+  // Can't put this in the constructor because constructors can't be async
   async init() {
     this.dataSource = await initializeDataSource();
   }

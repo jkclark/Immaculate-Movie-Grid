@@ -52,7 +52,10 @@ function processEventArgs(event: EventWithGridGenArgs): GridGenArgs {
   let connectionFilter;
   let axisEntityTypeWeightInfo;
   if (event.gameType === GameType.MOVIES) {
-    dataStoreHandler = new PostgreSQLMovieDataStoreHandler();
+    const postgreSQLdataStoreHandler = new PostgreSQLMovieDataStoreHandler();
+    postgreSQLdataStoreHandler.init();
+    dataStoreHandler = postgreSQLdataStoreHandler;
+
     connectionFilter = isCreditValidForGridGen;
     axisEntityTypeWeightInfo = MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO;
   }

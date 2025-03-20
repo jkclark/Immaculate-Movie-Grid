@@ -16,9 +16,6 @@ interface PopulateDataStoreArgs {
 async function main(args: PopulateDataStoreArgs) {
   const { dataScraper, dataStoreHandler, categories } = args;
 
-  // Initialize dataStoreHandler
-  await dataStoreHandler.init();
-
   // Get existing actors
   const existingActors = await dataStoreHandler.getExistingNonCategoryAxisEntities();
 
@@ -90,7 +87,10 @@ function processCLIArgs(): PopulateDataStoreArgs {
   // Movies
   if (args[0] === GameType.MOVIES) {
     dataScraper = new TMDBDataScraper();
-    dataStoreHandler = new PostgreSQLMovieDataStoreHandler();
+    const postgreSQLDataStoreHandler = new PostgreSQLMovieDataStoreHandler();
+    postgreSQLDataStoreHandler.init();
+    dataStoreHandler = postgreSQLDataStoreHandler;
+
     categories = allMovieCategories;
   }
 
