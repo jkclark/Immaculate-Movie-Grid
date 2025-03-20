@@ -6,7 +6,7 @@ import {
   getTypeAndIdFromCreditUniqueId,
 } from "src/adapters/graph/movies";
 import { deduplicateLinkData, EntityType, LinkData } from "src/ports/graph";
-import MovieDataScraper from "./movieDataScraper";
+import MovieGraphDataScraper from "./movieGraphDataScraper";
 
 interface Actor extends ActorOrCategoryData {
   credits: Credit[];
@@ -26,7 +26,7 @@ interface TVDetails {
   last_air_date: string;
 }
 
-export default class TMDBDataScraper extends MovieDataScraper {
+export default class TMDBGraphDataScraper extends MovieGraphDataScraper {
   protected readonly BASE_URL = "https://api.themoviedb.org/3";
 
   /**

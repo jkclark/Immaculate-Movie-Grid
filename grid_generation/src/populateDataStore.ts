@@ -1,15 +1,15 @@
 import { GameType, InvalidGameTypeError, isValidGameType } from "common/src/gameTypes";
 import { allMovieCategories } from "./adapters/categories/movies";
-import TMDBDataScraper from "./adapters/data_scrapers/movies/tmdbDataScraper";
-import PostgreSQLMovieDataStoreHandler from "./adapters/data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
+import TMDBGraphDataScraper from "./adapters/graph_data_scrapers/movies/tmdbGraphDataScraper";
+import PostgreSQLMovieDataStoreHandler from "./adapters/graph_data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
 import { Category } from "./ports/categories";
-import DataScraper from "./ports/dataScraper";
-import DataStoreHandler from "./ports/dataStoreHandler";
 import { EntityType, GraphData } from "./ports/graph";
+import GraphDataScraper from "./ports/graphDataScraper";
+import GraphDataStoreHandler from "./ports/graphDataStoreHandler";
 
 interface PopulateDataStoreArgs {
-  dataScraper: DataScraper;
-  dataStoreHandler: DataStoreHandler;
+  dataScraper: GraphDataScraper;
+  dataStoreHandler: GraphDataStoreHandler;
   categories: { [key: number]: Category };
 }
 
@@ -80,13 +80,13 @@ function processCLIArgs(): PopulateDataStoreArgs {
     throw new InvalidGameTypeError(args[0]);
   }
 
-  let dataScraper: DataScraper;
-  let dataStoreHandler: DataStoreHandler;
+  let dataScraper: GraphDataScraper;
+  let dataStoreHandler: GraphDataStoreHandler;
   let categories: { [key: number]: Category };
 
   // Movies
   if (args[0] === GameType.MOVIES) {
-    dataScraper = new TMDBDataScraper();
+    dataScraper = new TMDBGraphDataScraper();
     const postgreSQLDataStoreHandler = new PostgreSQLMovieDataStoreHandler();
     postgreSQLDataStoreHandler.init();
     dataStoreHandler = postgreSQLDataStoreHandler;

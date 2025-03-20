@@ -1,6 +1,6 @@
 import { AxisEntityData, ConnectionData, GraphData, LinkData } from "./graph";
 
-export default abstract class DataScraper {
+export default abstract class GraphDataScraper {
   /**
    * Scrape data from a data source and return the graph data to populate the data store with.
    *

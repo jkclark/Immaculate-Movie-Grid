@@ -16,8 +16,8 @@ import {
 } from "src/adapters/graph/movies";
 import { CreditType } from "src/interfaces";
 import { EntityType, LinkData } from "src/ports/graph";
+import GraphDataStoreHandler from "src/ports/graphDataStoreHandler";
 import { DataSource, LessThan, MoreThanOrEqual } from "typeorm";
-import MovieDataStoreHandler from "./movieDataStoreHandler";
 
 interface AllDBEntities {
   actorsAndCategories: ActorOrCategory[];
@@ -49,7 +49,7 @@ class DataSourceNotInitializedError extends Error {
   }
 }
 
-export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandler {
+export default class PostgreSQLMovieDataStoreHandler implements GraphDataStoreHandler {
   private WRITE_BATCH_SIZE = 500;
   private READ_BATCH_SIZE = 500;
   private dataSource: DataSource;
@@ -105,7 +105,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
       const { type, ...creditWithoutType } = credit;
       const creditConnectionDatum: CreditData = {
         ...creditWithoutType,
-        id: super.getCreditUniqueId(credit.type, credit.id.toString()),
+        id: this.getCreditUniqueId(credit.type, credit.id.toString()),
         name: credit.name,
         entityType: EntityType.CONNECTION,
         genre_ids: [], // To be populated later in this method
@@ -126,7 +126,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     for (const actorCreditRelationship of allDBEntities.actorCreditRelationships) {
       const actorOrCategoryId = actorCreditRelationship.actorOrCategory.id.toString();
       // Remember to use the unique ID
-      const creditId = super.getCreditUniqueId(
+      const creditId = this.getCreditUniqueId(
         actorCreditRelationship.credit_type,
         actorCreditRelationship.credit.id.toString()
       );
@@ -136,7 +136,7 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
     // Add genres to credits
     for (const creditGenreRelationship of allDBEntities.creditGenreRelationships) {
       // Outgoing credits only have an ID field, so we have to merge them into one.
-      const creditId = super.getCreditUniqueId(
+      const creditId = this.getCreditUniqueId(
         creditGenreRelationship.credit_type,
         creditGenreRelationship.credit.id.toString()
       );
@@ -256,6 +256,11 @@ export default class PostgreSQLMovieDataStoreHandler extends MovieDataStoreHandl
       ["credit", "genre"],
       {}
     );
+  }
+
+  // TODO: Remove this function when removing 'type' from 'credit' in the database
+  getCreditUniqueId(creditType: string, creditId: string): string {
+    return `${creditType}-${creditId}`;
   }
   /***************************************************/
 

@@ -10,7 +10,6 @@ import {
   GridAxesWithUsedConnections,
   UsedConnectionsWithAxisEntities,
 } from "./getGridFromGraph";
-import DataStoreHandler from "./ports/dataStoreHandler";
 import {
   AxisEntityTypeWeightInfo,
   buildGraphFromGraphData,
@@ -22,12 +21,13 @@ import {
   GraphEntity,
   pruneGraph,
 } from "./ports/graph";
+import GraphDataStoreHandler from "./ports/graphDataStoreHandler";
 
 dotenv.config();
 
 export interface GridGenArgs {
   gameType: GameType;
-  dataStoreHandler: DataStoreHandler;
+  dataStoreHandler: GraphDataStoreHandler;
   connectionFilter: (connection: Connection) => boolean;
   gridSize: number;
   axisEntityTypeWeightInfo: AxisEntityTypeWeightInfo;

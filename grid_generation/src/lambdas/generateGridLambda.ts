@@ -1,8 +1,8 @@
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
 import { GameType, InvalidGameTypeError, isValidGameType } from "common/src/gameTypes";
-import PostgreSQLMovieDataStoreHandler from "src/adapters/data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
 import { isCreditValidForGridGen, MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO } from "src/adapters/graph/movies";
+import PostgreSQLMovieDataStoreHandler from "src/adapters/graph_data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
 import { generateGrid, GridGenArgs } from "../generateGrid";
 
 interface EventGridGenArgs {

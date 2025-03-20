@@ -14,8 +14,8 @@
  * we run the populateDataStore script, which happens daily.
  */
 
-import PostgreSQLMovieDataStoreHandler from "src/adapters/data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
 import { ActorOrCategoryData } from "src/adapters/graph/movies";
+import PostgreSQLMovieDataStoreHandler from "src/adapters/graph_data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
 import { EntityType } from "src/ports/graph";
 import { famousActorIdsToNames } from "./famousActorIdsToNames";
 

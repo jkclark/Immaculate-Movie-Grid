@@ -4,10 +4,10 @@ import {
   MovieGraphData,
   MovieGraphDataWithGenres,
 } from "src/adapters/graph/movies";
-import DataScraper from "src/ports/dataScraper";
 import { ConnectionData, LinkData } from "src/ports/graph";
+import GraphDataScraper from "src/ports/graphDataScraper";
 
-export default abstract class MovieDataScraper extends DataScraper {
+export default abstract class MovieGraphDataScraper extends GraphDataScraper {
   /**
    * Scrape actor/credit data from a data source and return the graph data to populate the data store with.
    *
