@@ -3,6 +3,8 @@ import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 import { GameType, InvalidGameTypeError, isValidGameType } from "common/src/gameTypes";
 import { isCreditValidForGridGen, MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO } from "src/adapters/graph/movies";
 import PostgreSQLMovieDataStoreHandler from "src/adapters/graph_data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
+import PostgreSQLGridExporter from "src/adapters/grid_exporters/postgreSQLGridExporter";
+import S3GridExporter from "src/adapters/grid_exporters/s3GridExporter";
 import { generateGrid, GridGenArgs } from "../generateGrid";
 
 interface EventGridGenArgs {
@@ -51,10 +53,13 @@ function processEventArgs(event: EventWithGridGenArgs): GridGenArgs {
   let dataStoreHandler;
   let connectionFilter;
   let axisEntityTypeWeightInfo;
+  let gridExporters;
   if (event.gameType === GameType.MOVIES) {
     const postgreSQLdataStoreHandler = new PostgreSQLMovieDataStoreHandler();
     postgreSQLdataStoreHandler.init();
     dataStoreHandler = postgreSQLdataStoreHandler;
+
+    gridExporters = [new PostgreSQLGridExporter(), new S3GridExporter()];
 
     connectionFilter = isCreditValidForGridGen;
     axisEntityTypeWeightInfo = MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO;
@@ -63,6 +68,7 @@ function processEventArgs(event: EventWithGridGenArgs): GridGenArgs {
   return {
     gameType: event.gameType,
     dataStoreHandler,
+    gridExporters,
     connectionFilter,
     gridSize: event.gridSize,
     axisEntityTypeWeightInfo,

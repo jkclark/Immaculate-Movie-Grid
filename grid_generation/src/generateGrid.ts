@@ -4,7 +4,6 @@ import * as readline from "readline";
 
 import { GameType } from "common/src/gameTypes";
 import { Axes, Grid } from "common/src/grid";
-import { GridExport } from "common/src/interfaces";
 import {
   generateRandomGridAxes,
   GridAxesWithUsedConnections,
@@ -22,12 +21,14 @@ import {
   pruneGraph,
 } from "./ports/graph";
 import GraphDataStoreHandler from "./ports/graphDataStoreHandler";
+import GridExporter from "./ports/gridExporter";
 
 dotenv.config();
 
 export interface GridGenArgs {
   gameType: GameType;
   dataStoreHandler: GraphDataStoreHandler;
+  gridExporters: GridExporter[];
   connectionFilter: (connection: Connection) => boolean;
   gridSize: number;
   axisEntityTypeWeightInfo: AxisEntityTypeWeightInfo;
@@ -37,7 +38,7 @@ export interface GridGenArgs {
   overwriteImages: boolean;
 }
 
-export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
+export async function generateGrid(args: GridGenArgs): Promise<void> {
   /* Make sure we have all the required arguments */
   if (
     !args.dataStoreHandler ||
@@ -124,18 +125,19 @@ export async function generateGrid(args: GridGenArgs): Promise<GridExport> {
     answers: answers,
   };
 
-  /*
-  // Get images for actors and credits and save them to S3
-  await getAndSaveAllImagesForGrid(gridExport, args.overwriteImages);
+  /* Get images for actors and credits and save them to S3 */
+  // await getAndSaveAllImagesForGrid(gridExport, args.overwriteImages);
+
+  /* Have each exporter export the grid */
+  for (const gridExporter of args.gridExporters) {
+    await gridExporter.exportGrid(grid);
+  }
 
   // Convert to JSON
-  const jsonGrid = serializeGridExport(gridExport);
+  // const jsonGrid = serializeGridExport(gridExport);
 
   // Write grid to S3
-  await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${args.gridDate}.json`);
-
-  return gridExport;
-  */
+  // await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${args.gridDate}.json`);
 }
 
 /**
