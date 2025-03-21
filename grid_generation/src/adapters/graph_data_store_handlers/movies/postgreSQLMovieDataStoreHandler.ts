@@ -1,4 +1,4 @@
-import { initializeDataSource } from "common/src/db/connect";
+import { ensureInitialized, initializeDataSource } from "common/src/db/connect";
 import { batchReadFromDB, batchWriteToDB } from "common/src/db/crud";
 import { ActorOrCategory } from "common/src/db/models/ActorOrCategory";
 import { ActorOrCategoryCreditJoin } from "common/src/db/models/ActorsCategoriesCreditsJoin";
@@ -27,32 +27,12 @@ interface AllDBEntities {
   creditGenreRelationships: CreditGenreJoin[];
 }
 
-/**
- * This is a decorator that makes sure that the data source is initialized before calling the method.
- */
-function ensureInitialized(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-
-  descriptor.value = function (...args: any[]) {
-    if (!this.dataSource) {
-      throw new DataSourceNotInitializedError();
-    }
-    return originalMethod.apply(this, args);
-  };
-
-  return descriptor;
-}
-
-class DataSourceNotInitializedError extends Error {
-  constructor() {
-    super("Data source is not initialized. Please call init() first.");
-  }
-}
-
 export default class PostgreSQLMovieDataStoreHandler implements GraphDataStoreHandler {
   private WRITE_BATCH_SIZE = 500;
   private READ_BATCH_SIZE = 500;
-  private dataSource: DataSource;
+
+  // Needs to be public for @ensureInitialized to work
+  public dataSource: DataSource;
 
   // Can't put this in the constructor because constructors can't be async
   async init() {
