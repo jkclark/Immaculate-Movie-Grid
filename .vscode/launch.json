@@ -16,6 +16,7 @@
                 "movies",
                 "3",
                 "9999-01-01",
+                "immaculate-movie-grid-daily-grids",
                 "--auto-retry"
             ],
             "console": "integratedTerminal",
