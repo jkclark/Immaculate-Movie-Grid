@@ -92,6 +92,12 @@ export async function generateGrid(args: GridGenArgs): Promise<void> {
       throw new NoValidActorGroupsFoundError("No valid actor groups found");
     }
 
+    // Sort axes to have categories after everything else
+    gridAxesWithConnections = {
+      axes: sortAxesCategoriesLast(gridAxesWithConnections.axes, graph),
+      usedConnections: gridAxesWithConnections.usedConnections,
+    };
+
     printGridAxesWithUsedConnections(gridAxesWithConnections, filteredGraph);
 
     // If autoYes is true, skip asking the user for approval
@@ -108,9 +114,6 @@ export async function generateGrid(args: GridGenArgs): Promise<void> {
     }
   } while (true);
 
-  /* Sort axes to have categories after everything else */
-  const sortedAxes = sortAxesCategoriesLast(gridAxesWithConnections.axes, graph);
-
   /* Get all the answers for this grid */
   const answers: { [key: string]: Set<string> } = getGridAnswersFromAxesAndGraph(
     gridAxesWithConnections.axes,
@@ -121,7 +124,7 @@ export async function generateGrid(args: GridGenArgs): Promise<void> {
   const grid: Grid = {
     id: args.gridDate,
     gameType: args.gameType,
-    axes: sortedAxes,
+    axes: gridAxesWithConnections.axes,
     answers: answers,
   };
 
