@@ -29,6 +29,8 @@ export default class S3GridExporter implements GridExporter {
     const serializedGrid = serializeGrid(grid);
 
     await this.writeTextToS3(JSON.stringify(serializedGrid), this.gridBucket, this.gridKey);
+
+    console.log("Grid exported to S3 successfully.");
   }
 
   /**

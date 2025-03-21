@@ -68,6 +68,7 @@ async function processEventArgs(event: EventWithGridGenArgs): Promise<GridGenArg
 
     // Set up the grid exporters
     const postgreSQLGridExporter = new PostgreSQLGridExporter();
+    await postgreSQLGridExporter.init();
     const s3GridExporter = new S3GridExporter(event.gridBucket, `${gridDate}.json`);
     gridExporters = [postgreSQLGridExporter, s3GridExporter];
 

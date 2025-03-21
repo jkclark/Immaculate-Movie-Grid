@@ -135,12 +135,6 @@ export async function generateGrid(args: GridGenArgs): Promise<void> {
   for (const gridExporter of args.gridExporters) {
     await gridExporter.exportGrid(grid);
   }
-
-  // Convert to JSON
-  // const jsonGrid = serializeGridExport(gridExport);
-
-  // Write grid to S3
-  // await writeTextToS3(jsonGrid, "immaculate-movie-grid-daily-grids", `${args.gridDate}.json`);
 }
 
 /**
