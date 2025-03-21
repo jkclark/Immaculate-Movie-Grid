@@ -83,8 +83,8 @@ export interface CreditNode extends Credit, GraphEntity {
 
 /***** Grid generation *****/
 const MOVIES_AXIS_ENTITY_TYPE_WEIGHTS_YES_CATEGORIES: { [key: string]: number } = {
-  [EntityType.NON_CATEGORY]: 0.95,
-  [EntityType.CATEGORY]: 0.05,
+  [EntityType.NON_CATEGORY]: 0.7,
+  [EntityType.CATEGORY]: 0.3,
 };
 export const MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO: AxisEntityTypeWeightInfo = {
   chanceOfNoCategories: 0.4,
