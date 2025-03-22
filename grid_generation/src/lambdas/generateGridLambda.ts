@@ -5,6 +5,8 @@ import { isCreditValidForGridGen, MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO } from "sr
 import PostgreSQLMovieDataStoreHandler from "src/adapters/graph_data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
 import PostgreSQLGridExporter from "src/adapters/grid_exporters/postgreSQLGridExporter";
 import S3GridExporter from "src/adapters/grid_exporters/s3GridExporter";
+import TMDBImageScraper from "src/adapters/image_scrapers/movies/tmdbImageScraper";
+import S3ImageStoreHandler from "src/adapters/image_store_handlers/movies/s3ImageStoreHandler";
 import { generateGrid, GridGenArgs } from "../generateGrid";
 
 interface EventGridGenArgs {
@@ -57,6 +59,8 @@ async function processEventArgs(event: EventWithGridGenArgs): Promise<GridGenArg
 
   /* Get the adapters for the given game type */
   let dataStoreHandler;
+  let imageScraper;
+  let imageStoreHandler;
   let connectionFilter;
   let axisEntityTypeWeightInfo;
   let gridExporters;
@@ -66,12 +70,17 @@ async function processEventArgs(event: EventWithGridGenArgs): Promise<GridGenArg
     await postgreSQLdataStoreHandler.init();
     dataStoreHandler = postgreSQLdataStoreHandler;
 
+    // Set up image scraper and image store handler
+    imageScraper = new TMDBImageScraper();
+    imageStoreHandler = new S3ImageStoreHandler();
+
     // Set up the grid exporters
     const postgreSQLGridExporter = new PostgreSQLGridExporter();
     await postgreSQLGridExporter.init();
     const s3GridExporter = new S3GridExporter(event.gridBucket, `${gridDate}.json`);
     gridExporters = [postgreSQLGridExporter, s3GridExporter];
 
+    // Set up other game-type-specific args
     connectionFilter = isCreditValidForGridGen;
     axisEntityTypeWeightInfo = MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO;
   }
@@ -79,6 +88,8 @@ async function processEventArgs(event: EventWithGridGenArgs): Promise<GridGenArg
   return {
     gameType: event.gameType,
     dataStoreHandler,
+    imageScraper,
+    imageStoreHandler,
     gridExporters,
     connectionFilter,
     gridSize: event.gridSize,
