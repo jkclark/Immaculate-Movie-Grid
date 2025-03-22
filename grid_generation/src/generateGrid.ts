@@ -3,7 +3,7 @@ import "node-fetch";
 import * as readline from "readline";
 
 import { GameType } from "common/src/gameTypes";
-import { Axes, Grid } from "common/src/grid";
+import { Axes, Grid, GridAnswers } from "common/src/grid";
 import {
   generateRandomGridAxes,
   GridAxesWithUsedConnections,
@@ -22,12 +22,16 @@ import {
 } from "./ports/graph";
 import GraphDataStoreHandler from "./ports/graphDataStoreHandler";
 import GridExporter from "./ports/gridExporter";
+import ImageScraper from "./ports/imageScraper";
+import ImageStoreHandler, { ExistingImageInfo } from "./ports/imageStoreHandler";
 
 dotenv.config();
 
 export interface GridGenArgs {
   gameType: GameType;
   dataStoreHandler: GraphDataStoreHandler;
+  imageScraper: ImageScraper;
+  imageStoreHandler: ImageStoreHandler;
   gridExporters: GridExporter[];
   connectionFilter: (connection: Connection) => boolean;
   gridSize: number;
@@ -129,7 +133,13 @@ export async function generateGrid(args: GridGenArgs): Promise<void> {
   };
 
   /* Get images for actors and credits and save them to S3 */
-  // await getAndSaveAllImagesForGrid(gridExport, args.overwriteImages);
+  await getAndSaveAllImagesForGrid(
+    args.imageScraper,
+    args.imageStoreHandler,
+    grid,
+    graph,
+    args.overwriteImages
+  );
 
   /* Have each exporter export the grid */
   for (const gridExporter of args.gridExporters) {
@@ -238,6 +248,34 @@ function getAxisEntityTypeWeights(axisEntityTypeWeightInfo: AxisEntityTypeWeight
   return axisEntityTypeWeightInfo.axisEntityTypeWeights;
 }
 
+/**
+ * Sort the axes to have all categories appear after other entities.
+ *
+ * @param axes the axes to sort
+ * @param graph a graph containing the entities in the axes
+ * @returns the axes with categories at the end
+ */
+function sortAxesCategoriesLast(axes: Axes, graph: Graph): Axes {
+  return {
+    across: sortAxisCategoriesLast(axes.across, graph),
+    down: sortAxisCategoriesLast(axes.down, graph),
+  };
+}
+
+/**
+ * Sort an axis to have all categories appear after other entities.
+ *
+ * @param axis the axis entity IDs in the axis
+ * @param graph the graph containing the entities in the axis
+ * @returns a list of axis entity IDs with all categories at the end
+ */
+function sortAxisCategoriesLast(axis: string[], graph: Graph): string[] {
+  return [
+    ...axis.filter((id) => graph.axisEntities[id].entityType !== EntityType.CATEGORY),
+    ...axis.filter((id) => graph.axisEntities[id].entityType === EntityType.CATEGORY),
+  ];
+}
+
 function printGridAxesWithUsedConnections(
   gridAxesWithUsedConnections: GridAxesWithUsedConnections,
   graph: Graph
@@ -292,6 +330,17 @@ function printGridAxesWithUsedConnections(
   }
 }
 
+function getOriginalGraphEntitiesFromIds(axisEntityIds: string[], graph: Graph): GraphEntity[] {
+  return axisEntityIds.map((id) => {
+    return getOriginalGraphEntityFromId(id, graph);
+  });
+}
+
+function getOriginalGraphEntityFromId(id: string, graph: Graph): GraphEntity {
+  const idNum = parseInt(id);
+  return graph.axisEntities[idNum.toString()];
+}
+
 function findConnectionName(
   axisEntityId: string,
   otherAxisEntityId: string,
@@ -314,34 +363,6 @@ function findConnectionName(
 }
 
 /**
- * Sort the axes to have all categories appear after other entities.
- *
- * @param axes the axes to sort
- * @param graph a graph containing the entities in the axes
- * @returns the axes with categories at the end
- */
-function sortAxesCategoriesLast(axes: Axes, graph: Graph): Axes {
-  return {
-    across: sortAxisCategoriesLast(axes.across, graph),
-    down: sortAxisCategoriesLast(axes.down, graph),
-  };
-}
-
-/**
- * Sort an axis to have all categories appear after other entities.
- *
- * @param axis the axis entity IDs in the axis
- * @param graph the graph containing the entities in the axis
- * @returns a list of axis entity IDs with all categories at the end
- */
-function sortAxisCategoriesLast(axis: string[], graph: Graph): string[] {
-  return [
-    ...axis.filter((id) => graph.axisEntities[id].entityType !== EntityType.CATEGORY),
-    ...axis.filter((id) => graph.axisEntities[id].entityType === EntityType.CATEGORY),
-  ];
-}
-
-/**
  * Get all possible answers for each axis entity.
  *
  * The answers Set for each axis entity is the union of all connections that are shared]
@@ -351,7 +372,7 @@ function sortAxisCategoriesLast(axis: string[], graph: Graph): string[] {
  * @param graph the graph containing the entities in the axes
  * @returns a dictionary of answers for each axis entity
  */
-function getGridAnswersFromAxesAndGraph(axes: Axes, graph: Graph): { [key: string]: Set<string> } {
+function getGridAnswersFromAxesAndGraph(axes: Axes, graph: Graph): GridAnswers {
   const answers: { [key: string]: Set<string> } = {};
 
   /* Create the empty sets for each axis entity */
@@ -391,15 +412,123 @@ function getGridAnswersFromAxesAndGraph(axes: Axes, graph: Graph): { [key: strin
   return answers;
 }
 
-function getOriginalGraphEntitiesFromIds(axisEntityIds: string[], graph: Graph): GraphEntity[] {
-  return axisEntityIds.map((id) => {
-    return getOriginalGraphEntityFromId(id, graph);
-  });
+/**
+ * Download and save all images for the axis entities and connections in a grid.
+ *
+ * @param imageScraper the image scraper to use for downloading images
+ * @param imageStoreHandler the image store handler to use for saving images
+ * @param grid the grid for which to get and save images
+ * @param graph the corresponding graph for the grid
+ * @param overwrite whether to overwrite images that already exist in the image store
+ */
+async function getAndSaveAllImagesForGrid(
+  imageScraper: ImageScraper,
+  imageStoreHandler: ImageStoreHandler,
+  grid: Grid,
+  graph: Graph,
+  overwrite: boolean
+): Promise<void> {
+  /* Get sets of unique graph entity IDs */
+  let axisEntityIdsToGetImagesFor: Set<string> = getGridAxisEntityIdsAsSet(grid.axes);
+  let connectionIdsToGetImagesFor: Set<string> = getUniqueConnectionIds(grid.answers);
+
+  /* If we're not overwriting images, determine which images we already have and remove them from the set */
+  if (!overwrite) {
+    const graphEntitiesWithExistingImages: ExistingImageInfo =
+      await imageStoreHandler.getGraphEntityIdsWithExistingImages(grid);
+
+    // Remove axis entity IDs for which we already have images
+    axisEntityIdsToGetImagesFor = subtractSets(
+      axisEntityIdsToGetImagesFor,
+      graphEntitiesWithExistingImages.axisEntities
+    );
+
+    // Remove connection IDs for which we already have images
+    connectionIdsToGetImagesFor = subtractSets(
+      connectionIdsToGetImagesFor,
+      graphEntitiesWithExistingImages.connections
+    );
+  }
+
+  // TODO: Parallelize these two for loops
+  /* Download axis entity images */
+  for (const axisEntityId of axisEntityIdsToGetImagesFor) {
+    const graphEntity = graph.axisEntities[axisEntityId];
+    await getAndSaveImageForGraphEntity(graphEntity, imageScraper, imageStoreHandler);
+  }
+
+  /* Download connection images */
+  for (const connectionId of connectionIdsToGetImagesFor) {
+    const connection = graph.connections[connectionId];
+    await getAndSaveImageForGraphEntity(connection, imageScraper, imageStoreHandler);
+  }
 }
 
-function getOriginalGraphEntityFromId(id: string, graph: Graph): GraphEntity {
-  const idNum = parseInt(id);
-  return graph.axisEntities[idNum.toString()];
+function getGridAxisEntityIdsAsSet(axes: Axes): Set<string> {
+  const axisEntityIds = new Set<string>();
+
+  for (const axisEntityId of axes.across) {
+    axisEntityIds.add(axisEntityId);
+  }
+  for (const axisEntityId of axes.down) {
+    axisEntityIds.add(axisEntityId);
+  }
+
+  return axisEntityIds;
+}
+
+/**
+ * Get a set of unique connection IDs from the grid answers.
+ *
+ * This is necessary because necessarily each connection ID will appear at least twice in the grid answers
+ * (once for each axis entity it connects).
+ *
+ * @param answers the grid answers
+ * @returns a set of unique connection IDs
+ */
+function getUniqueConnectionIds(answers: GridAnswers): Set<string> {
+  const uniqueConnectionIds = new Set<string>();
+
+  for (const axisEntityId of Object.keys(answers)) {
+    for (const connectionId of answers[axisEntityId]) {
+      uniqueConnectionIds.add(connectionId);
+    }
+  }
+
+  return uniqueConnectionIds;
+}
+
+/**
+ * Get the difference between two sets.
+ *
+ * @param setA the first set
+ * @param setB the second set
+ * @returns a set containing the elements of setA that are not in setB
+ */
+function subtractSets(setA: Set<string>, setB: Set<string>): Set<string> {
+  const result = new Set(setA);
+
+  for (const item of setB) {
+    result.delete(item);
+  }
+
+  return result;
+}
+
+/**
+ * Download and save an image for a specific graph entity.
+ *
+ * @param graphEntity the graph entity for which to get the image
+ * @param imageScraper the image scraper to use for downloading the image
+ * @param imageStoreHandler the image store handler to use for saving the image
+ */
+async function getAndSaveImageForGraphEntity(
+  graphEntity: GraphEntity,
+  imageScraper: ImageScraper,
+  imageStoreHandler: ImageStoreHandler
+): Promise<void> {
+  const imageInfo = await imageScraper.getImageForGraphEntity(graphEntity);
+  await imageStoreHandler.saveImageForGraphEntity(imageInfo, graphEntity);
 }
 
 class NoValidActorGroupsFoundError extends Error {

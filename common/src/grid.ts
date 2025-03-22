@@ -6,7 +6,7 @@ export interface Axes {
   down: string[];
 }
 
-interface Answers {
+export interface GridAnswers {
   // This is a map of axis entity IDs to connection IDs that are valid answers
   // somewhere in the grid
   [key: string]: Set<string>;
@@ -16,7 +16,7 @@ export interface Grid {
   id: string;
   gameType: GameType;
   axes: Axes;
-  answers: Answers;
+  answers: GridAnswers;
 }
 
 /**
