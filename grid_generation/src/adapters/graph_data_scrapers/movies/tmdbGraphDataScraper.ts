@@ -1,3 +1,4 @@
+import { getFromTMDBAPIJson } from "common/src/api";
 import {
   ActorOrCategoryData,
   Credit,
@@ -109,7 +110,7 @@ export default class TMDBGraphDataScraper extends MovieGraphDataScraper {
     let page = 1;
     while (page <= 500) {
       const url = `${this.BASE_URL}/person/popular?page=${page}`;
-      const responseJson = await this.getFromTMDBAPIJson(url);
+      const responseJson = await getFromTMDBAPIJson(url);
 
       for (const responseActor of responseJson.results) {
         if (responseActor.popularity >= MIN_PERSON_POPULARITY) {
@@ -191,7 +192,7 @@ export default class TMDBGraphDataScraper extends MovieGraphDataScraper {
    */
   async getActorById(id: number): Promise<Actor> {
     const url = `${this.BASE_URL}/person/${id}?language=en-US`;
-    const responseJson = await this.getFromTMDBAPIJson(url);
+    const responseJson = await getFromTMDBAPIJson(url);
     const actor: Actor = {
       id: responseJson.id.toString(),
       name: responseJson.name,
@@ -212,7 +213,7 @@ export default class TMDBGraphDataScraper extends MovieGraphDataScraper {
    */
   async getActorCredits(actor: Actor): Promise<Credit[]> {
     const url = `${this.BASE_URL}/person/${actor.id}/combined_credits?language=en-US`;
-    const responseJson = await this.getFromTMDBAPIJson(url);
+    const responseJson = await getFromTMDBAPIJson(url);
 
     const credits: Credit[] = [];
     if (!responseJson["cast"]) {
@@ -365,7 +366,7 @@ export default class TMDBGraphDataScraper extends MovieGraphDataScraper {
      *  date for the US, and return the rating for that release.
      **/
     const url = `${this.BASE_URL}/movie/${id}/release_dates`;
-    const responseJson = await this.getFromTMDBAPIJson(url);
+    const responseJson = await getFromTMDBAPIJson(url);
 
     // Sometimes there are no release dates for a movie
     if (!responseJson.results) {
@@ -401,7 +402,7 @@ export default class TMDBGraphDataScraper extends MovieGraphDataScraper {
   async getTVRating(id: string): Promise<CreditRating> {
     // Get the rating for this TV show
     const url = `${this.BASE_URL}/tv/${id}/content_ratings`;
-    const responseJson = await this.getFromTMDBAPIJson(url);
+    const responseJson = await getFromTMDBAPIJson(url);
 
     // Sometimes there are no ratings for a TV show
     if (!responseJson.results) {
@@ -433,7 +434,7 @@ export default class TMDBGraphDataScraper extends MovieGraphDataScraper {
    */
   async getTVDetails(id: string): Promise<TVDetails> {
     const url = `${this.BASE_URL}/tv/${id}`;
-    const responseJson = await this.getFromTMDBAPIJson(url);
+    const responseJson = await getFromTMDBAPIJson(url);
     return { last_air_date: responseJson.last_air_date || null };
   }
 
@@ -454,7 +455,7 @@ export default class TMDBGraphDataScraper extends MovieGraphDataScraper {
 
     // TV
     const tvGenresListURL = `${this.BASE_URL}/genre/tv/list`;
-    const tvGenresResponseJSON = await this.getFromTMDBAPIJson(tvGenresListURL);
+    const tvGenresResponseJSON = await getFromTMDBAPIJson(tvGenresListURL);
 
     for (const genre of tvGenresResponseJSON.genres) {
       genres[genre.id] = genre.name;
@@ -462,30 +463,13 @@ export default class TMDBGraphDataScraper extends MovieGraphDataScraper {
 
     // Movies
     const movieGenresListURL = `${this.BASE_URL}/genre/movie/list`;
-    const movieGenresResponseJSON = await this.getFromTMDBAPIJson(movieGenresListURL);
+    const movieGenresResponseJSON = await getFromTMDBAPIJson(movieGenresListURL);
 
     for (const genre of movieGenresResponseJSON.genres) {
       genres[genre.id] = genre.name;
     }
 
     return genres;
-  }
-
-  async getFromTMDBAPIJson(url: string): Promise<any> {
-    const response = await this.getFromTMDBAPI(url);
-    return await response.json();
-  }
-
-  async getFromTMDBAPI(url: string): Promise<any> {
-    const options = {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
-      },
-    };
-
-    return await fetch(url, options);
   }
 
   deduplicateNumberList(nums: number[]): number[] {

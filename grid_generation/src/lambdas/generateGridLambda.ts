@@ -72,6 +72,7 @@ async function processEventArgs(event: EventWithGridGenArgs): Promise<GridGenArg
 
     // Set up image scraper and image store handler
     imageScraper = new TMDBImageScraper();
+    imageScraper.getAndSetImagesBaseURL();
     imageStoreHandler = new S3ImageStoreHandler();
 
     // Set up the grid exporters
