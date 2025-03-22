@@ -14,6 +14,7 @@ interface EventGridGenArgs {
   gridSize: number;
   gridDate: string;
   gridBucket: string;
+  imageBucket: string;
   autoYes: boolean;
   autoRetry: boolean;
   overwriteImages: boolean;
@@ -73,7 +74,7 @@ async function processEventArgs(event: EventWithGridGenArgs): Promise<GridGenArg
     // Set up image scraper and image store handler
     imageScraper = new TMDBImageScraper();
     imageScraper.getAndSetImagesBaseURL();
-    imageStoreHandler = new S3ImageStoreHandler();
+    imageStoreHandler = new S3ImageStoreHandler(event.imageBucket);
 
     // Set up the grid exporters
     const postgreSQLGridExporter = new PostgreSQLGridExporter();
@@ -113,6 +114,7 @@ interface ParsedCLIArgs {
   gridSize: number;
   gridDate: string;
   gridBucket: string;
+  imageBucket: string;
   autoYes: boolean;
   autoRetry: boolean;
   overwriteImages: boolean;
@@ -124,6 +126,7 @@ function processCLIArgs(): ParsedCLIArgs {
   let gridSize: number = null;
   let gridDate = null;
   let gridBucket = null;
+  let imageBucket = null;
   let autoYes: boolean = false;
   let autoRetry: boolean = false;
   let overwriteImages = false;
@@ -135,6 +138,7 @@ function processCLIArgs(): ParsedCLIArgs {
     "grid-size          the length of one side of the grid (e.g., 3 for a 3x3 grid)\n" +
     "grid-date          in the format YYYY-MM-DD\n" +
     "grid-bucket        the S3 bucket where the grid will be stored\n" +
+    "image-bucket       the S3 bucket where images will be stored\n" +
     "--auto-yes         accept generated grids automatically\n" +
     "--auto-retry       try again in the event of a failure to generate a grid\n" +
     "--overwrite-images ignore existing images in S3\n" +
@@ -168,11 +172,15 @@ function processCLIArgs(): ParsedCLIArgs {
       gridDate = args[i];
     } else if (!gridBucket) {
       gridBucket = args[i];
+    } else if (!imageBucket) {
+      imageBucket = args[i];
     }
   }
 
-  if (!gameType || !gridSize || !gridDate) {
-    throw new Error(`One of [gameType, gridSize, gridDate, gridBucket] is missing/invalid\n${usageMessage}`);
+  if (!gameType || !gridSize || !gridDate || !gridBucket || !imageBucket) {
+    throw new Error(
+      `At least one of [gameType, gridSize, gridDate, gridBucket, imageBucket] is missing/invalid\n${usageMessage}`
+    );
   }
 
   return {
@@ -180,6 +188,7 @@ function processCLIArgs(): ParsedCLIArgs {
     gridSize,
     gridDate,
     gridBucket,
+    imageBucket,
     autoYes,
     autoRetry,
     overwriteImages,
