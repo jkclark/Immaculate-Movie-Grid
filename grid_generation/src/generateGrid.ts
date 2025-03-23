@@ -435,7 +435,7 @@ async function getAndSaveAllImagesForGrid(
   /* If we're not overwriting images, determine which images we already have and remove them from the set */
   if (!overwrite) {
     const graphEntitiesWithExistingImages: ExistingImageInfo =
-      await imageStoreHandler.getGraphEntityIdsWithExistingImages(grid);
+      await imageStoreHandler.getGraphEntityIdsWithExistingImages();
 
     // Remove axis entity IDs for which we already have images
     axisEntityIdsToGetImagesFor = subtractSets(
@@ -528,6 +528,14 @@ async function getAndSaveImageForGraphEntity(
   imageStoreHandler: ImageStoreHandler
 ): Promise<void> {
   const imageInfo = await imageScraper.getImageForGraphEntity(graphEntity);
+
+  if (!imageInfo.stream || !imageInfo.format) {
+    console.log(
+      `No image found for ${graphEntity.entityType} with ID ${graphEntity.id}: ${graphEntity.name}`
+    );
+    return;
+  }
+
   await imageStoreHandler.saveImageForGraphEntity(imageInfo, graphEntity);
 }
 

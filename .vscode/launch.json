@@ -4,6 +4,19 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Debug current grid-gen file",
+            "preLaunchTask": "npm: build",
+            "program": "${file}", // the program to debug
+            "outFiles": [
+                "${workspaceFolder}/**/*.js" // the location of the compiled JavaScript files
+            ],
+            "sourceMaps": true, // enable source maps to allow debugging of the original TypeScript files
+            "cwd": "${workspaceFolder}", // the current working directory for the debug process
+            "console": "integratedTerminal", // use the integrated terminal for input/output
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Generate grid",
             "preLaunchTask": "npm: build", // run this task before launching the program
             "program": "${workspaceFolder}/grid_generation/dist/grid_generation/src/lambdas/generateGridLambda.js", // the program to debug
@@ -17,6 +30,7 @@
                 "3",
                 "9999-01-01",
                 "immaculate-movie-grid-daily-grids",
+                "immaculate-movie-grid-images",
                 "--auto-retry"
             ],
             "console": "integratedTerminal",

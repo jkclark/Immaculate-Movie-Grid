@@ -299,6 +299,7 @@ if (require.main === module) {
   customEvent.gridSize = cliArgs.gridSize;
   customEvent.gridDate = cliArgs.gridDate;
   customEvent.gridBucket = cliArgs.gridBucket;
+  customEvent.imageBucket = cliArgs.imageBucket;
   customEvent.autoYes = cliArgs.autoYes;
   customEvent.autoRetry = cliArgs.autoRetry;
   customEvent.overwriteImages = cliArgs.overwriteImages;

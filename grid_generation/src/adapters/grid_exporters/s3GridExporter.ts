@@ -28,7 +28,7 @@ export default class S3GridExporter implements GridExporter {
   async exportGrid(grid: Grid): Promise<void> {
     const serializedGrid = serializeGrid(grid);
 
-    await this.writeTextToS3(JSON.stringify(serializedGrid), this.gridBucket, this.gridKey);
+    await this.writeTextToS3(serializedGrid, this.gridBucket, this.gridKey);
 
     console.log("Grid exported to S3 successfully.");
   }
@@ -47,11 +47,6 @@ export default class S3GridExporter implements GridExporter {
       Body: text,
     });
 
-    try {
-      const response = await this.client.send(command);
-      console.log(response);
-    } catch (err) {
-      console.error(err);
-    }
+    await this.client.send(command);
   }
 }

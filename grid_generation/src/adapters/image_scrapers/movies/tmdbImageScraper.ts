@@ -1,4 +1,4 @@
-import { getFromTMDBAPIJson } from "common/src/api";
+import { getFromTMDBAPI, getFromTMDBAPIJson } from "common/src/api";
 import { getTypeAndIdFromCreditUniqueId } from "src/adapters/graph/movies";
 import { EntityType, GraphEntity } from "src/ports/graph";
 import ImageScraper, { ImageInfo } from "src/ports/imageScraper";
@@ -74,7 +74,11 @@ export default class TMDBImageScraper implements ImageScraper {
     const response = await getFromTMDBAPIJson(path);
 
     if (response.status_code === this.TMDB_404_STATUS_CODE) {
-      console.error(`No image info found for `);
+      console.error(`Received 404 for ${basePath} with ID ${graphEntityIdForTMDBRequest}`);
+      return {
+        stream: null,
+        format: null,
+      };
     }
 
     // Some actors and credits may not have images
@@ -90,7 +94,7 @@ export default class TMDBImageScraper implements ImageScraper {
 
     /* Download the actual image */
     const imageURL = `${this.imagesBaseURL}${this.DEFAULT_IMAGE_SIZE}/${imageFilePath}`;
-    const imageResponse = await getFromTMDBAPIJson(imageURL);
+    const imageResponse = await getFromTMDBAPI(imageURL);
 
     return {
       stream: imageResponse.body,

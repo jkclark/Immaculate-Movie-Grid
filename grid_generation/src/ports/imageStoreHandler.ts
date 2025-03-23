@@ -1,4 +1,3 @@
-import { Grid } from "common/src/grid";
 import { GraphEntity } from "./graph";
 import { ImageInfo } from "./imageScraper";
 
@@ -14,10 +13,9 @@ export default interface ImageStoreHandler {
   /**
    * Determine which entities in the graph already have images stored.
    *
-   * @param graph the graph against which to check for existing images
    * @returns a promise that resolves to an object containing sets of IDs for each entity type that already have images
    */
-  getGraphEntityIdsWithExistingImages(grid: Grid): Promise<ExistingImageInfo>;
+  getGraphEntityIdsWithExistingImages(): Promise<ExistingImageInfo>;
 
   /**
    * Save image information corresponding to a specific graph entity.
