@@ -8,9 +8,13 @@
  */
 import dotenv from "dotenv";
 import fs from "fs";
-import { Actor } from "../interfaces";
 
 dotenv.config();
+
+interface Actor {
+  id: string;
+  name: string;
+}
 
 async function main() {
   const actorNames = readActorsFile();
@@ -77,7 +81,6 @@ export async function getActorByName(name: string): Promise<Actor> {
   return {
     id: actorId.toString(),
     name: actorName,
-    credits: new Set(),
   };
 }
 

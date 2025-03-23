@@ -14,7 +14,6 @@ import {
   MovieGraphData,
   MovieGraphDataWithGenres,
 } from "src/adapters/graph/movies";
-import { CreditType } from "src/interfaces";
 import { EntityType, LinkData } from "src/ports/graph";
 import GraphDataStoreHandler from "src/ports/graphDataStoreHandler";
 import { DataSource, LessThan, MoreThanOrEqual } from "typeorm";
@@ -262,7 +261,7 @@ export default class PostgreSQLMovieDataStoreHandler implements GraphDataStoreHa
       return {
         ...credit,
         id: parseInt(id),
-        type: type as CreditType,
+        type: type,
       };
     });
 
