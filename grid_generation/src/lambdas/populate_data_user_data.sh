@@ -3,8 +3,7 @@
 # is started by the 'populate data store' Lambda function.
 
 ### Set a timeout limit for the script
-# TIMEOUT_LIMIT=3600 # 1 hour in seconds
-TIMEOUT_LIMIT=30
+TIMEOUT_LIMIT=3600 # 1 hour in seconds
 
 ### Record the starting time
 START_TIME=$(date +%s)
