@@ -2,8 +2,15 @@
 # This file is in the 'lambdas' directory because it is used as the user data script for the EC2 instance that
 # is started by the 'populate data store' Lambda function.
 
+### Set a timeout limit for the script
+# TIMEOUT_LIMIT=3600 # 1 hour in seconds
+TIMEOUT_LIMIT=30
+
 ### Record the starting time
 START_TIME=$(date +%s)
+
+### Run the script with a timeout
+timeout $TIMEOUT_LIMIT bash <<'SCRIPT'
 
 ### Move to home directory
 cd ~
@@ -80,3 +87,14 @@ echo "Time elapsed: $ELAPSED_TIME_FORMATTED"
 
 # Shutdown the instance
 aws ec2 terminate-instances --instance-ids $(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-id) --region us-east-1
+SCRIPT
+
+### Check if the script timed out
+if [ $? -eq 124 ]; then
+  echo "PopulateDataStore script timed out after $TIMEOUT_LIMIT seconds."
+  # Terminate the instance
+  TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+  aws ec2 terminate-instances --instance-ids $(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-id) --region us-east-1
+else
+  echo "PopulateDataStore script completed successfully."
+fi
