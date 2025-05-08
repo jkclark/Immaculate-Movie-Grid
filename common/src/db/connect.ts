@@ -65,3 +65,29 @@ export const initializeDataSource = (): Promise<DataSource> => {
 
   return connectionPromise;
 };
+
+/**
+ * This is a decorator that makes sure that the data source is initialized before calling the method.
+ */
+export function ensureInitialized<T extends { dataSource: DataSource | undefined }>(
+  target: T,
+  propertyKey: string,
+  descriptor: PropertyDescriptor
+) {
+  const originalMethod = descriptor.value;
+
+  descriptor.value = function (this: T, ...args: any[]) {
+    if (!this.dataSource) {
+      throw new DataSourceNotInitializedError();
+    }
+    return originalMethod.apply(this, args);
+  };
+
+  return descriptor;
+}
+
+class DataSourceNotInitializedError extends Error {
+  constructor() {
+    super("Data source is not initialized. Please call init() first.");
+  }
+}

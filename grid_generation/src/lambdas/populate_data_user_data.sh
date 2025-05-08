@@ -69,7 +69,7 @@ cd Immaculate-Movie-Grid/grid_generation
 npm install
 
 # Run the script
-npx ts-node ./src/populateDataStore.ts db
+npx ts-node ./src/populateDataStore.ts movies
 
 ### Shutdown the instance using the metadata service V2
 # Get session token

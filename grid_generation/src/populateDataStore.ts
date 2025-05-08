@@ -1,38 +1,103 @@
-import DBGraphHandler from "./graph_handlers/dbGraphHandler";
-import GraphHandler from "./graph_handlers/graphHandler";
+import { GameType, InvalidGameTypeError, isValidGameType } from "common/src/gameTypes";
+import { allMovieCategories } from "./adapters/categories/movies";
+import TMDBGraphDataScraper from "./adapters/graph_data_scrapers/movies/tmdbGraphDataScraper";
+import PostgreSQLMovieDataStoreHandler from "./adapters/graph_data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
+import { Category } from "./ports/categories";
+import { EntityType, GraphData } from "./ports/graph";
+import GraphDataScraper from "./ports/graphDataScraper";
+import GraphDataStoreHandler from "./ports/graphDataStoreHandler";
 
-interface fetchDataArgs {
-  graphMode: "db";
+interface PopulateDataStoreArgs {
+  dataScraper: GraphDataScraper;
+  dataStoreHandler: GraphDataStoreHandler;
+  categories: { [key: number]: Category };
 }
 
-async function main(args: fetchDataArgs) {
-  const graphHandler = getGraphHandler(args);
+async function main(args: PopulateDataStoreArgs) {
+  const { dataScraper, dataStoreHandler, categories } = args;
 
-  await graphHandler.init();
+  // Get existing actors
+  const existingActors = await dataStoreHandler.getExistingNonCategoryAxisEntities();
 
-  await graphHandler.populateDataStore();
+  // Fetch data from TMDB
+  const graphData = await dataScraper.scrapeData(existingActors);
+
+  // Incorporate categories
+  addCategoriesToGraphDataInPlace(categories, graphData);
+
+  // Save data to DB
+  await dataStoreHandler.storeGraphData(graphData);
 }
 
-function getGraphHandler(args: fetchDataArgs): GraphHandler {
-  if (args.graphMode === "db") {
-    return new DBGraphHandler();
+/**
+ * Add categories to the graph data.
+ *
+ * NOTE: This function modifies the graphData in place.
+ *
+ * @param categories the categories to add
+ * @param graphData the graph data to add the categories to
+ * @returns the updated graph data with the categories added
+ */
+export function addCategoriesToGraphDataInPlace(
+  categories: { [key: number]: Category },
+  graphData: GraphData
+): void {
+  for (const [id, category] of Object.entries(categories)) {
+    /* Add category axis entity */
+    graphData.axisEntities[id] = {
+      id: id,
+      name: category.name,
+      entityType: EntityType.CATEGORY,
+    };
+
+    /* Add category connections */
+    for (const connection of Object.values(graphData.connections)) {
+      if (category.connectionFilter(connection)) {
+        graphData.links.push({
+          axisEntityId: id,
+          connectionId: connection.id,
+        });
+      }
+    }
   }
 }
 
-function processCLIArgs(): fetchDataArgs {
+function processCLIArgs(): PopulateDataStoreArgs {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    throw new Error("Usage: npx ts-node populateDataStore.ts <graphMode>");
+    const errorMessage =
+      "\n**************************************************\n" +
+      "Usage: npx ts-node populateDataStore.ts <game-type>\n" +
+      "\n" +
+      `game-type must be one of: [${Object.values(GameType).join(", ")}]\n` +
+      "\n" +
+      "**************************************************\n";
+
+    throw new Error(errorMessage);
   }
 
-  if (args[0] !== "db") {
-    throw new Error("graphMode must be 'db'");
+  if (!isValidGameType(args[0])) {
+    throw new InvalidGameTypeError(args[0]);
   }
 
-  const graphMode = args[0];
+  let dataScraper: GraphDataScraper;
+  let dataStoreHandler: GraphDataStoreHandler;
+  let categories: { [key: number]: Category };
+
+  // Movies
+  if (args[0] === GameType.MOVIES) {
+    dataScraper = new TMDBGraphDataScraper();
+    const postgreSQLDataStoreHandler = new PostgreSQLMovieDataStoreHandler();
+    postgreSQLDataStoreHandler.init();
+    dataStoreHandler = postgreSQLDataStoreHandler;
+
+    categories = allMovieCategories;
+  }
 
   return {
-    graphMode,
+    dataScraper: dataScraper,
+    dataStoreHandler: dataStoreHandler,
+    categories: categories,
   };
 }
 

@@ -1,44 +1,49 @@
 import { APIGatewayProxyEvent, Context, Handler } from "aws-lambda";
 
-import DBGraphHandler from "../graph_handlers/dbGraphHandler";
-import GraphHandler from "../graph_handlers/graphHandler";
-import { main } from "../index";
+import { GameType, InvalidGameTypeError, isValidGameType } from "common/src/gameTypes";
+import { isCreditValidForGridGen, MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO } from "src/adapters/graph/movies";
+import PostgreSQLMovieDataStoreHandler from "src/adapters/graph_data_store_handlers/movies/postgreSQLMovieDataStoreHandler";
+import PostgreSQLGridExporter from "src/adapters/grid_exporters/postgreSQLGridExporter";
+import S3GridExporter from "src/adapters/grid_exporters/s3GridExporter";
+import TMDBImageScraper from "src/adapters/image_scrapers/movies/tmdbImageScraper";
+import S3ImageStoreHandler from "src/adapters/image_store_handlers/movies/s3ImageStoreHandler";
+import { generateGrid, GridGenArgs } from "../generateGrid";
 
 interface EventGridGenArgs {
+  gameType: GameType;
+  gridSize: number;
   gridDate: string;
-  graphMode: "db";
+  gridBucket: string;
+  imageBucket: string;
   autoYes: boolean;
   autoRetry: boolean;
   overwriteImages: boolean;
 }
 
-type GraphModeType = EventGridGenArgs["graphMode"];
-
 interface EventWithGridGenArgs extends APIGatewayProxyEvent, EventGridGenArgs {}
 
 export const generateGridHandler: Handler = async (event: EventWithGridGenArgs, context: Context) => {
-  const eventArgs: EventGridGenArgs = getEventArgs(event);
+  const gridGenArgs: GridGenArgs = await processEventArgs(event);
 
-  const graphHandler = getGraphHandler(eventArgs.graphMode);
-
-  await graphHandler.init();
-
-  const gridGenArgs = {
-    ...eventArgs,
-    graphHandler,
-  };
-
-  const gridExport = await main(gridGenArgs);
-
-  await graphHandler.saveGrid(gridExport);
+  await generateGrid(gridGenArgs);
 
   return {
     statusCode: 200,
   };
 };
 
-function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
-  // If gridDate is not provided, set the date to tomorrow's date
+async function processEventArgs(event: EventWithGridGenArgs): Promise<GridGenArgs> {
+  /* Make sure gameType is valid */
+  if (!isValidGameType(event.gameType)) {
+    throw new InvalidGameTypeError(event.gameType);
+  }
+
+  /* If gridBucket is not provided, error */
+  if (!event.gridBucket) {
+    throw new Error("Value for gridBucket is required but missing");
+  }
+
+  /* If gridDate is not provided, set the date to tomorrow's date */
   let gridDate = event.gridDate;
   if (!gridDate) {
     const tomorrow = new Date();
@@ -53,25 +58,49 @@ function getEventArgs(event: EventWithGridGenArgs): EventGridGenArgs {
     }
   }
 
-  // All other arguments are required, enforce that here
-  const required_args = ["graphMode", "autoYes", "overwriteImages"];
-  if (!required_args.every((arg) => event.hasOwnProperty(arg))) {
-    throw new Error(`Missing required arguments: ${required_args.join(", ")}`);
+  /* Get the adapters for the given game type */
+  let dataStoreHandler;
+  let imageScraper;
+  let imageStoreHandler;
+  let connectionFilter;
+  let axisEntityTypeWeightInfo;
+  let gridExporters;
+  if (event.gameType === GameType.MOVIES) {
+    // Set up the data store handler
+    const postgreSQLdataStoreHandler = new PostgreSQLMovieDataStoreHandler();
+    await postgreSQLdataStoreHandler.init();
+    dataStoreHandler = postgreSQLdataStoreHandler;
+
+    // Set up image scraper and image store handler
+    imageScraper = new TMDBImageScraper();
+    imageScraper.getAndSetImagesBaseURL();
+    imageStoreHandler = new S3ImageStoreHandler(event.imageBucket);
+
+    // Set up the grid exporters
+    const postgreSQLGridExporter = new PostgreSQLGridExporter();
+    await postgreSQLGridExporter.init();
+    const s3GridExporter = new S3GridExporter(event.gridBucket, `${gridDate}.json`);
+    gridExporters = [postgreSQLGridExporter, s3GridExporter];
+
+    // Set up other game-type-specific args
+    connectionFilter = isCreditValidForGridGen;
+    axisEntityTypeWeightInfo = MOVIES_AXIS_ENTITY_TYPE_WEIGHT_INFO;
   }
 
   return {
+    gameType: event.gameType,
+    dataStoreHandler,
+    imageScraper,
+    imageStoreHandler,
+    gridExporters,
+    connectionFilter,
+    gridSize: event.gridSize,
+    axisEntityTypeWeightInfo,
     gridDate,
-    graphMode: event.graphMode,
     autoYes: event.autoYes,
     autoRetry: event.autoRetry,
     overwriteImages: event.overwriteImages,
   };
-}
-
-function getGraphHandler(graphMode: GraphModeType): GraphHandler {
-  if (graphMode === "db") {
-    return new DBGraphHandler();
-  }
 }
 
 /**
@@ -80,16 +109,45 @@ function getGraphHandler(graphMode: GraphModeType): GraphHandler {
  *******************************************************
  */
 
-function processCLIArgs(): [string, GraphModeType, boolean, boolean, boolean] {
+interface ParsedCLIArgs {
+  gameType: GameType;
+  gridSize: number;
+  gridDate: string;
+  gridBucket: string;
+  imageBucket: string;
+  autoYes: boolean;
+  autoRetry: boolean;
+  overwriteImages: boolean;
+}
+
+function processCLIArgs(): ParsedCLIArgs {
   const args = process.argv.slice(2);
+  let gameType: GameType = null;
+  let gridSize: number = null;
   let gridDate = null;
-  let graphMode: GraphModeType = null;
+  let gridBucket = null;
+  let imageBucket = null;
   let autoYes: boolean = false;
   let autoRetry: boolean = false;
   let overwriteImages = false;
 
-  if (args.length < 2) {
-    return [gridDate, graphMode, autoYes, autoRetry, overwriteImages];
+  const usageMessage =
+    "\n**************************************************\n" +
+    "Usage: npm run generate-grid -- <game-type> <grid-size> <grid-date> <grid-bucket> [--auto-yes] [--auto-retry] [--overwrite-images]\n\n" +
+    `game-type          must be one of: [${Object.values(GameType).join(", ")}]\n` +
+    "grid-size          the length of one side of the grid (e.g., 3 for a 3x3 grid)\n" +
+    "grid-date          in the format YYYY-MM-DD\n" +
+    "grid-bucket        the S3 bucket where the grid will be stored\n" +
+    "image-bucket       the S3 bucket where images will be stored\n" +
+    "--auto-yes         accept generated grids automatically\n" +
+    "--auto-retry       try again in the event of a failure to generate a grid\n" +
+    "--overwrite-images ignore existing images in S3\n" +
+    "\n" +
+    "**************************************************\n";
+
+  /* gameType, gridSize, gridDate, and gridBucket are required, everything else is not */
+  if (args.length < 4) {
+    throw new Error(`Not enough arguments\n${usageMessage}`);
   }
 
   for (let i = 0; i < args.length; i++) {
@@ -99,24 +157,42 @@ function processCLIArgs(): [string, GraphModeType, boolean, boolean, boolean] {
       autoYes = true;
     } else if (args[i] === "--auto-retry") {
       autoRetry = true;
+    } else if (!gameType) {
+      if (args[i] === GameType.MOVIES) {
+        gameType = args[i] as GameType;
+      } else {
+        throw new Error(`Invalid game type: ${args[i]}\n${usageMessage}`);
+      }
+    } else if (!gridSize) {
+      gridSize = parseInt(args[i]);
+      if (isNaN(gridSize) || gridSize <= 0) {
+        throw new Error(`Invalid grid size: ${args[i]}\n${usageMessage}`);
+      }
     } else if (!gridDate) {
       gridDate = args[i];
-    } else if (!graphMode) {
-      if (args[i] === "db") {
-        graphMode = args[i] as GraphModeType;
-      } else {
-        console.error(
-          "Usage: npm run generate-grid -- <grid-date> <graph-mode> [--overwrite-images]\n" +
-            "\ngrid-date should be supplied in the format YYYY-MM-DD\n" +
-            "graph-mode should be 'db'\n" +
-            "--overwrite-images will ignore existing images in S3\n"
-        );
-        return [null, null, null, null, null];
-      }
+    } else if (!gridBucket) {
+      gridBucket = args[i];
+    } else if (!imageBucket) {
+      imageBucket = args[i];
     }
   }
 
-  return [gridDate, graphMode, autoYes, autoRetry, overwriteImages];
+  if (!gameType || !gridSize || !gridDate || !gridBucket || !imageBucket) {
+    throw new Error(
+      `At least one of [gameType, gridSize, gridDate, gridBucket, imageBucket] is missing/invalid\n${usageMessage}`
+    );
+  }
+
+  return {
+    gameType,
+    gridSize,
+    gridDate,
+    gridBucket,
+    imageBucket,
+    autoYes,
+    autoRetry,
+    overwriteImages,
+  };
 }
 
 if (require.main === module) {
@@ -217,13 +293,16 @@ if (require.main === module) {
   };
 
   // Add the CLI arguments to the event object
-  const cliArgs = processCLIArgs();
+  const cliArgs: ParsedCLIArgs = processCLIArgs();
   const customEvent = event as EventWithGridGenArgs;
-  customEvent.gridDate = cliArgs[0];
-  customEvent.graphMode = cliArgs[1];
-  customEvent.autoYes = cliArgs[2];
-  customEvent.autoRetry = cliArgs[3];
-  customEvent.overwriteImages = cliArgs[4];
+  customEvent.gameType = cliArgs.gameType;
+  customEvent.gridSize = cliArgs.gridSize;
+  customEvent.gridDate = cliArgs.gridDate;
+  customEvent.gridBucket = cliArgs.gridBucket;
+  customEvent.imageBucket = cliArgs.imageBucket;
+  customEvent.autoYes = cliArgs.autoYes;
+  customEvent.autoRetry = cliArgs.autoRetry;
+  customEvent.overwriteImages = cliArgs.overwriteImages;
 
   generateGridHandler(customEvent, null, null);
 }
