@@ -4,7 +4,7 @@ _May 19, 2025: I've decided to put this project down for the time being. Any con
 
 Based on https://www.immaculategrid.com/
 
-A diagram describing the architecture can be found [here](https://lucid.app/lucidchart/9244bdd4-6d02-4d62-a731-c3401797f4bf/edit?viewport_loc=-260%2C-98%2C2304%2C1141%2C0_0&invitationId=inv_80f93059-d2f0-4a7a-b150-2c8c06fe559d).
+A diagram describing the architecture can be found [here](https://lucid.app/lucidchart/9244bdd4-6d02-4d62-a731-c3401797f4bf/view).
 
 ## Local development
 
